@@ -1,0 +1,24 @@
+# FastAPI (uvicorn, dotenv, email, etc.)
+fastapi[all]>=0.110.0
+
+# HTTP requests
+httpx>=0.26.0
+
+# Database
+sqlalchemy>=2.0.25
+asyncpg>=0.29.0
+psycopg2-binary>=2.9.9
+
+# Settings management
+pydantic-settings>=2.0.0
+
+# Migrations
+alembic>=1.13.0
+
+# Modern security
+pwdlib[argon2]>=0.2.0
+python-multipart>=0.0.9
+
+# JWT
+pyjwt>=2.8.0
+cryptography>=42.0.0

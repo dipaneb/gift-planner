@@ -1,0 +1,14 @@
+# Include all production dependencies
+-r requirements-prod.txt
+
+# Development and testing tools
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+
+# Code quality and formatting
+black>=24.1.0
+ruff>=0.2.0
+
+# Development utilities
+ipython>=8.20.0
+watchfiles>=0.21.0
