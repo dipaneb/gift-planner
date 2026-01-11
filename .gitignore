@@ -1,92 +1,242 @@
+# # ============================================================================
+# # SENSITIVE DATA - Environment Variables
+# # ============================================================================
+# # Environment files (keep .env.example for reference)
+# .env
+# .env.dev
+# .env.prod
+# .env.local
+# backend/.env
+# backend/.env.dev
+# backend/.env.prod
+# frontend/.env
+# frontend/.env.local
+
+# # ============================================================================
+# # PYTHON - Backend
+# # ============================================================================
+# # Byte-compiled / optimized / DLL files
+# */*/__pycache__/
+# */__pycache__/
+# *.py[cod]
+# *$py.class
+# *.so
+
+# # Distribution / packaging
+# .Python
+# build/
+# develop-eggs/
+# dist/
+# downloads/
+# eggs/
+# .eggs/
+# lib/
+# lib64/
+# parts/
+# sdist/
+# var/
+# wheels/
+# *.egg-info/
+# .installed.cfg
+# *.egg
+
+# # Virtual environments
+# venv/
+# env/
+# ENV/
+# .venv
+
+# # Testing
+# .pytest_cache/
+# .coverage
+# htmlcov/
+# .tox/
+# .hypothesis/
+
+# # Jupyter Notebook
+# .ipynb_checkpoints
+
+# # Database
+# *.db
+# *.sqlite
+# *.sqlite3
+
+# # Alembic
+# alembic/versions/*.pyc
+
+# # ============================================================================
+# # NODE.JS / JAVASCRIPT - Frontend
+# # ============================================================================
+# # Dependencies (LARGE FILES)
+# node_modules/
+# npm-debug.log*
+# yarn-debug.log*
+# yarn-error.log*
+# pnpm-debug.log*
+
+# # Build outputs
+# .next/
+# out/
+# build/
+# dist/
+# .nuxt/
+# .cache/
+
+# # ============================================================================
+# # DOCKER
+# # ============================================================================
+# # Docker volumes data (if any are mounted locally)
+# docker-data/
+# postgres-data/
+
+# # ============================================================================
+# # IDE / EDITOR
+# # ============================================================================
+# # VSCode
+# .vscode/
+# *.code-workspace
+
+# # PyCharm
+# .idea/
+# *.iml
+
+# # Vim
+# *.swp
+# *.swo
+# *~
+
+# # Emacs
+# *~
+# \#*\#
+
+# # Sublime Text
+# *.sublime-project
+# *.sublime-workspace
+
+# # ============================================================================
+# # OPERATING SYSTEM
+# # ============================================================================
+# # macOS
+# .DS_Store
+# .AppleDouble
+# .LSOverride
+# ._*
+
+# # Windows
+# Thumbs.db
+# ehthumbs.db
+# Desktop.ini
+
+# # Linux
+# *~
+
+# # ============================================================================
+# # LOGS & TEMPORARY FILES
+# # ============================================================================
+# *.log
+# logs/
+# *.tmp
+# *.temp
+
+# # ============================================================================
+# # PROJECT SPECIFIC
+# # ============================================================================
+# # Local development notes
+# notes.txt
+# TODO.md
+# scratch/
+
+
 # ============================================================================
 # SENSITIVE DATA - Environment Variables
 # ============================================================================
-# Environment files (keep .env.example for reference)
+# Root (si jamais)
 .env
-.env.dev
-.env.prod
 .env.local
+.env.*.local
+
+# Backend env files
 backend/.env
-backend/.env.dev
-backend/.env.prod
+backend/.env.*
+backend/**/.env
+
+# Frontend env files
 frontend/.env
-frontend/.env.local
+frontend/.env.*
+frontend/**/.env
+
 
 # ============================================================================
-# PYTHON - Backend
+# PYTHON - Backend (FastAPI)
 # ============================================================================
 # Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
+backend/**/__pycache__/
+backend/**/*.py[cod]
+backend/**/*$py.class
+backend/**/*.so
 
 # Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+backend/.Python
+backend/build/
+backend/dist/
+backend/*.egg-info/
+backend/.eggs/
+backend/wheels/
+backend/*.egg
+backend/.installed.cfg
 
 # Virtual environments
-venv/
-env/
-ENV/
-.venv
+backend/venv/
+backend/env/
+backend/ENV/
+backend/.venv/
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.hypothesis/
+# Testing / coverage
+backend/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
+backend/.tox/
+backend/.hypothesis/
 
-# Jupyter Notebook
-.ipynb_checkpoints
+# Jupyter
+backend/.ipynb_checkpoints/
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
+# Databases
+backend/**/*.db
+backend/**/*.sqlite
+backend/**/*.sqlite3
 
 # Alembic
-alembic/versions/*.pyc
+backend/alembic/versions/*.pyc
+
 
 # ============================================================================
-# NODE.JS / JAVASCRIPT - Frontend
+# NODE.JS / JAVASCRIPT - Frontend (Vue)
 # ============================================================================
-# Dependencies (LARGE FILES)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+# Dependencies
+frontend/node_modules/
+
+# Logs
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
 
 # Build outputs
-.next/
-out/
-build/
-dist/
-.nuxt/
-.cache/
+frontend/dist/
+frontend/build/
+frontend/.nuxt/
+frontend/.next/
+frontend/out/
+frontend/.cache/
+
 
 # ============================================================================
 # DOCKER
 # ============================================================================
-# Docker volumes data (if any are mounted locally)
 docker-data/
 postgres-data/
+
 
 # ============================================================================
 # IDE / EDITOR
@@ -95,22 +245,21 @@ postgres-data/
 .vscode/
 *.code-workspace
 
-# PyCharm
+# PyCharm / JetBrains
 .idea/
 *.iml
 
 # Vim
 *.swp
 *.swo
-*~
 
 # Emacs
-*~
 \#*\#
 
 # Sublime Text
 *.sublime-project
 *.sublime-workspace
+
 
 # ============================================================================
 # OPERATING SYSTEM
@@ -126,21 +275,19 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# Linux
-*~
 
 # ============================================================================
-# LOGS & TEMPORARY FILES
+# LOGS & TEMP FILES
 # ============================================================================
-*.log
+**/*.log
+**/*.tmp
+**/*.temp
 logs/
-*.tmp
-*.temp
+
 
 # ============================================================================
 # PROJECT SPECIFIC
 # ============================================================================
-# Local development notes
 notes.txt
 TODO.md
 scratch/
