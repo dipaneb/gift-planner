@@ -1,31 +1,21 @@
 from contextlib import asynccontextmanager
+from typing import Annotated
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session
 
-from .settings import settings
+from src.infrastructure.database.session import get_db
+from src.config.settings import settings
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # startup code
-    engine = create_engine(str(settings.database_url))
-    with engine.connect() as conn:
-        conn.execute(
-            text("CREATE TABLE IF NOT EXISTS test (id SERIAL PRIMARY KEY, name TEXT)")
-        )
-        conn.commit()
-    yield
-    # shutdown code
-
-app = FastAPI(debug=settings.debug, lifespan=lifespan)
+app = FastAPI(debug=settings.DEBUG)
 
 @app.get("/")
-async def root():
-    engine = create_engine(str(settings.database_url))
-    with engine.connect() as conn:
-        result = conn.execute(text("SELECT * FROM test")).fetchall()
+async def root(db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(text("SELECT * FROM test")).scalars().all()
     return {
+        "result": result,
         "message": "Hello FastAPI with Settings",
         "data": [dict(row) for row in result],
     }

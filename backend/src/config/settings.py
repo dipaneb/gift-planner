@@ -1,5 +1,4 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import PostgresDsn
 
 
 class Settings(BaseSettings):
@@ -10,9 +9,9 @@ class Settings(BaseSettings):
         # They are then read from the environment by the Settings class.
     )
 
-    database_url: PostgresDsn
-    debug: bool = False
-    secret_key: str = "default_secret_key_to_change_in_production"
+    DATABASE_URL: str
+    DEBUG: bool = False
+    SECRET_KEY: str = "default_secret_key_to_change_in_production"
 
 
 settings = Settings()

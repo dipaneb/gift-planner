@@ -1,6 +1,6 @@
 FROM python:3.14-slim-bookworm
 
-WORKDIR /code
+WORKDIR /app
 
 # Install system dependencies for development
 RUN apt-get update && apt-get install -y \
@@ -15,7 +15,7 @@ COPY requirements-prod.txt requirements-dev.txt ./
 RUN pip install --no-cache-dir --upgrade -r requirements-dev.txt
 
 # Copy source code
-COPY src/ ./src/
+# COPY src/ ./src/
 
 # Expose port
 EXPOSE 8000

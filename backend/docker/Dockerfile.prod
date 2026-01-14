@@ -1,6 +1,6 @@
-FROM python:3.12-slim
+FROM python:3.14-slim-bookworm
 
-WORKDIR /code
+WORKDIR /app
 
 # Copy requirements
 COPY requirements-prod.txt .
@@ -9,10 +9,10 @@ COPY requirements-prod.txt .
 RUN pip install --no-cache-dir --upgrade -r requirements-prod.txt
 
 # Copy source code
-COPY src/ ./src/
+COPY . .
 
 # Expose port
 EXPOSE 8000
 
 # Command to run the app
-CMD ["fastapi", "prod", "src/main.py"]
+CMD ["fastapi", "run", "src/main.py"]

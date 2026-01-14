@@ -26,6 +26,7 @@ dev-logs:
 dev-rebuild:
 	docker compose -f backend/docker/docker-compose.dev.yml up -d --build
 
+
 # ============================================================================
 # PRODUCTION COMMANDS
 # ============================================================================
@@ -50,6 +51,48 @@ prod-logs:
 # Use after changing requirements.txt or Dockerfile.prod
 prod-rebuild:
 	docker compose -f backend/docker/docker-compose.prod.yml up -d --build
+
+
+# ============================================================================
+# ALEMBIC (DATABASE MIGRATIONS)
+# ============================================================================
+
+alembic-dev-init:
+	docker compose -f backend/docker/docker-compose.dev.yml exec api alembic init alembic
+
+alembic-dev-rev:
+	if [ -z "$(m)" ]; then \
+		echo "Erreur: le message '-m' est manquant. Utilisez: make alembic-rev m=\"votre message\""; \
+		exit 1; \
+	fi
+	docker compose -f backend/docker/docker-compose.dev.yml exec api alembic revision --autogenerate -m "$(m)"
+
+alembic-dev-up:
+	docker compose -f backend/docker/docker-compose.dev.yml exec api alembic upgrade head
+
+alembic-dev-down:
+	docker compose -f backend/docker/docker-compose.dev.yml exec api alembic downgrade -1
+
+alembic-dev-history:
+	docker compose -f backend/docker/docker-compose.dev.yml exec api alembic history
+
+alembic-dev-current:
+	docker compose -f backend/docker/docker-compose.dev.yml exec api alembic current
+
+
+# ============================================================================
+# ALEMBIC - PRODUCTION (read-only migrations)
+# ============================================================================
+
+alembic-prod-up:
+	docker compose -f backend/docker/docker-compose.yml exec api alembic upgrade head
+
+alembic-prod-current:
+	docker compose -f backend/docker/docker-compose.yml exec api alembic current
+
+alembic-prod-history:
+	docker compose -f backend/docker/docker-compose.yml exec api alembic history
+
 
 # ============================================================================
 # TESTING & CODE QUALITY COMMANDS
