@@ -33,10 +33,12 @@ class Group(Base):
     )
 
     user: Mapped["User"] = relationship(
+        "User",
         back_populates="groups"
     )
 
-    members: Mapped[list["recipient"]] = relationship(
+    members: Mapped[list["Recipient"]] = relationship(
+        "Recipient",
         secondary="group_members",
         back_populates="groups",
     )

@@ -38,15 +38,18 @@ class Recipient(Base):
     )
 
     user: Mapped["User"] = relationship(
+        "User",
         back_populates="recipients"
     )
 
     groups: Mapped[list["Group"]] = relationship(
+        "Group",
         secondary="group_members",
         back_populates="members",
     )
 
     gifts: Mapped[list["Gift"]] = relationship(
+        "Gift",
         secondary="gift_recipients",
         back_populates="recipients",
     )

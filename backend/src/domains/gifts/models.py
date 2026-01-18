@@ -57,10 +57,12 @@ class Gift(Base):
     )
 
     user: Mapped["User"] = relationship(
+        "User",
         back_populates="gifts"
     )
 
-    recipients: Mapped[list["recipient"]] = relationship(
+    recipients: Mapped[list["Recipient"]] = relationship(
+        "Recipient",
         secondary="gift_recipients",
         back_populates="gifts",
     )

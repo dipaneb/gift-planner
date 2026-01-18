@@ -28,22 +28,24 @@ class User(Base):
         nullable=False,
     )
 
-    name: Mapped[str] = mapped_column(
+    name: Mapped[str | None] = mapped_column(
         String(255),
     )
 
-    # Relations (navigation uniquement)
-    recipients: Mapped[list["recipient"]] = relationship(
+    groups: Mapped[list["Group"]] = relationship(
+        "Group",
         back_populates="user",
         cascade="all, delete-orphan",
     )
 
-    groups: Mapped[list["Group"]] = relationship(
+    recipients: Mapped[list["Recipient"]] = relationship(
+        "Recipient",
         back_populates="user",
         cascade="all, delete-orphan",
     )
 
     gifts: Mapped[list["Gift"]] = relationship(
+        "Gift",
         back_populates="user",
         cascade="all, delete-orphan",
     )
