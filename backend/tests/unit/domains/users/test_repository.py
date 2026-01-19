@@ -1,4 +1,4 @@
-from src.domains.auth.repository import UserRepository
+from src.domains.users.repository import UserRepository
 from src.domains.users.models import User
 
 

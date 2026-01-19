@@ -4,7 +4,7 @@ import pytest
 class TestEmailNormalizationIntegration:
     
     def test_register_email_normalized_to_lowercase(self, client, db_session):
-        from src.domains.auth.repository import UserRepository
+        from src.domains.users.repository import UserRepository
         
         user_data = {
             "email": "MixedCase@EXAMPLE.COM",

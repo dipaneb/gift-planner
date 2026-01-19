@@ -4,14 +4,15 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
 
-from src.config.settings import settings
+from src.config.settings import get_settings
 from src.infrastructure.database.base import Base
 from src.domains.users import models as user_models
+from src.domains.auth import models as auth_models
 from src.domains.gifts import models as gifts_models
 from src.domains.groups import models as groups_models
 from src.domains.recipients import models as recipients_models
 
-
+settings = get_settings()
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

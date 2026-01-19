@@ -1,3 +1,5 @@
+from functools import lru_cache
+from typing import Literal
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -15,6 +17,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
 
     # Environment
+    ENV: Literal["production", "development"] = 'production'
     DEBUG: bool = False
     ENABLE_DOCS: bool = False
 
@@ -35,6 +38,11 @@ class Settings(BaseSettings):
 
     # Security
     SECRET_KEY: str = "default_secret_key_to_change_in_production"
+    REFRESH_TOKEN_TTL_DAYS: int = 30
+    ACCESS_TOKEN_LIFESPAN_IN_MINUTES: int = 15
 
 
-settings = Settings()
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()

@@ -58,3 +58,8 @@ class UserCreate(BaseModel):
             raise ValueError("Password and confirm password do not match.")
         return self
     
+
+class LoginData(BaseModel):
+    access_token: str
+    token_type: str = Field(default="bearer")
+    expires_in: int  # secondes

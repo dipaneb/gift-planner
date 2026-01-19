@@ -119,7 +119,7 @@ class TestRegisterEndpoint:
         assert "special" in response.text.lower()
     
     def test_register_multiple_users_success(self, client, db_session):
-        from src.domains.auth.repository import UserRepository
+        from src.domains.users.repository import UserRepository
         
         user1_data = {
             "email": "user1@example.com",
@@ -150,7 +150,7 @@ class TestRegisterEndpoint:
         assert user2.name == "User Two"
     
     def test_register_normalizes_whitespace_in_name(self, client, db_session):
-        from src.domains.auth.repository import UserRepository
+        from src.domains.users.repository import UserRepository
         
         user_data = {
             "email": "whitespace@example.com",
@@ -168,7 +168,7 @@ class TestRegisterEndpoint:
         assert created_user.name == "Test User"
     
     def test_register_empty_name_becomes_none(self, client, db_session):
-        from src.domains.auth.repository import UserRepository
+        from src.domains.users.repository import UserRepository
         
         user_data = {
             "email": "emptyname@example.com",
@@ -189,7 +189,7 @@ class TestRegisterEndpoint:
         assert created_user.name is None
     
     def test_register_long_password_accepted(self, client, db_session):
-        from src.domains.auth.repository import UserRepository
+        from src.domains.users.repository import UserRepository
         from src.domains.auth.password_handler import verify_password
         
         long_password = "VeryLongSecurePassword123!" * 5
