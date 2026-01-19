@@ -15,12 +15,3 @@ def create_access_token(*, subject: str, expires_minutes: int) -> str:
         "exp": int((now + timedelta(minutes=expires_minutes)).timestamp()),
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
-
-def create_refresh_token(subject: str, jti: str) -> str:
-    pass
-
-def decode_token(token: str) -> dict:
-    pass
-
-def verify_token(token: str) -> dict:
-    pass

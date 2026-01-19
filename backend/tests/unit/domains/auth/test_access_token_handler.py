@@ -2,7 +2,7 @@ import pytest
 import jwt
 from datetime import datetime, timezone, timedelta
 
-from src.domains.auth.jwt_handler import create_access_token
+from src.domains.auth.access_token_handler import create_access_token
 from src.config.settings import get_settings
 
 settings = get_settings()
