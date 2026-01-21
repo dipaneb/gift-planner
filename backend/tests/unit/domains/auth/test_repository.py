@@ -251,7 +251,7 @@ class TestRefreshTokenRepositoryDeleteAllForUser:
         tokens_before = db_session.execute(stmt).scalars().all()
         assert len(tokens_before) == 3
         
-        repo.delete_all_for_user(user_id)
+        repo.delete_all_tokens_for_user(user_id)
         
         tokens_after = db_session.execute(stmt).scalars().all()
         assert len(tokens_after) == 0
@@ -277,7 +277,7 @@ class TestRefreshTokenRepositoryDeleteAllForUser:
         repo.create(token1)
         repo.create(token2)
         
-        repo.delete_all_for_user(user1_id)
+        repo.delete_all_tokens_for_user(user1_id)
         
         stmt1 = select(RefreshToken).where(RefreshToken.user_id == user1_id)
         user1_tokens = db_session.execute(stmt1).scalars().all()
@@ -291,7 +291,7 @@ class TestRefreshTokenRepositoryDeleteAllForUser:
         repo = RefreshTokenRepository(db_session)
         user_id = uuid.uuid4()
         
-        repo.delete_all_for_user(user_id)
+        repo.delete_all_tokens_for_user(user_id)
         
         stmt = select(RefreshToken).where(RefreshToken.user_id == user_id)
         tokens = db_session.execute(stmt).scalars().all()

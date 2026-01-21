@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Cookie, Depends, status, Response, HTTPException
+from fastapi import APIRouter, Body, Cookie, Depends, Request, status, Response, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 
 from src.config.settings import get_settings
@@ -41,7 +41,7 @@ def login(response: Response, auth_service: Annotated[AuthService, Depends()], f
         httponly=True,
         secure=(settings.ENV == "production"),
         samesite="strict",
-        path="/auth/refresh",  # limits cookie sending to the refresh endpoint
+        path="/auth",  # limits cookie sending to the refresh endpoint
         max_age=60 * 60 * 24 * 30,  # 30 days (should match refresh token TTL)
     )
 
@@ -49,24 +49,16 @@ def login(response: Response, auth_service: Annotated[AuthService, Depends()], f
 
 
 @router.post("/refresh", response_model=LoginData)
-def refresh(old_raw_refresh_token: Annotated[str | None, Cookie(alias="refresh_token")], response: Response, auth_service: Annotated[AuthService, Depends()]):
-    """
-    The refresh_token field is a "bug" as it is meant to be the value of the cookie named "refresh_token".\n
-    But even though swagger asks for it, it can't be sent directly via this field.\n
-    A value should be provided just for swagger not to complain but the real value will be set in the request cookies automatically.
-
-    Look here for a better explaination: https://fastapi.tiangolo.com/tutorial/cookie-param-models/#check-the-docs.
-    \f
-    The above message purpose is to be displayed on swagger because using Cookie() instead of request: Request and then request.cookies.get("refresh_token") yield a weird behavior explained here: https://fastapi.tiangolo.com/tutorial/cookie-param-models/#check-the-docs.
-    """
+def refresh(request: Request, response: Response, auth_service: Annotated[AuthService, Depends()]):
+    old_raw_refresh_token = request.cookies.get("refresh_token")
     if not old_raw_refresh_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
     try:
         user_id, new_refresh_raw = auth_service.rotate(old_raw_refresh_token)
     except ValueError as e:
-        # On nettoie le cookie côté client dans tous les cas
-        response.delete_cookie(key="refresh_token", path="/auth/refresh")
+        # Deleting the cookie from client side eitherway.
+        response.delete_cookie(key="refresh_token", path="/auth")
         if str(e) in {"refresh_reuse", "invalid_refresh", "refresh_expired"}:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
         raise
@@ -80,7 +72,7 @@ def refresh(old_raw_refresh_token: Annotated[str | None, Cookie(alias="refresh_t
         httponly=True,
         secure=(settings.ENV == "production"),
         samesite="strict",
-        path="/auth/refresh",  # limits cookie sending to the refresh endpoint
+        path="/auth",  # limits cookie sending to the refresh endpoint
         max_age=60 * 60 * 24 * 30,  # 30 days (should match refresh token TTL)
     )
 
@@ -88,3 +80,18 @@ def refresh(old_raw_refresh_token: Annotated[str | None, Cookie(alias="refresh_t
         access_token=new_access_token,
         expires_in=access_token_lifespan_in_minutes * 60,
     )
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+# def logout(raw_refresh_token: Annotated[str | None, Cookie(alias="refresh_token")], response: Response, auth_service: Annotated[AuthService, Depends()]):
+def logout(request: Request, response: Response, auth_service: Annotated[AuthService, Depends()]):
+    raw_refresh_token = request.cookies.get("refresh_token")
+    
+    # always delete the cookie on client side, even when absent/invalid.
+    response.delete_cookie(key="refresh_token", path="/auth")
+
+    if not raw_refresh_token:
+        return
+    
+    auth_service.global_logout(raw_refresh_token)
+    return

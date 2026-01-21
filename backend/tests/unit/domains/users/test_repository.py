@@ -30,6 +30,39 @@ class TestUserRepositoryGetByEmail:
         assert result.name == "User 1"
 
 
+class TestUserRepositoryGetById:
+    
+    def test_get_by_id_existing_user(self, db_session, sample_user):
+        repo = UserRepository(db_session)
+        result = repo.get_by_id(sample_user.id)
+        assert result is not None
+        assert result.id == sample_user.id
+        assert result.email == sample_user.email
+    
+    def test_get_by_id_non_existing_user(self, db_session):
+        import uuid
+        repo = UserRepository(db_session)
+        non_existent_id = uuid.uuid4()
+        result = repo.get_by_id(non_existent_id)
+        assert result is None
+    
+    def test_get_by_id_returns_correct_user_when_multiple_exist(self, db_session):
+        user1 = User(email="user1@example.com", password_hash="hash1", name="User 1")
+        user2 = User(email="user2@example.com", password_hash="hash2", name="User 2")
+        db_session.add(user1)
+        db_session.add(user2)
+        db_session.commit()
+        db_session.refresh(user1)
+        db_session.refresh(user2)
+        
+        repo = UserRepository(db_session)
+        result = repo.get_by_id(user1.id)
+        assert result is not None
+        assert result.id == user1.id
+        assert result.email == "user1@example.com"
+        assert result.name == "User 1"
+
+
 class TestUserRepositoryCreate:
     
     def test_create_user_success(self, db_session):

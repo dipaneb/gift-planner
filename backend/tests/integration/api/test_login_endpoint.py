@@ -70,7 +70,7 @@ class TestLoginEndpoint:
         
         assert "httponly" in cookies.lower()
         assert "samesite=strict" in cookies.lower()
-        assert "path=/auth/refresh" in cookies.lower()
+        assert "path=/auth" in cookies.lower()
     
     def test_login_invalid_email(self, client):
         response = client.post(

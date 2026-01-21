@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.infrastructure.database.session import get_db
-from src.domains.users.models import User
+from .models import User
 
 class UserRepository:
     def __init__(self, db: Annotated[Session, Depends(get_db)]):
@@ -13,6 +13,10 @@ class UserRepository:
             
     def get_by_email(self, email: str) -> User | None:
         stmt = select(User).where(User.email == email)
+        return self.db.execute(stmt).scalar_one_or_none()
+    
+    def get_by_id(self, user_id: uuid.UUID) -> User | None:
+        stmt = select(User).where(User.id == user_id)
         return self.db.execute(stmt).scalar_one_or_none()
     
     def create(self, user: User) -> User:

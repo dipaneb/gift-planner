@@ -34,6 +34,7 @@ class AuthService:
         user = User(email=user_create.email, name=user_create.name, password_hash=hashed_password)
         return self.user_repo.create(user)
 
+
     def login(self, email: str, password: str) -> tuple[str, str, int]:
         """
         Return (access_token, refresh_token_raw, expires_in_seconds)
@@ -60,6 +61,22 @@ class AuthService:
         return access_token, raw_refresh_token, expires_in_seconds
     
 
+    def global_logout(self, raw_token: str) -> None:
+        refresh_token_fingerprint = get_refresh_token_fingerprint(raw_token)
+        refresh_token = self.refresh_token_repo.get_by_fingerprint(refresh_token_fingerprint)
+
+        # Same behavior even with invalid token: deleting the cookie on client side.
+        if refresh_token is None:
+            return
+
+        # Optionnal: check argon2 before deleting to avoid
+        # a logout if an attacker spam random values and collide with fingerprint.
+        if not verify_refresh_token(raw_token, refresh_token.token_hash):
+            return
+
+        self.refresh_token_repo.delete_all_tokens_for_user(refresh_token.user_id)
+
+
     def rotate(self, old_raw_refresh_token: str) -> tuple[uuid.UUID, str]:
         """
         Returns (user_id, new_raw_refresh_token)
@@ -74,7 +91,7 @@ class AuthService:
         
         # If refresh token already revoked => possible reuse => cyberattack or concurent refresh
         if token.revoked_at is not None:
-            self.refresh_token_repo.delete_all_for_user(token.user_id)
+            self.refresh_token_repo.delete_all_tokens_for_user(token.user_id)
             raise ValueError("refresh_reuse")
         
         # Expired

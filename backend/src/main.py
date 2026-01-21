@@ -2,12 +2,12 @@ from typing import Annotated
 
 from fastapi import FastAPI, Depends
 from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from src.infrastructure.database.session import get_db
 from src.config.settings import get_settings
+from src.infrastructure.database.session import get_db
 from src.domains.auth.router import router as auth_router
+from src.domains.users.router import router as users_router
 
 settings = get_settings()
 
@@ -18,6 +18,7 @@ app = FastAPI(
     openapi_url=settings.OPENAPI_URL,
 )
 app.include_router(auth_router)
+app.include_router(users_router)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 

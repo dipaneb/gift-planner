@@ -346,7 +346,7 @@ class TestAuthServiceRotate:
             auth_service.rotate(old_raw_token)
         
         assert str(exc_info.value) == "refresh_reuse"
-        mock_refresh_token_repo.delete_all_for_user.assert_called_once_with(user_id)
+        mock_refresh_token_repo.delete_all_tokens_for_user.assert_called_once_with(user_id)
     
     def test_rotate_expired_token_raises_error(self, auth_service, mock_refresh_token_repo):
         user_id = uuid.uuid4()
@@ -461,3 +461,107 @@ class TestAuthServiceRotate:
                 auth_service.rotate(old_raw_token)
         
         assert str(exc_info.value) == "refresh_rotation_failed"
+
+
+class TestAuthServiceGlobalLogout:
+    
+    @pytest.fixture
+    def mock_user_repo(self):
+        return Mock(spec=UserRepository)
+    
+    @pytest.fixture
+    def mock_refresh_token_repo(self):
+        return Mock(spec=RefreshTokenRepository)
+    
+    @pytest.fixture
+    def auth_service(self, mock_user_repo, mock_refresh_token_repo):
+        return AuthService(mock_user_repo, mock_refresh_token_repo)
+    
+    def test_global_logout_success(self, auth_service, mock_refresh_token_repo):
+        user_id = uuid.uuid4()
+        raw_token = "valid_token_abc123"
+        
+        token = RefreshToken(
+            id=uuid.uuid4(),
+            user_id=user_id,
+            token_fingerprint="fingerprint",
+            token_hash="hash",
+            expires_at=datetime.now(timezone.utc) + timedelta(days=30),
+            revoked_at=None
+        )
+        
+        mock_refresh_token_repo.get_by_fingerprint.return_value = token
+        
+        with patch('src.domains.auth.service.verify_refresh_token', return_value=True):
+            auth_service.global_logout(raw_token)
+        
+        mock_refresh_token_repo.delete_all_tokens_for_user.assert_called_once_with(user_id)
+    
+    def test_global_logout_token_not_found_does_not_delete(self, auth_service, mock_refresh_token_repo):
+        raw_token = "nonexistent_token"
+        
+        mock_refresh_token_repo.get_by_fingerprint.return_value = None
+        
+        auth_service.global_logout(raw_token)
+        
+        mock_refresh_token_repo.delete_all_tokens_for_user.assert_not_called()
+    
+    def test_global_logout_invalid_hash_does_not_delete(self, auth_service, mock_refresh_token_repo):
+        user_id = uuid.uuid4()
+        raw_token = "wrong_token"
+        
+        token = RefreshToken(
+            id=uuid.uuid4(),
+            user_id=user_id,
+            token_fingerprint="fingerprint",
+            token_hash="correct_hash",
+            expires_at=datetime.now(timezone.utc) + timedelta(days=30),
+            revoked_at=None
+        )
+        
+        mock_refresh_token_repo.get_by_fingerprint.return_value = token
+        
+        with patch('src.domains.auth.service.verify_refresh_token', return_value=False):
+            auth_service.global_logout(raw_token)
+        
+        mock_refresh_token_repo.delete_all_tokens_for_user.assert_not_called()
+    
+    def test_global_logout_with_expired_token(self, auth_service, mock_refresh_token_repo):
+        user_id = uuid.uuid4()
+        raw_token = "expired_token"
+        
+        token = RefreshToken(
+            id=uuid.uuid4(),
+            user_id=user_id,
+            token_fingerprint="fingerprint",
+            token_hash="hash",
+            expires_at=datetime.now(timezone.utc) - timedelta(days=1),
+            revoked_at=None
+        )
+        
+        mock_refresh_token_repo.get_by_fingerprint.return_value = token
+        
+        with patch('src.domains.auth.service.verify_refresh_token', return_value=True):
+            auth_service.global_logout(raw_token)
+        
+        mock_refresh_token_repo.delete_all_tokens_for_user.assert_called_once_with(user_id)
+    
+    def test_global_logout_with_already_revoked_token(self, auth_service, mock_refresh_token_repo):
+        user_id = uuid.uuid4()
+        raw_token = "revoked_token"
+        
+        token = RefreshToken(
+            id=uuid.uuid4(),
+            user_id=user_id,
+            token_fingerprint="fingerprint",
+            token_hash="hash",
+            expires_at=datetime.now(timezone.utc) + timedelta(days=30),
+            revoked_at=datetime.now(timezone.utc) - timedelta(hours=1)
+        )
+        
+        mock_refresh_token_repo.get_by_fingerprint.return_value = token
+        
+        with patch('src.domains.auth.service.verify_refresh_token', return_value=True):
+            auth_service.global_logout(raw_token)
+        
+        mock_refresh_token_repo.delete_all_tokens_for_user.assert_called_once_with(user_id)

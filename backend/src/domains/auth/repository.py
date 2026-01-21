@@ -21,7 +21,7 @@ class RefreshTokenRepository:
 
     def get_by_fingerprint(self, fingerprint: str) -> RefreshToken | None:
         stmt = select(RefreshToken).where(RefreshToken.token_fingerprint == fingerprint)
-        return self.db.scalar(stmt)
+        return self.db.execute(stmt).scalar_one_or_none()
     
     def revoke(self, token_id, *, replaced_by_id=None) -> None:
         now = datetime.now(timezone.utc)
@@ -29,7 +29,7 @@ class RefreshTokenRepository:
         self.db.execute(stmt)
         self.db.commit()
     
-    def delete_all_for_user(self, user_id) -> None:
+    def delete_all_tokens_for_user(self, user_id) -> None:
         stmt = delete(RefreshToken).where(RefreshToken.user_id == user_id)
         self.db.execute(stmt)
         self.db.commit()
