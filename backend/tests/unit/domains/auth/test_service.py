@@ -9,7 +9,7 @@ from src.domains.auth.service import AuthService
 from src.domains.auth.schemas import UserCreate
 from src.domains.users.models import User
 from src.domains.users.repository import UserRepository
-from src.domains.auth.repository import RefreshTokenRepository
+from src.domains.auth.repository import RefreshTokenRepository, ResetPasswordRepository
 from src.domains.auth.models import RefreshToken
 from src.domains.auth.password_handler import get_password_hash
 
@@ -19,7 +19,8 @@ class TestAuthServiceRegisterUser:
     def test_register_user_success(self, db_session, valid_user_data):
         user_repo = UserRepository(db_session)
         refresh_repo = RefreshTokenRepository(db_session)
-        service = AuthService(user_repo, refresh_repo)
+        reset_password_repo = ResetPasswordRepository(db_session)
+        service = AuthService(user_repo, refresh_repo, reset_password_repo)
         user_create = UserCreate(**valid_user_data)
         
         created_user = service.register_user(user_create)
@@ -33,7 +34,8 @@ class TestAuthServiceRegisterUser:
     def test_register_user_without_name(self, db_session, valid_user_data_no_name):
         user_repo = UserRepository(db_session)
         refresh_repo = RefreshTokenRepository(db_session)
-        service = AuthService(user_repo, refresh_repo)
+        reset_password_repo = ResetPasswordRepository(db_session)
+        service = AuthService(user_repo, refresh_repo, reset_password_repo)
         user_create = UserCreate(**valid_user_data_no_name)
         
         created_user = service.register_user(user_create)
@@ -47,7 +49,8 @@ class TestAuthServiceRegisterUser:
         
         user_repo = UserRepository(db_session)
         refresh_repo = RefreshTokenRepository(db_session)
-        service = AuthService(user_repo, refresh_repo)
+        reset_password_repo = ResetPasswordRepository(db_session)
+        service = AuthService(user_repo, refresh_repo, reset_password_repo)
         user_create = UserCreate(**valid_user_data)
         
         created_user = service.register_user(user_create)
@@ -57,7 +60,8 @@ class TestAuthServiceRegisterUser:
     def test_register_user_duplicate_email_raises_409(self, db_session, sample_user, valid_user_data):
         user_repo = UserRepository(db_session)
         refresh_repo = RefreshTokenRepository(db_session)
-        service = AuthService(user_repo, refresh_repo)
+        reset_password_repo = ResetPasswordRepository(db_session)
+        service = AuthService(user_repo, refresh_repo, reset_password_repo)
         
         duplicate_data = valid_user_data.copy()
         duplicate_data["email"] = sample_user.email
@@ -72,7 +76,8 @@ class TestAuthServiceRegisterUser:
     def test_register_user_duplicate_detection_case_insensitive(self, db_session, sample_user, valid_user_data):
         user_repo = UserRepository(db_session)
         refresh_repo = RefreshTokenRepository(db_session)
-        service = AuthService(user_repo, refresh_repo)
+        reset_password_repo = ResetPasswordRepository(db_session)
+        service = AuthService(user_repo, refresh_repo, reset_password_repo)
         
         duplicate_data = valid_user_data.copy()
         duplicate_data["email"] = sample_user.email.upper()
@@ -87,7 +92,8 @@ class TestAuthServiceRegisterUser:
     def test_register_user_normalizes_email_to_lowercase(self, db_session):
         user_repo = UserRepository(db_session)
         refresh_repo = RefreshTokenRepository(db_session)
-        service = AuthService(user_repo, refresh_repo)
+        reset_password_repo = ResetPasswordRepository(db_session)
+        service = AuthService(user_repo, refresh_repo, reset_password_repo)
         
         user_create = UserCreate(
             email="NewUser@EXAMPLE.COM",
@@ -111,7 +117,30 @@ class TestAuthServiceRegisterUser:
         mock_user_repo.create.return_value = expected_user
         
         mock_refresh_repo = Mock()
-        service = AuthService(mock_user_repo, mock_refresh_repo)
+        mock_reset_password_repo = Mock()
+        service = AuthService(mock_user_repo, mock_refresh_repo, mock_reset_password_repo)
+        user_create = UserCreate(**valid_user_data)
+        
+        result = service.register_user(user_create)
+        
+        mock_user_repo.get_by_email.assert_called_once_with(valid_user_data["email"])
+        mock_user_repo.create.assert_called_once()
+        assert result == expected_user
+    
+    def test_register_user_calls_create_on_user_repo(self, valid_user_data):
+        mock_user_repo = Mock()
+        expected_user = User(
+            id=uuid.uuid4(),
+            email=valid_user_data["email"],
+            password_hash="hashed",
+            name=valid_user_data["name"]
+        )
+        mock_user_repo.get_by_email.return_value = None
+        mock_user_repo.create.return_value = expected_user
+        
+        mock_refresh_repo = Mock()
+        mock_reset_password_repo = Mock()
+        service = AuthService(mock_user_repo, mock_refresh_repo, mock_reset_password_repo)
         user_create = UserCreate(**valid_user_data)
         
         result = service.register_user(user_create)
@@ -130,7 +159,8 @@ class TestAuthServiceRegisterUser:
         mock_user_repo.get_by_email.return_value = existing_user
         
         mock_refresh_repo = Mock()
-        service = AuthService(mock_user_repo, mock_refresh_repo)
+        mock_reset_password_repo = Mock()
+        service = AuthService(mock_user_repo, mock_refresh_repo, mock_reset_password_repo)
         user_create = UserCreate(**valid_user_data)
         
         with pytest.raises(HTTPException):
@@ -151,8 +181,12 @@ class TestAuthServiceLogin:
         return Mock(spec=RefreshTokenRepository)
     
     @pytest.fixture
-    def auth_service(self, mock_user_repo, mock_refresh_token_repo):
-        return AuthService(mock_user_repo, mock_refresh_token_repo)
+    def mock_reset_password_repo(self):
+        return Mock(spec=ResetPasswordRepository)
+    
+    @pytest.fixture
+    def auth_service(self, mock_user_repo, mock_refresh_token_repo, mock_reset_password_repo):
+        return AuthService(mock_user_repo, mock_refresh_token_repo, mock_reset_password_repo)
     
     @pytest.fixture
     def valid_user(self):
@@ -282,8 +316,12 @@ class TestAuthServiceRotate:
         return Mock(spec=RefreshTokenRepository)
     
     @pytest.fixture
-    def auth_service(self, mock_user_repo, mock_refresh_token_repo):
-        return AuthService(mock_user_repo, mock_refresh_token_repo)
+    def mock_reset_password_repo(self):
+        return Mock(spec=ResetPasswordRepository)
+    
+    @pytest.fixture
+    def auth_service(self, mock_user_repo, mock_refresh_token_repo, mock_reset_password_repo):
+        return AuthService(mock_user_repo, mock_refresh_token_repo, mock_reset_password_repo)
     
     def test_rotate_success(self, auth_service, mock_refresh_token_repo):
         user_id = uuid.uuid4()
@@ -474,8 +512,12 @@ class TestAuthServiceGlobalLogout:
         return Mock(spec=RefreshTokenRepository)
     
     @pytest.fixture
-    def auth_service(self, mock_user_repo, mock_refresh_token_repo):
-        return AuthService(mock_user_repo, mock_refresh_token_repo)
+    def mock_reset_password_repo(self):
+        return Mock(spec=ResetPasswordRepository)
+    
+    @pytest.fixture
+    def auth_service(self, mock_user_repo, mock_refresh_token_repo, mock_reset_password_repo):
+        return AuthService(mock_user_repo, mock_refresh_token_repo, mock_reset_password_repo)
     
     def test_global_logout_success(self, auth_service, mock_refresh_token_repo):
         user_id = uuid.uuid4()

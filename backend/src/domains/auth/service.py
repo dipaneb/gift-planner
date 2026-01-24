@@ -7,23 +7,32 @@ from fastapi import Depends, HTTPException, status
 from src.config.settings import get_settings
 from src.domains.users.repository import UserRepository
 from src.domains.users.models import User
-from .repository import RefreshTokenRepository
-from .models import RefreshToken
+from .repository import RefreshTokenRepository, ResetPasswordRepository
+from .models import RefreshToken, PasswordResetToken
 from .schemas import UserCreate
 from .password_handler import get_password_hash, verify_password
 from .access_token_handler import create_access_token
 from .refresh_token_handler import hash_token, get_refresh_token_fingerprint, verify_refresh_token
+from .reset_password_token_handler import get_reset_password_token_fingerprint, hash_token as hash_reset_password_token
 
 
 settings = get_settings()
 
 
 class AuthService:
-    def __init__(self, user_repo: Annotated[UserRepository, Depends()], refresh_token_repo: Annotated[RefreshTokenRepository, Depends()]):
+    def __init__(
+        self,
+        user_repo: Annotated[UserRepository, Depends()],
+        refresh_token_repo: Annotated[RefreshTokenRepository, Depends()],
+        reset_password_repo: Annotated[ResetPasswordRepository, Depends()]
+    ):
         self.user_repo = user_repo
         self.refresh_token_repo = refresh_token_repo
+        self.reset_password_repo = reset_password_repo
         
-
+    # ===================
+    # Register/Login
+    # ===================
     def register_user(self, user_create: UserCreate) -> User:
         # check email uniqueness
         existing = self.user_repo.get_by_email(user_create.email)
@@ -140,3 +149,56 @@ class AuthService:
         # IMPORTANT : the plain token is return ONE TIME ONLY
         return raw_token
 
+    
+
+    # ===================
+    # Reset password part
+    # ===================
+    def __build_reset_link(self, raw_token: str) -> str:
+        return f"{settings.FRONTEND_BASE_URL}/reset-password?token={raw_token}"
+
+
+    def request_reset(self, email: str) -> dict | None:
+        """
+        Create and store the reset password token (if user exists),
+        and return the information needed to send emails (for BackgroundTasks).
+    
+        Return None if user doesn't exist.
+        """
+        user = self.user_repo.get_by_email(email)
+        if not user:
+            return None
+
+        raw_token = uuid.uuid4().hex
+        token_fingerprint = get_reset_password_token_fingerprint(raw_token)
+        token_hash = hash_reset_password_token(raw_token)
+        expires_at = datetime.now(timezone.utc) + timedelta(
+            minutes=settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES
+        )
+
+        self.reset_password_repo.create(
+            PasswordResetToken(
+                user_id=user.id,
+                token_fingerprint=token_fingerprint,
+                token_hash=token_hash,
+                expires_at=expires_at,
+            )
+        )
+
+        link = self.__build_reset_link(raw_token)
+
+        subject = "Reset your password"
+        html = f"""
+            <p>Click the link to reset your password:</p>
+            <p><a href="{link}">Reset password</a></p>
+            <p>This link expires in {settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES} minutes.</p>
+        """
+        text = f"Reset your password: {link}"
+
+        return {
+            "to_email": user.email,
+            "to_name": user.name,
+            "subject": subject,
+            "html": html,
+            "text": text,
+        }

@@ -6,7 +6,7 @@ from sqlalchemy import select, update, delete
 from sqlalchemy.orm import Session
 
 from src.infrastructure.database.session import get_db
-from .models import RefreshToken
+from .models import RefreshToken, PasswordResetToken
 
 
 class RefreshTokenRepository:
@@ -34,3 +34,13 @@ class RefreshTokenRepository:
         self.db.execute(stmt)
         self.db.commit()
 
+
+class ResetPasswordRepository:
+    def __init__(self, db: Annotated[Session, Depends(get_db)]):
+        self.db = db
+
+    def create(self, password_reset_token: PasswordResetToken) -> PasswordResetToken:
+        self.db.add(password_reset_token)
+        self.db.commit()
+        self.db.refresh(password_reset_token)
+        return password_reset_token

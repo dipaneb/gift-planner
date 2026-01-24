@@ -1,6 +1,7 @@
 from functools import lru_cache
 from typing import Literal
-from pydantic import computed_field
+
+from pydantic import EmailStr, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -41,6 +42,13 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_TTL_DAYS: int = 30
     ACCESS_TOKEN_LIFESPAN_IN_MINUTES: int = 15
 
+    # Used to send emails via Mailjet
+    PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES: int
+    MAILJET_API_KEY: str
+    MAILJET_API_SECRET_KEY: str
+    MAIL_FROM_EMAIL: EmailStr = "noreply@your-domain.com"
+    MAIL_FROM_NAME: str = "Your app name"
+    FRONTEND_BASE_URL: str
 
 
 @lru_cache

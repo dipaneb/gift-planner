@@ -1,13 +1,15 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Cookie, Depends, Request, status, Response, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, Request, status, Response, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import EmailStr
 
 from src.config.settings import get_settings
 from .service import AuthService
 from .schemas import LoginData, UserCreate
 from .router_examples import REGISTER_EXAMPLES
 from .access_token_handler import create_access_token
+from src.infrastructure.external_services.email_service import MailJetClient
 
 settings = get_settings()
 
@@ -83,7 +85,6 @@ def refresh(request: Request, response: Response, auth_service: Annotated[AuthSe
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
-# def logout(raw_refresh_token: Annotated[str | None, Cookie(alias="refresh_token")], response: Response, auth_service: Annotated[AuthService, Depends()]):
 def logout(request: Request, response: Response, auth_service: Annotated[AuthService, Depends()]):
     raw_refresh_token = request.cookies.get("refresh_token")
     
@@ -95,3 +96,32 @@ def logout(request: Request, response: Response, auth_service: Annotated[AuthSer
     
     auth_service.global_logout(raw_refresh_token)
     return
+
+
+@router.post("/forgot-password")
+def send_email_for_forgot_password(email: Annotated[EmailStr, Body(embed=True)], auth_service: Annotated[AuthService, Depends()], background_tasks: BackgroundTasks):
+    email_job = auth_service.request_reset(email)
+
+    if email_job:
+        mailjet_client = MailJetClient(settings.MAILJET_API_KEY, settings.MAILJET_API_SECRET_KEY)
+        background_tasks.add_task(
+            mailjet_client.send_email,
+            from_email=settings.MAIL_FROM_EMAIL,
+            from_name=settings.MAIL_FROM_NAME,
+            to_email=email_job["to_email"],
+            to_name=email_job["to_name"],
+            subject=email_job["subject"],
+            html=email_job["html"],
+            text=email_job["text"],
+        )
+
+    # Always send the same response to avoid email enumeration.
+    return {
+        "success": True,
+        "message": "If the email exists, a reset link was sent."
+    }
+
+
+@router.post("/reset-password")
+def reset_password(email, password, confirmed_password, user_service: Annotated[AuthService, Depends()]):
+    user_service.change_password(email, password)
