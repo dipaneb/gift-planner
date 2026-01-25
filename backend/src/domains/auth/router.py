@@ -1,13 +1,13 @@
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Body, Depends, Request, status, Response, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, Query, Request, status, Response, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import EmailStr
 
 from src.config.settings import get_settings
 from .service import AuthService
-from .schemas import LoginData, UserCreate
-from .router_examples import REGISTER_EXAMPLES
+from .schemas import LoginData, UserCreate, UserUpdatePartial
+from .router_examples import REGISTER_EXAMPLES, RESET_PASSWORD_EXAMPLES
 from .access_token_handler import create_access_token
 from src.infrastructure.external_services.email_service import MailJetClient
 
@@ -28,7 +28,7 @@ def signup_user(service: Annotated[AuthService, Depends()], user_create: Annotat
     }
 
 
-@router.post("/login", response_model=LoginData, status_code=status.HTTP_200_OK)
+@router.post("/login", response_model=LoginData)
 def login(response: Response, auth_service: Annotated[AuthService, Depends()], form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     email = form_data.username # clarification because OAuth2PasswordRequestForm requires 'username'
     password = form_data.password
@@ -123,5 +123,10 @@ def send_email_for_forgot_password(email: Annotated[EmailStr, Body(embed=True)],
 
 
 @router.post("/reset-password")
-def reset_password(email, password, confirmed_password, user_service: Annotated[AuthService, Depends()]):
-    user_service.change_password(email, password)
+def reset_password(reset_password_token: Annotated[str, Query(alias="token")], body: Annotated[UserUpdatePartial, Body(openapi_examples=RESET_PASSWORD_EXAMPLES)], auth_service: Annotated[AuthService, Depends()]):
+    try:
+        auth_service.reset_password(reset_password_token, body.password)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")
+    
+    return {"success": True, "message": "Password updated."}

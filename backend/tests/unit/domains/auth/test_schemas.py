@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from src.domains.auth.schemas import UserCreate, LoginData
+from src.domains.auth.schemas import UserCreate, LoginData, UserUpdatePartial
 
 
 class TestUserCreateSchema:

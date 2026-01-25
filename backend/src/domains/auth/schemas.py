@@ -1,4 +1,3 @@
-from uuid import uuid4
 from typing_extensions import Self
 import re
 
@@ -33,6 +32,35 @@ class UserCreate(BaseModel):
         value = value.strip()
         return value if value else None
 
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_strength(cls, password: str) -> str:
+        """
+        Enforce password complexity rules.
+        For complex and upgradeable regex, prefer field_validator to regex parameter on Field.
+        field_validator offers better scalabilty and better legibilty in code and error messages.
+        """
+        if not re.search(r"[A-Z]", password):
+            raise ValueError("Password must contain at least one uppercase letter.")
+        if not re.search(r"[a-z]", password):
+            raise ValueError("Password must contain at least one lowercase letter.")
+        if not re.search(r"\d", password):
+            raise ValueError("Password must contain at least one digit.")
+        if not re.search(r"[^\w\s]", password):
+            raise ValueError("Password must contain at least one special character.")
+        return password
+    
+    @model_validator(mode="after")
+    def check_passwords_match(self) -> Self:
+        if self.password != self.confirmed_password:
+            raise ValueError("Password and confirm password do not match.")
+        return self
+    
+
+class UserUpdatePartial(BaseModel):
+    password: str = Field(min_length=8, max_length=255, description="Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.")
+    confirmed_password: str = Field(min_length=8, max_length=255)
 
     @field_validator("password")
     @classmethod

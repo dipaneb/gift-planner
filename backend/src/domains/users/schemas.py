@@ -1,9 +1,9 @@
-from uuid import UUID
+import uuid
 from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class UserRead(BaseModel):
-    id: UUID
+    id: uuid.UUID
     email: EmailStr
     name: str | None
 

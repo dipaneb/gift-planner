@@ -118,3 +118,87 @@ class TestUserRepositoryCreate:
         
         assert hasattr(created_user, 'id')
         assert created_user.id is not None
+
+
+class TestUserRepositorySetPassword:
+    
+    def test_set_password_updates_password_hash(self, db_session):
+        repo = UserRepository(db_session)
+        user = User(
+            email="user@example.com",
+            password_hash="old_hash",
+            name="Test User"
+        )
+        created_user = repo.create(user)
+        old_hash = created_user.password_hash
+        
+        repo.set_password(created_user.id, "NewSecure123!")
+        
+        db_session.refresh(created_user)
+        assert created_user.password_hash != old_hash
+        assert created_user.password_hash != "NewSecure123!"
+    
+    def test_set_password_hashes_new_password(self, db_session):
+        repo = UserRepository(db_session)
+        user = User(
+            email="user@example.com",
+            password_hash="old_hash",
+            name="Test User"
+        )
+        created_user = repo.create(user)
+        plain_password = "NewSecure123!"
+        
+        repo.set_password(created_user.id, plain_password)
+        
+        db_session.refresh(created_user)
+        assert created_user.password_hash != plain_password
+        assert len(created_user.password_hash) > 20
+    
+    def test_set_password_persists_to_database(self, db_session):
+        repo = UserRepository(db_session)
+        user = User(
+            email="user@example.com",
+            password_hash="old_hash",
+            name="Test User"
+        )
+        created_user = repo.create(user)
+        
+        repo.set_password(created_user.id, "NewSecure123!")
+        
+        db_session.expire_all()
+        retrieved_user = repo.get_by_id(created_user.id)
+        assert retrieved_user.password_hash != "old_hash"
+    
+    def test_set_password_only_affects_specified_user(self, db_session):
+        repo = UserRepository(db_session)
+        user1 = User(email="user1@example.com", password_hash="hash1", name="User 1")
+        user2 = User(email="user2@example.com", password_hash="hash2", name="User 2")
+        created_user1 = repo.create(user1)
+        created_user2 = repo.create(user2)
+        original_hash2 = created_user2.password_hash
+        
+        repo.set_password(created_user1.id, "NewPassword123!")
+        
+        db_session.refresh(created_user1)
+        db_session.refresh(created_user2)
+        assert created_user1.password_hash != "hash1"
+        assert created_user2.password_hash == original_hash2
+    
+    def test_set_password_different_passwords_produce_different_hashes(self, db_session):
+        repo = UserRepository(db_session)
+        user = User(
+            email="user@example.com",
+            password_hash="old_hash",
+            name="Test User"
+        )
+        created_user = repo.create(user)
+        
+        repo.set_password(created_user.id, "Password1!")
+        db_session.refresh(created_user)
+        hash1 = created_user.password_hash
+        
+        repo.set_password(created_user.id, "Password2!")
+        db_session.refresh(created_user)
+        hash2 = created_user.password_hash
+        
+        assert hash1 != hash2

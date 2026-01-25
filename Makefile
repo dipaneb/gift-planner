@@ -1,5 +1,5 @@
 # Declare phony targets (targets that don't represent actual files)
-.PHONY: help start stop logs rebuild prod-start prod-stop prod-logs prod-rebuild alembic-init alembic-rev alembic-up alembic-down alembic-history alembic-current alembic-prod-up alembic-prod-current alembic-prod-history shell test test-unit test-integration test-e2e test-path format lint check
+.PHONY: help start stop logs rebuild prod-start prod-stop prod-logs prod-rebuild alembic-init alembic-rev alembic-up alembic-down alembic-history alembic-current alembic-prod-up alembic-prod-current alembic-prod-history shell test test-unit test-integration test-e2e test-path format lint lint-fix check
 
 # ============================================================================
 # HELP COMMAND
@@ -61,6 +61,7 @@ help:
 	@echo "🎨 CODE QUALITY:"
 	@echo "   format               Format code using black"
 	@echo "   lint                 Lint code using ruff"
+	@echo "   lint-fix             Lint code using ruff --fix flag"
 	@echo "   check                Run all code quality checks"
 	@echo ""
 	@echo ""
@@ -258,6 +259,9 @@ format:
 # Does not modify files, only reports issues
 lint:
 	docker exec -it docker-api-1 ruff check src/
+
+lint-fix:
+	docker exec -it docker-api-1 ruff check src/ --fix
 
 # Run all code quality checks (format check + lint)
 # Use this before committing code to ensure quality standards

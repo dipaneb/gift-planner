@@ -112,6 +112,146 @@ class TestResetPasswordRepositoryCreate:
         created_token = repo.create(token)
         
         assert created_token.used_at is None
+
+
+class TestResetPasswordRepositoryGetByFingerprint:
+    
+    @pytest.fixture
+    def sample_user(self, db_session):
+        user = User(
+            email="test@example.com",
+            password_hash="hash123",
+            name="Test User"
+        )
+        db_session.add(user)
+        db_session.commit()
+        db_session.refresh(user)
+        return user
+    
+    def test_get_by_fingerprint_existing_token(self, db_session, sample_user):
+        repo = ResetPasswordRepository(db_session)
+        token = PasswordResetToken(
+            user_id=sample_user.id,
+            token_fingerprint="unique_fingerprint",
+            token_hash="hash_value",
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1)
+        )
+        created = repo.create(token)
+        
+        retrieved = repo.get_by_fingerprint("unique_fingerprint")
+        
+        assert retrieved is not None
+        assert retrieved.id == created.id
+        assert retrieved.token_fingerprint == "unique_fingerprint"
+    
+    def test_get_by_fingerprint_non_existing_token(self, db_session):
+        repo = ResetPasswordRepository(db_session)
+        
+        retrieved = repo.get_by_fingerprint("non_existent_fingerprint")
+        
+        assert retrieved is None
+    
+    def test_get_by_fingerprint_returns_correct_token_when_multiple_exist(self, db_session, sample_user):
+        repo = ResetPasswordRepository(db_session)
+        token1 = PasswordResetToken(
+            user_id=sample_user.id,
+            token_fingerprint="fingerprint_1",
+            token_hash="hash_1",
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1)
+        )
+        token2 = PasswordResetToken(
+            user_id=sample_user.id,
+            token_fingerprint="fingerprint_2",
+            token_hash="hash_2",
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1)
+        )
+        repo.create(token1)
+        created2 = repo.create(token2)
+        
+        retrieved = repo.get_by_fingerprint("fingerprint_2")
+        
+        assert retrieved is not None
+        assert retrieved.id == created2.id
+        assert retrieved.token_fingerprint == "fingerprint_2"
+
+
+class TestResetPasswordRepositoryMarkUsed:
+    
+    @pytest.fixture
+    def sample_user(self, db_session):
+        user = User(
+            email="test@example.com",
+            password_hash="hash123",
+            name="Test User"
+        )
+        db_session.add(user)
+        db_session.commit()
+        db_session.refresh(user)
+        return user
+    
+    def test_mark_used_sets_used_at_timestamp(self, db_session, sample_user):
+        repo = ResetPasswordRepository(db_session)
+        token = PasswordResetToken(
+            user_id=sample_user.id,
+            token_fingerprint="fingerprint_used",
+            token_hash="hash_used",
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1)
+        )
+        created = repo.create(token)
+        assert created.used_at is None
+        
+        before_mark = datetime.now(timezone.utc)
+        repo.mark_used(created.id)
+        after_mark = datetime.now(timezone.utc)
+        
+        db_session.refresh(created)
+        assert created.used_at is not None
+        
+        used_at = created.used_at
+        if used_at.tzinfo is None:
+            used_at = used_at.replace(tzinfo=timezone.utc)
+        
+        assert before_mark <= used_at <= after_mark
+    
+    def test_mark_used_persists_to_database(self, db_session, sample_user):
+        repo = ResetPasswordRepository(db_session)
+        token = PasswordResetToken(
+            user_id=sample_user.id,
+            token_fingerprint="fingerprint_persist",
+            token_hash="hash_persist",
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1)
+        )
+        created = repo.create(token)
+        
+        repo.mark_used(created.id)
+        
+        db_session.expire_all()
+        retrieved = repo.get_by_fingerprint("fingerprint_persist")
+        assert retrieved.used_at is not None
+    
+    def test_mark_used_only_affects_specified_token(self, db_session, sample_user):
+        repo = ResetPasswordRepository(db_session)
+        token1 = PasswordResetToken(
+            user_id=sample_user.id,
+            token_fingerprint="fingerprint_a",
+            token_hash="hash_a",
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1)
+        )
+        token2 = PasswordResetToken(
+            user_id=sample_user.id,
+            token_fingerprint="fingerprint_b",
+            token_hash="hash_b",
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1)
+        )
+        created1 = repo.create(token1)
+        created2 = repo.create(token2)
+        
+        repo.mark_used(created1.id)
+        
+        db_session.refresh(created1)
+        db_session.refresh(created2)
+        assert created1.used_at is not None
+        assert created2.used_at is None
     
     def test_create_reset_token_has_created_at(self, db_session, sample_user):
         repo = ResetPasswordRepository(db_session)

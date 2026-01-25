@@ -13,7 +13,7 @@ from .schemas import UserCreate
 from .password_handler import get_password_hash, verify_password
 from .access_token_handler import create_access_token
 from .refresh_token_handler import hash_token, get_refresh_token_fingerprint, verify_refresh_token
-from .reset_password_token_handler import get_reset_password_token_fingerprint, hash_token as hash_reset_password_token
+from .reset_password_token_handler import get_reset_password_token_fingerprint, hash_token as hash_reset_password_token, verify_reset_password_token
 
 
 settings = get_settings()
@@ -202,3 +202,31 @@ class AuthService:
             "html": html,
             "text": text,
         }
+    
+
+    def reset_password(self, raw_reset_password_token: str, new_password: str) -> None:
+        reset_password_token_fingerprint = get_reset_password_token_fingerprint(raw_reset_password_token)
+        reset_password_token = self.reset_password_repo.get_by_fingerprint(reset_password_token_fingerprint)
+
+        if reset_password_token is None or reset_password_token.used_at is not None:
+            raise ValueError("invalid_token")
+        
+        now = datetime.now(timezone.utc)
+        expires_at = reset_password_token.expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        
+        if expires_at <= now:
+            raise ValueError("expired_token")
+        
+        if not verify_reset_password_token(raw_reset_password_token, reset_password_token.token_hash):
+            raise ValueError("invalid_token")
+        
+        user = self.user_repo.get_by_id(reset_password_token.user_id)
+        if not user:
+            raise ValueError("invalid_token")
+        
+        self.user_repo.set_password(user.id, new_password)
+        self.reset_password_repo.mark_used(reset_password_token.id)
+        self.refresh_token_repo.delete_all_tokens_for_user(user.id)
+

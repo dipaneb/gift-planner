@@ -18,3 +18,13 @@ REGISTER_EXAMPLES={
         }
     },
 }
+
+RESET_PASSWORD_EXAMPLES={
+    "Example": {
+        "summary": "Example",
+        "value": {
+            "password": "mySecurePass1234$",
+            "confirmed_password": "mySecurePass1234$",
+        }
+    }
+}
