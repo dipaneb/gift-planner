@@ -66,20 +66,41 @@ backend/alembic/versions/*.pyc
 # ============================================================================
 # Dependencies
 frontend/node_modules/
+node_modules/
+
+# Cache directories (Prettier, ESLint, etc.)
+.cache/
+**/node_modules/.cache/
 
 # Logs
 frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
 frontend/pnpm-debug.log*
+frontend/lerna-debug.log*
 
 # Build outputs
 frontend/dist/
+frontend/dist-ssr/
 frontend/build/
 frontend/.nuxt/
 frontend/.next/
 frontend/out/
 frontend/.cache/
+
+# Testing
+frontend/coverage/
+frontend/__screenshots__/
+
+# TypeScript
+frontend/*.tsbuildinfo
+
+# ESLint
+frontend/.eslintcache
+
+# Cypress
+frontend/cypress/videos/
+frontend/cypress/screenshots/
 
 
 # ============================================================================

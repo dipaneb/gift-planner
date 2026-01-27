@@ -8,7 +8,7 @@
 help:
 	@echo ""
 	@echo "================================================================================"
-	@echo "🚀 Gift Planner - Available Commands"
+	@echo "⚙️  Gift Planner - Backend Commands"
 	@echo "================================================================================"
 	@echo ""
 	@echo "📦 DEVELOPMENT:"
@@ -25,7 +25,7 @@ help:
 	@echo "   prod-rebuild         Rebuild and restart production environment"
 	@echo ""
 	@echo ""
-	@echo "🗄️ DATABASE MIGRATIONS (DEV):"
+	@echo "🗄️  DATABASE MIGRATIONS (DEV):"
 	@echo "   alembic-init         Initialize Alembic for database migrations"
 	@echo "   alembic-rev          Create new migration (use: make alembic-rev m='message')"
 	@echo "   alembic-up           Apply all pending migrations"
@@ -34,7 +34,7 @@ help:
 	@echo "   alembic-current      Show current migration"
 	@echo ""
 	@echo ""
-	@echo "🗄️ DATABASE MIGRATIONS (PROD):"
+	@echo "🗄️  DATABASE MIGRATIONS (PROD):"
 	@echo "   alembic-prod-up      Apply all pending migrations"
 	@echo "   alembic-prod-current Show current migration"
 	@echo "   alembic-prod-history Show migration history"
@@ -77,22 +77,22 @@ help:
 # Code changes in src/ will automatically restart the server
 # Uses docker-compose.dev.yml and Dockerfile.dev
 start:
-	docker compose -f backend/docker/docker-compose.dev.yml up -d
+	docker compose -f docker/docker-compose.dev.yml up -d
 
 # Stop development environment
 # Shuts down containers but preserves the development database volume
 stop:
-	docker compose -f backend/docker/docker-compose.dev.yml down
+	docker compose -f docker/docker-compose.dev.yml down
 
 # View development logs in real-time
 # Press Ctrl+C to exit (containers keep running)
 logs:
-	docker compose -f backend/docker/docker-compose.dev.yml logs -f
+	docker compose -f docker/docker-compose.dev.yml logs -f
 
 # Rebuild and restart development environment
 # Use after changing requirements.txt or Dockerfile.dev
 rebuild:
-	docker compose -f backend/docker/docker-compose.dev.yml up -d --build
+	docker compose -f docker/docker-compose.dev.yml up -d --build
 
 
 # ============================================================================
@@ -103,22 +103,22 @@ rebuild:
 # Optimized for performance, no hot-reload
 # Uses docker-compose.prod.yml and Dockerfile.prod
 prod-start:
-	docker compose -f backend/docker/docker-compose.prod.yml up -d
+	docker compose -f docker/docker-compose.prod.yml up -d
 
 # Stop production environment
 # Shuts down containers but preserves the production database volume
 prod-stop:
-	docker compose -f backend/docker/docker-compose.prod.yml down
+	docker compose -f docker/docker-compose.prod.yml down
 
 # View production logs in real-time
 # Press Ctrl+C to exit (containers keep running)
 prod-logs:
-	docker compose -f backend/docker/docker-compose.prod.yml logs -f
+	docker compose -f docker/docker-compose.prod.yml logs -f
 
 # Rebuild and restart production environment
 # Use after changing requirements.txt or Dockerfile.prod
 prod-rebuild:
-	docker compose -f backend/docker/docker-compose.prod.yml up -d --build
+	docker compose -f docker/docker-compose.prod.yml up -d --build
 
 
 # ============================================================================
@@ -126,26 +126,26 @@ prod-rebuild:
 # ============================================================================
 
 alembic-init:
-	docker compose -f backend/docker/docker-compose.dev.yml exec api alembic init alembic
+	docker compose -f docker/docker-compose.dev.yml exec api alembic init alembic
 
 alembic-rev:
 	if [ -z "$(m)" ]; then \
 		echo "Erreur: le message '-m' est manquant. Utilisez: make alembic-rev m=\"votre message\""; \
 		exit 1; \
 	fi
-	docker compose -f backend/docker/docker-compose.dev.yml exec api alembic revision --autogenerate -m "$(m)"
+	docker compose -f docker/docker-compose.dev.yml exec api alembic revision --autogenerate -m "$(m)"
 
 alembic-up:
-	docker compose -f backend/docker/docker-compose.dev.yml exec api alembic upgrade head
+	docker compose -f docker/docker-compose.dev.yml exec api alembic upgrade head
 
 alembic-down:
-	docker compose -f backend/docker/docker-compose.dev.yml exec api alembic downgrade -1
+	docker compose -f docker/docker-compose.dev.yml exec api alembic downgrade -1
 
 alembic-history:
-	docker compose -f backend/docker/docker-compose.dev.yml exec api alembic history
+	docker compose -f docker/docker-compose.dev.yml exec api alembic history
 
 alembic-current:
-	docker compose -f backend/docker/docker-compose.dev.yml exec api alembic current
+	docker compose -f docker/docker-compose.dev.yml exec api alembic current
 
 
 # ============================================================================
@@ -153,13 +153,13 @@ alembic-current:
 # ============================================================================
 
 alembic-prod-up:
-	docker compose -f backend/docker/docker-compose.yml exec api alembic upgrade head
+	docker compose -f docker/docker-compose.yml exec api alembic upgrade head
 
 alembic-prod-current:
-	docker compose -f backend/docker/docker-compose.yml exec api alembic current
+	docker compose -f docker/docker-compose.yml exec api alembic current
 
 alembic-prod-history:
-	docker compose -f backend/docker/docker-compose.yml exec api alembic history
+	docker compose -f docker/docker-compose.yml exec api alembic history
 
 
 # ============================================================================
