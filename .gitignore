@@ -9,11 +9,13 @@
 # Backend env files
 backend/.env
 backend/.env.*
+!backend/.env.example
 backend/**/.env
 
 # Frontend env files
 frontend/.env
 frontend/.env.*
+!frontend/.env.example
 frontend/**/.env
 
 

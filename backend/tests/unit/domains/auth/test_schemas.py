@@ -130,7 +130,11 @@ class TestPasswordValidation:
         assert "match" in str(exc_info.value).lower()
     
     def test_password_valid_with_various_special_chars(self):
-        special_chars = ["!", "@", "#", "$", "%", "^", "&", "*"]
+        # Test all basic ASCII special characters (excluding whitespace only)
+        special_chars = [
+            "!", '"', "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/",
+            ":", ";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "_", "`", "{", "|", "}", "~"
+        ]
         for char in special_chars:
             data = {
                 "email": "test@example.com",
@@ -139,6 +143,17 @@ class TestPasswordValidation:
             }
             user = UserCreate(**data)
             assert user.password == data["password"]
+    
+    def test_password_invalid_with_space_only(self):
+        # Space should NOT count as a special character
+        data = {
+            "email": "test@example.com",
+            "password": "SecurePass123 ",
+            "confirmed_password": "SecurePass123 ",
+        }
+        with pytest.raises(ValidationError) as exc_info:
+            UserCreate(**data)
+        assert "special" in str(exc_info.value).lower()
 
 
 class TestLoginDataSchema:

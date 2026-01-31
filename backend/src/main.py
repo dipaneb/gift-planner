@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
@@ -17,13 +18,21 @@ app = FastAPI(
     redoc_url=settings.REDOC_URL,
     openapi_url=settings.OPENAPI_URL,
 )
+
+origins = [settings.FRONTEND_BASE_URL]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
 app.include_router(auth_router)
 app.include_router(users_router)
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
-
 @app.get("/")
-async def root(db: Annotated[Session, Depends(get_db)], token: Annotated[str, Depends(oauth2_scheme)]):
+async def root(db: Annotated[Session, Depends(get_db)]):
     return {
         "message": "Hello from FastAPI",
         "token": token

@@ -16,16 +16,13 @@ settings = get_settings()
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register", status_code=status.HTTP_201_CREATED)
-def signup_user(service: Annotated[AuthService, Depends()], user_create: Annotated[UserCreate, Body(openapi_examples=REGISTER_EXAMPLES)]):
-    user = service.register_user(user_create)
-    return {
-        "success": True,
-        "message": "",
-        "data": {
-            "id": user.id
-        }
-    }
+@router.post("/register", status_code=status.HTTP_201_CREATED, response_model=LoginData)
+def signup_user(response: Response, service: Annotated[AuthService, Depends()], user_create: Annotated[UserCreate, Body(openapi_examples=REGISTER_EXAMPLES)]):
+    service.register_user(user_create)
+    
+    # Automatically log in the user after registration by calling the login endpoint
+    form_data = OAuth2PasswordRequestForm(username=user_create.email, password=user_create.password)
+    return login(response, service, form_data)
 
 
 @router.post("/login", response_model=LoginData)
@@ -33,8 +30,7 @@ def login(response: Response, auth_service: Annotated[AuthService, Depends()], f
     email = form_data.username # clarification because OAuth2PasswordRequestForm requires 'username'
     password = form_data.password
 
-    access_token, refresh_token_raw, expires_in = auth_service.login(email, password)
-
+    access_token, refresh_token_raw, expires_in, user = auth_service.login(email, password)
 
     # Cookie refresh token (HttpOnly)
     response.set_cookie(
@@ -47,7 +43,7 @@ def login(response: Response, auth_service: Annotated[AuthService, Depends()], f
         max_age=60 * 60 * 24 * 30,  # 30 days (should match refresh token TTL)
     )
 
-    return LoginData(access_token=access_token, expires_in=expires_in)
+    return LoginData(access_token=access_token, expires_in=expires_in, user=user)
 
 
 @router.post("/refresh", response_model=LoginData)

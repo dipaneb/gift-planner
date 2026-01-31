@@ -44,9 +44,9 @@ class AuthService:
         return self.user_repo.create(user)
 
 
-    def login(self, email: str, password: str) -> tuple[str, str, int]:
+    def login(self, email: str, password: str) -> tuple[str, str, int, User]:
         """
-        Return (access_token, refresh_token_raw, expires_in_seconds)
+        Return (access_token, refresh_token_raw, expires_in_seconds, user)
         """
         normalized_email = email.lower()
         user = self.user_repo.get_by_email(normalized_email)
@@ -67,7 +67,7 @@ class AuthService:
         raw_refresh_token = self.__create_refresh_token_for_user(user.id)
 
         expires_in_seconds = access_token_lifespan_in_minutes * 60
-        return access_token, raw_refresh_token, expires_in_seconds
+        return access_token, raw_refresh_token, expires_in_seconds, user
     
 
     def global_logout(self, raw_token: str) -> None:

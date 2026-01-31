@@ -1,7 +1,8 @@
 from typing_extensions import Self
 import re
+import uuid
 
-from pydantic import BaseModel, EmailStr, Field, model_validator, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator, field_validator
 
 
 class UserCreate(BaseModel):
@@ -47,7 +48,7 @@ class UserCreate(BaseModel):
             raise ValueError("Password must contain at least one lowercase letter.")
         if not re.search(r"\d", password):
             raise ValueError("Password must contain at least one digit.")
-        if not re.search(r"[^\w\s]", password):
+        if not re.search(r"[^A-Za-z0-9\s]", password):
             raise ValueError("Password must contain at least one special character.")
         return password
     
@@ -76,7 +77,7 @@ class UserUpdatePartial(BaseModel):
             raise ValueError("Password must contain at least one lowercase letter.")
         if not re.search(r"\d", password):
             raise ValueError("Password must contain at least one digit.")
-        if not re.search(r"[^\w\s]", password):
+        if not re.search(r"[^A-Za-z0-9\s]", password):
             raise ValueError("Password must contain at least one special character.")
         return password
     
@@ -87,7 +88,16 @@ class UserUpdatePartial(BaseModel):
         return self
     
 
+class UserResponse(BaseModel):
+    """User data returned in auth responses."""
+    id: uuid.UUID
+    email: str
+    name: str | None
+    
+    model_config = ConfigDict(from_attributes=True)
+
 class LoginData(BaseModel):
     access_token: str
     token_type: str = Field(default="bearer")
-    expires_in: int  # secondes
+    expires_in: int  # seconds
+    user: UserResponse
