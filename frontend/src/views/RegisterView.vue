@@ -1,6 +1,7 @@
 <template>
   <h1>Register</h1>
-  <form @submit.prevent="onSubmit">
+
+  <form @submit.prevent="onSubmit" novalidate>
     <label for="name">Name</label>
     <input v-model="name" type="text" name="name" id="name" :disabled="loading" />
 
@@ -12,7 +13,6 @@
       id="email"
       inputmode="email"
       :disabled="loading"
-      required
     />
 
     <label for="password">Password</label>
@@ -23,7 +23,6 @@
       id="password"
       autocomplete="new-password"
       :disabled="loading"
-      required
     />
 
     <label for="confirmed_password">Confirmed Password</label>
@@ -34,8 +33,8 @@
       id="confirmed_password"
       autocomplete="new-password"
       :disabled="loading"
-      required
     />
+
     <button type="button">Toggle visibility</button>
 
     <div v-if="error" class="error-message">
@@ -56,12 +55,13 @@ import * as z from "zod";
 
 import { useAuth } from "@/composables/useAuth";
 
+const { register, loading, error } = useAuth();
+
 const name = ref("");
 const email = ref("");
 const password = ref("");
 const confirmed_password = ref("");
 
-const { register, loading, error } = useAuth();
 
 const registerSchema = z
   .object({

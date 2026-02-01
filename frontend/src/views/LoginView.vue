@@ -1,6 +1,7 @@
 <template>
   <h1>Login</h1>
-  <form method="post" @submit.prevent="onSubmit" novalidate>
+
+  <form @submit.prevent="onSubmit" novalidate>
     <label for="email">Email</label>
     <input
       v-model="email"
@@ -8,7 +9,6 @@
       name="email"
       id="email"
       inputmode="email"
-      required
       :disabled="loading"
     />
 
@@ -19,7 +19,6 @@
       name="password"
       id="password"
       autocomplete="current-password"
-      required
       :disabled="loading"
     />
     <button type="button">Toggle visibility</button>

@@ -42,6 +42,7 @@ export interface ForgotPasswordRequest {
 
 export interface ResetPasswordRequest {
   password: string;
+  confirmed_password: string;
 }
 
 // Helper function to handle API errors
