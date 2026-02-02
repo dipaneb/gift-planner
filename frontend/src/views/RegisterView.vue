@@ -52,7 +52,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import * as z from "zod";
-
 import { useAuth } from "@/composables/useAuth";
 
 const { register, loading, error } = useAuth();
@@ -61,7 +60,6 @@ const name = ref("");
 const email = ref("");
 const password = ref("");
 const confirmed_password = ref("");
-
 
 const registerSchema = z
   .object({
@@ -94,15 +92,12 @@ const onSubmit = async (): Promise<void> => {
     console.error(result);
     return;
   }
-  try {
-    await register({
-      name: name.value,
-      email: email.value,
-      password: password.value,
-      confirmed_password: confirmed_password.value,
-    });
-  } catch (err) {
-    console.error("Registration error:", err);
-  }
+
+  await register({
+    name: name.value,
+    email: email.value,
+    password: password.value,
+    confirmed_password: confirmed_password.value,
+  });
 };
 </script>

@@ -61,6 +61,11 @@ def refresh(request: Request, response: Response, auth_service: Annotated[AuthSe
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
         raise
 
+    user = auth_service.user_repo.get_by_id(user_id)
+    if not user:
+        response.delete_cookie(key="refresh_token", path="/auth")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+
     access_token_lifespan_in_minutes = settings.ACCESS_TOKEN_LIFESPAN_IN_MINUTES
     new_access_token = create_access_token(subject=str(user_id), expires_minutes=access_token_lifespan_in_minutes)
 
@@ -77,6 +82,7 @@ def refresh(request: Request, response: Response, auth_service: Annotated[AuthSe
     return LoginData(
         access_token=new_access_token,
         expires_in=access_token_lifespan_in_minutes * 60,
+        user=user,
     )
 
 

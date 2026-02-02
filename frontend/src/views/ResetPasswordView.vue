@@ -30,7 +30,6 @@
 import { ref } from "vue";
 import { useRoute } from "vue-router";
 import * as z from "zod";
-
 import { useAuth } from "@/composables/useAuth";
 
 const { resetPassword, loading, error } = useAuth();

@@ -15,7 +15,6 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import * as z from "zod";
-
 import { useAuth } from "@/composables/useAuth";
 
 const { forgotPassword, loading, error } = useAuth();
@@ -27,7 +26,6 @@ watch(email, () => (emailSent.value = false));
 const forgotPasswordSchema = z.object({
   email: z.email(),
 });
-
 
 const onSubmit = async (): Promise<void> => {
   const result = forgotPasswordSchema.safeParse({ email: email.value });

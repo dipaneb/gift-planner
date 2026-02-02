@@ -34,10 +34,11 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useRoute } from "vue-router";
 import * as z from "zod";
-
 import { useAuth } from "@/composables/useAuth";
 
+const route = useRoute();
 const { login, loading, error } = useAuth();
 
 const email = ref("");
@@ -61,10 +62,8 @@ const onSubmit = async (): Promise<void> => {
     console.error("Error from zod for login is: ", result.error);
     return;
   }
-  try {
-    await login({ email: email.value, password: password.value });
-  } catch (err) {
-    console.error("Error from backend for login is: ", err);
-  }
+
+  const redirect = route.query.redirect as string | undefined;
+  await login({ email: email.value, password: password.value }, redirect);
 };
 </script>
