@@ -9,6 +9,7 @@ from src.config.settings import get_settings
 from src.infrastructure.database.session import get_db
 from src.domains.auth.router import router as auth_router
 from src.domains.users.router import router as users_router
+from src.domains.recipients.router import router as recipients_router
 
 settings = get_settings()
 
@@ -17,6 +18,7 @@ app = FastAPI(
     docs_url=settings.SWAGGER_URL,
     redoc_url=settings.REDOC_URL,
     openapi_url=settings.OPENAPI_URL,
+    # swagger_ui_parameters={"persistAuthorization": True}
 )
 
 origins = [settings.FRONTEND_BASE_URL]
@@ -30,6 +32,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(recipients_router)
 
 @app.get("/")
 async def root(db: Annotated[Session, Depends(get_db)]):

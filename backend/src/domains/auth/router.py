@@ -7,7 +7,7 @@ from pydantic import EmailStr
 from src.config.settings import get_settings
 from .service import AuthService
 from .schemas import LoginData, UserCreate, UserUpdatePartial
-from .router_examples import REGISTER_EXAMPLES, RESET_PASSWORD_EXAMPLES
+from .router_examples import REGISTER_EXAMPLES, RESET_PASSWORD_EXAMPLE
 from .access_token_handler import create_access_token
 from src.infrastructure.external_services.email_service import MailJetClient
 
@@ -125,7 +125,7 @@ def send_email_for_forgot_password(email: Annotated[EmailStr, Body(embed=True)],
 
 
 @router.post("/reset-password")
-def reset_password(reset_password_token: Annotated[str, Query(alias="token")], body: Annotated[UserUpdatePartial, Body(openapi_examples=RESET_PASSWORD_EXAMPLES)], auth_service: Annotated[AuthService, Depends()]):
+def reset_password(reset_password_token: Annotated[str, Query(alias="token")], body: Annotated[UserUpdatePartial, Body(openapi_examples=RESET_PASSWORD_EXAMPLE)], auth_service: Annotated[AuthService, Depends()]):
     try:
         auth_service.reset_password(reset_password_token, body.password)
     except ValueError:

@@ -19,7 +19,7 @@ REGISTER_EXAMPLES={
     },
 }
 
-RESET_PASSWORD_EXAMPLES={
+RESET_PASSWORD_EXAMPLE={
     "Example": {
         "summary": "Example",
         "value": {
