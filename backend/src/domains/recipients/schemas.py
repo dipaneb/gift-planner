@@ -2,6 +2,7 @@ import uuid
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from src.core.pagination import PaginationMeta
 
 class RecipientCreate(BaseModel):
     """Model for recipient creation."""
@@ -58,16 +59,6 @@ class RecipientResponse(BaseModel):
 
 
     model_config = ConfigDict(from_attributes=True)
-
-
-class PaginationMeta(BaseModel):
-    """Pagination metadata."""
-    page: int
-    limit: int
-    total: int
-    totalPages: int
-    hasPrev: bool
-    hasNext: bool
 
 
 class PaginatedRecipientsResponse(BaseModel):

@@ -1,6 +1,7 @@
 from typing import Annotated, Literal
 
 from fastapi import Depends, Query
+from pydantic import BaseModel
 
 
 def pagination_parameters(
@@ -16,3 +17,13 @@ def pagination_parameters(
 
 
 PaginationDeps = Annotated[dict, Depends(pagination_parameters)]
+
+
+class PaginationMeta(BaseModel):
+    """Pagination metadata."""
+    page: int
+    limit: int
+    total: int
+    totalPages: int
+    hasPrev: bool
+    hasNext: bool

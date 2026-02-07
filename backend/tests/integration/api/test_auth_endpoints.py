@@ -9,18 +9,20 @@ class TestRegisterEndpoint:
         
         assert response.status_code == 201
         data = response.json()
-        assert data["success"] is True
-        assert "data" in data
-        assert "id" in data["data"]
-        assert data["data"]["id"] is not None
+        assert "access_token" in data
+        assert data["token_type"] == "bearer"
+        assert "expires_in" in data
+        assert "user" in data
+        assert "id" in data["user"]
+        assert data["user"]["id"] is not None
     
     def test_register_success_without_name(self, client, valid_user_data_no_name):
         response = client.post("/auth/register", json=valid_user_data_no_name)
         
         assert response.status_code == 201
         data = response.json()
-        assert data["success"] is True
-        assert "id" in data["data"]
+        assert "access_token" in data
+        assert "id" in data["user"]
     
     def test_register_duplicate_email_returns_409(self, client, valid_user_data):
         response1 = client.post("/auth/register", json=valid_user_data)
@@ -139,7 +141,7 @@ class TestRegisterEndpoint:
         
         assert response1.status_code == 201
         assert response2.status_code == 201
-        assert response1.json()["data"]["id"] != response2.json()["data"]["id"]
+        assert response1.json()["user"]["id"] != response2.json()["user"]["id"]
         
         repo = UserRepository(db_session)
         user1 = repo.get_by_email("user1@example.com")
@@ -180,8 +182,8 @@ class TestRegisterEndpoint:
         response = client.post("/auth/register", json=user_data)
         assert response.status_code == 201
         data = response.json()
-        assert data["success"] is True
-        assert "id" in data["data"]
+        assert "access_token" in data
+        assert "id" in data["user"]
         
         repo = UserRepository(db_session)
         created_user = repo.get_by_email("emptyname@example.com")
@@ -203,7 +205,7 @@ class TestRegisterEndpoint:
         response = client.post("/auth/register", json=user_data)
         assert response.status_code == 201
         data = response.json()
-        assert data["success"] is True
+        assert "access_token" in data
         
         repo = UserRepository(db_session)
         created_user = repo.get_by_email("longpass@example.com")

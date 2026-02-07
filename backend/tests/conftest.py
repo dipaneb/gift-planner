@@ -172,3 +172,59 @@ def other_user_with_recipients(client, db_session):
         })
     
     return other_user, recipients
+
+
+@pytest.fixture
+def authenticated_user_with_gifts(client, authenticated_user):
+    """Create authenticated user with 5 gifts."""
+    user, headers = authenticated_user
+
+    gifts = []
+    for i in range(5):
+        gift_data = {
+            "name": f"Gift {i}",
+            "price": 10.00 + i,
+            "status": "idee",
+            "quantity": 1,
+        }
+        response = client.post("/gifts", json=gift_data, headers=headers)
+        assert response.status_code == 201
+        gifts.append(response.json())
+
+    return user, headers, gifts
+
+
+@pytest.fixture
+def other_user_with_gifts(client, db_session):
+    """Create a different user with gifts (for isolation testing)."""
+    from src.domains.users.models import User
+    from src.domains.gifts.models import Gift
+    from src.domains.gifts.enums import GiftStatusEnum
+
+    other_user = User(
+        email="othergifts@example.com",
+        password_hash="$2b$12$hashed_password",
+        name="Other Gift User"
+    )
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    gifts = []
+    for i in range(3):
+        gift = Gift(
+            user_id=other_user.id,
+            name=f"Other Gift {i}",
+            status=GiftStatusEnum.idee,
+            quantity=1,
+        )
+        db_session.add(gift)
+        db_session.commit()
+        db_session.refresh(gift)
+        gifts.append({
+            "id": str(gift.id),
+            "name": gift.name,
+            "user_id": str(gift.user_id),
+        })
+
+    return other_user, gifts

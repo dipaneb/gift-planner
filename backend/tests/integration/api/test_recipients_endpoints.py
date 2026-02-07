@@ -99,8 +99,10 @@ class TestGetRecipientsEndpoint:
         
         assert response.status_code == 200
         data = response.json()
-        assert isinstance(data, list)
-        assert len(data) == 0
+        assert "items" in data
+        assert "meta" in data
+        assert data["items"] == []
+        assert data["meta"]["total"] == 0
     
     def test_get_recipients_returns_user_recipients_only(self, client, authenticated_user, other_user_with_recipients):
         user, headers = authenticated_user
@@ -116,9 +118,9 @@ class TestGetRecipientsEndpoint:
         
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 1
-        assert data[0]["name"] == "My Recipient"
-        assert data[0]["user_id"] == str(user.id)
+        assert data["meta"]["total"] == 1
+        assert data["items"][0]["name"] == "My Recipient"
+        assert data["items"][0]["user_id"] == str(user.id)
     
     def test_get_recipients_pagination_default(self, client, authenticated_user_with_recipients):
         user, headers, recipients = authenticated_user_with_recipients
@@ -127,7 +129,7 @@ class TestGetRecipientsEndpoint:
         
         assert response.status_code == 200
         data = response.json()
-        assert len(data) <= 10  # Default limit
+        assert len(data["items"]) <= 10  # Default limit
     
     def test_get_recipients_pagination_custom_limit(self, client, authenticated_user_with_recipients):
         user, headers, recipients = authenticated_user_with_recipients
@@ -136,7 +138,7 @@ class TestGetRecipientsEndpoint:
         
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 2
+        assert len(data["items"]) == 2
     
     def test_get_recipients_pagination_page_2(self, client, authenticated_user_with_recipients):
         user, headers, recipients = authenticated_user_with_recipients
@@ -145,7 +147,8 @@ class TestGetRecipientsEndpoint:
         
         assert response.status_code == 200
         data = response.json()
-        assert len(data) > 0
+        assert len(data["items"]) > 0
+        assert data["meta"]["page"] == 2
     
     def test_get_recipients_sort_ascending(self, client, authenticated_user):
         user, headers = authenticated_user
@@ -159,10 +162,11 @@ class TestGetRecipientsEndpoint:
         
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 3
-        assert data[0]["name"] == "Alice"
-        assert data[1]["name"] == "Bob"
-        assert data[2]["name"] == "Zara"
+        items = data["items"]
+        assert len(items) == 3
+        assert items[0]["name"] == "Alice"
+        assert items[1]["name"] == "Bob"
+        assert items[2]["name"] == "Zara"
     
     def test_get_recipients_sort_descending(self, client, authenticated_user):
         user, headers = authenticated_user
@@ -176,10 +180,11 @@ class TestGetRecipientsEndpoint:
         
         assert response.status_code == 200
         data = response.json()
-        assert len(data) == 3
-        assert data[0]["name"] == "Zara"
-        assert data[1]["name"] == "Bob"
-        assert data[2]["name"] == "Alice"
+        items = data["items"]
+        assert len(items) == 3
+        assert items[0]["name"] == "Zara"
+        assert items[1]["name"] == "Bob"
+        assert items[2]["name"] == "Alice"
     
     def test_get_recipients_requires_authentication(self, client):
         response = client.get("/recipients")

@@ -287,22 +287,22 @@ class TestRecipientResponse:
     
     def test_response_from_orm_model(self):
         """Test from_attributes config works with ORM models"""
-        from src.domains.recipients.models import Recipient
+        from types import SimpleNamespace
         
         recipient_id = uuid.uuid4()
-        user_id = uuid.uuid4()
+        _user_id = uuid.uuid4()
         
-        # Create mock ORM object
-        class MockRecipient:
-            id = recipient_id
-            user_id = user_id
-            name = "ORM Recipient"
-            notes = "ORM Notes"
+        mock_recipient = SimpleNamespace(
+            id=recipient_id,
+            user_id=_user_id,
+            name="ORM Recipient",
+            notes="ORM Notes",
+        )
         
-        response = RecipientResponse.model_validate(MockRecipient())
+        response = RecipientResponse.model_validate(mock_recipient)
         
         assert response.id == recipient_id
-        assert response.user_id == user_id
+        assert response.user_id == _user_id
         assert response.name == "ORM Recipient"
         assert response.notes == "ORM Notes"
     

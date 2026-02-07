@@ -10,6 +10,7 @@ from src.infrastructure.database.session import get_db
 from src.domains.auth.router import router as auth_router
 from src.domains.users.router import router as users_router
 from src.domains.recipients.router import router as recipients_router
+from src.domains.gifts.router import router as gifts_router
 
 settings = get_settings()
 
@@ -33,6 +34,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(recipients_router)
+app.include_router(gifts_router)
 
 @app.get("/")
 async def root(db: Annotated[Session, Depends(get_db)]):

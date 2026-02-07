@@ -66,15 +66,17 @@ class TestRecipientServiceGet:
         user_id = uuid.uuid4()
         pagination = {"sort": "asc", "page": 1, "limit": 10}
         
-        expected_recipients = [
+        recipients = [
             Recipient(id=uuid.uuid4(), user_id=user_id, name="Recipient 1", notes=None),
             Recipient(id=uuid.uuid4(), user_id=user_id, name="Recipient 2", notes=None),
         ]
-        mock_repo.get.return_value = expected_recipients
+        mock_repo.get.return_value = (recipients, 2)
         
         result = service.get(pagination, user_id)
         
-        assert result == expected_recipients
+        assert len(result.items) == 2
+        assert result.meta.total == 2
+        assert result.meta.page == 1
         mock_repo.get.assert_called_once_with(pagination, user_id)
     
     def test_get_recipients_empty_list(self):
@@ -84,11 +86,13 @@ class TestRecipientServiceGet:
         user_id = uuid.uuid4()
         pagination = {"sort": "default", "page": 1, "limit": 10}
         
-        mock_repo.get.return_value = []
+        mock_repo.get.return_value = ([], 0)
         
         result = service.get(pagination, user_id)
         
-        assert result == []
+        assert result.items == []
+        assert result.meta.total == 0
+        assert result.meta.totalPages == 0
 
 
 class TestRecipientServiceGetById:

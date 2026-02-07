@@ -82,9 +82,10 @@ class TestRecipientRepositoryGet:
         db_session.commit()
         
         pagination = {"sort": "default", "page": 1, "limit": 10}
-        recipients = repo.get(pagination, user.id)
+        recipients, total = repo.get(pagination, user.id)
         
         assert recipients == []
+        assert total == 0
     
     def test_get_recipients_for_user(self, db_session):
         repo = RecipientRepository(db_session)
@@ -100,9 +101,10 @@ class TestRecipientRepositoryGet:
         db_session.commit()
         
         pagination = {"sort": "default", "page": 1, "limit": 10}
-        recipients = repo.get(pagination, user.id)
+        recipients, total = repo.get(pagination, user.id)
         
         assert len(recipients) == 3
+        assert total == 3
     
     def test_get_recipients_filters_by_user_id(self, db_session):
         repo = RecipientRepository(db_session)
@@ -119,9 +121,10 @@ class TestRecipientRepositoryGet:
         db_session.commit()
         
         pagination = {"sort": "default", "page": 1, "limit": 10}
-        user1_recipients = repo.get(pagination, user1.id)
+        user1_recipients, total = repo.get(pagination, user1.id)
         
         assert len(user1_recipients) == 1
+        assert total == 1
         assert user1_recipients[0].name == "User 1 Recipient"
     
     def test_get_recipients_sort_ascending(self, db_session):
@@ -139,7 +142,7 @@ class TestRecipientRepositoryGet:
         db_session.commit()
         
         pagination = {"sort": "asc", "page": 1, "limit": 10}
-        recipients = repo.get(pagination, user.id)
+        recipients, total = repo.get(pagination, user.id)
         
         assert len(recipients) == 3
         assert recipients[0].name == "Alice"
@@ -160,7 +163,7 @@ class TestRecipientRepositoryGet:
         db_session.commit()
         
         pagination = {"sort": "desc", "page": 1, "limit": 10}
-        recipients = repo.get(pagination, user.id)
+        recipients, total = repo.get(pagination, user.id)
         
         assert len(recipients) == 3
         assert recipients[0].name == "Zara"
@@ -181,9 +184,10 @@ class TestRecipientRepositoryGet:
         db_session.commit()
         
         pagination = {"sort": "default", "page": 1, "limit": 2}
-        recipients = repo.get(pagination, user.id)
+        recipients, total = repo.get(pagination, user.id)
         
         assert len(recipients) == 2
+        assert total == 5
     
     def test_get_recipients_pagination_page_2(self, db_session):
         repo = RecipientRepository(db_session)
@@ -199,7 +203,7 @@ class TestRecipientRepositoryGet:
         db_session.commit()
         
         pagination = {"sort": "asc", "page": 2, "limit": 2}
-        recipients = repo.get(pagination, user.id)
+        recipients, total = repo.get(pagination, user.id)
         
         assert len(recipients) == 2
         # Page 1 would have Recipient 00, 01

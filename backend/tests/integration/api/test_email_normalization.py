@@ -16,8 +16,8 @@ class TestEmailNormalizationIntegration:
         response = client.post("/auth/register", json=user_data)
         assert response.status_code == 201
         data = response.json()
-        assert data["success"] is True
-        assert "id" in data["data"]
+        assert "access_token" in data
+        assert "id" in data["user"]
         
         repo = UserRepository(db_session)
         created_user = repo.get_by_email("mixedcase@example.com")

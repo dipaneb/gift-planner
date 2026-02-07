@@ -4,9 +4,10 @@ import math
 
 from fastapi import Depends, HTTPException, status
 
+from src.core.pagination import PaginationMeta
 from .models import Recipient
 from .repository import RecipientRepository
-from .schemas import RecipientUpdate, PaginatedRecipientsResponse, PaginationMeta, RecipientResponse
+from .schemas import RecipientUpdate, PaginatedRecipientsResponse, RecipientResponse
 
 
 class RecipientService:

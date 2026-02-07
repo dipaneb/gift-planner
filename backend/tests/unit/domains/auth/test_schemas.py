@@ -1,7 +1,8 @@
 import pytest
+import uuid
 from pydantic import ValidationError
 
-from src.domains.auth.schemas import UserCreate, LoginData, UserUpdatePartial
+from src.domains.auth.schemas import UserCreate, LoginData, UserUpdatePartial, UserResponse
 
 
 class TestUserCreateSchema:
@@ -158,59 +159,68 @@ class TestPasswordValidation:
 
 class TestLoginDataSchema:
     
-    def test_login_data_valid(self):
+    @pytest.fixture
+    def sample_user_response(self):
+        return UserResponse(id=uuid.uuid4(), email="test@example.com", name="Test")
+
+    def test_login_data_valid(self, sample_user_response):
         data = LoginData(
             access_token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-            expires_in=900
+            expires_in=900,
+            user=sample_user_response
         )
         
         assert data.access_token == "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         assert data.token_type == "bearer"
         assert data.expires_in == 900
+        assert data.user == sample_user_response
     
-    def test_login_data_default_token_type(self):
+    def test_login_data_default_token_type(self, sample_user_response):
         data = LoginData(
             access_token="some_token",
-            expires_in=600
+            expires_in=600,
+            user=sample_user_response
         )
         
         assert data.token_type == "bearer"
     
-    def test_login_data_custom_token_type(self):
+    def test_login_data_custom_token_type(self, sample_user_response):
         data = LoginData(
             access_token="some_token",
             token_type="Bearer",
-            expires_in=600
+            expires_in=600,
+            user=sample_user_response
         )
         
         assert data.token_type == "Bearer"
     
-    def test_login_data_missing_access_token(self):
+    def test_login_data_missing_access_token(self, sample_user_response):
         with pytest.raises(ValidationError) as exc_info:
-            LoginData(expires_in=900)
+            LoginData(expires_in=900, user=sample_user_response)
         
         errors = exc_info.value.errors()
         assert any(e["loc"] == ("access_token",) for e in errors)
     
-    def test_login_data_missing_expires_in(self):
+    def test_login_data_missing_expires_in(self, sample_user_response):
         with pytest.raises(ValidationError) as exc_info:
-            LoginData(access_token="token")
+            LoginData(access_token="token", user=sample_user_response)
         
         errors = exc_info.value.errors()
         assert any(e["loc"] == ("expires_in",) for e in errors)
     
-    def test_login_data_expires_in_as_string_coerced(self):
-        data = LoginData(access_token="token", expires_in="900")
+    def test_login_data_expires_in_as_string_coerced(self, sample_user_response):
+        data = LoginData(access_token="token", expires_in="900", user=sample_user_response)
         assert data.expires_in == 900
     
-    def test_login_data_expires_in_invalid_string(self):
+    def test_login_data_expires_in_invalid_string(self, sample_user_response):
         with pytest.raises(ValidationError):
-            LoginData(access_token="token", expires_in="not_a_number")
+            LoginData(access_token="token", expires_in="not_a_number", user=sample_user_response)
     
-    def test_login_data_serialization(self):
+    def test_login_data_serialization(self, sample_user_response):
         data = LoginData(
             access_token="test_token_123",
-            expires_in=1800
+            expires_in=1800,
+            user=sample_user_response
         )
         
         serialized = data.model_dump()
@@ -218,19 +228,22 @@ class TestLoginDataSchema:
         assert serialized["access_token"] == "test_token_123"
         assert serialized["token_type"] == "bearer"
         assert serialized["expires_in"] == 1800
+        assert "user" in serialized
     
-    def test_login_data_with_zero_expires_in(self):
+    def test_login_data_with_zero_expires_in(self, sample_user_response):
         data = LoginData(
             access_token="token",
-            expires_in=0
+            expires_in=0,
+            user=sample_user_response
         )
         
         assert data.expires_in == 0
     
-    def test_login_data_with_large_expires_in(self):
+    def test_login_data_with_large_expires_in(self, sample_user_response):
         data = LoginData(
             access_token="token",
-            expires_in=86400
+            expires_in=86400,
+            user=sample_user_response
         )
         
         assert data.expires_in == 86400

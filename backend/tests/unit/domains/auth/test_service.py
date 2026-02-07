@@ -201,7 +201,7 @@ class TestAuthServiceLogin:
     def test_login_success(self, auth_service, mock_user_repo, mock_refresh_token_repo, valid_user):
         mock_user_repo.get_by_email.return_value = valid_user
         
-        access_token, refresh_token, expires_in = auth_service.login("test@example.com", "SecurePass123!")
+        access_token, refresh_token, expires_in, user = auth_service.login("test@example.com", "SecurePass123!")
         
         assert isinstance(access_token, str)
         assert len(access_token) > 0
@@ -209,6 +209,7 @@ class TestAuthServiceLogin:
         assert len(refresh_token) == 32
         assert isinstance(expires_in, int)
         assert expires_in > 0
+        assert user == valid_user
         
         mock_user_repo.get_by_email.assert_called_once_with("test@example.com")
         mock_refresh_token_repo.create.assert_called_once()
@@ -250,7 +251,7 @@ class TestAuthServiceLogin:
         mock_user_repo.get_by_email.return_value = valid_user
         settings = get_settings()
         
-        _, _, expires_in = auth_service.login("test@example.com", "SecurePass123!")
+        _, _, expires_in, _ = auth_service.login("test@example.com", "SecurePass123!")
         
         assert expires_in == settings.ACCESS_TOKEN_LIFESPAN_IN_MINUTES * 60
     
@@ -265,7 +266,7 @@ class TestAuthServiceLogin:
     def test_login_email_not_case_sensitive(self, auth_service, mock_user_repo, valid_user):
         mock_user_repo.get_by_email.return_value = valid_user
         
-        access_token, _, _ = auth_service.login("TEST@EXAMPLE.COM", "SecurePass123!")
+        access_token, _, _, _ = auth_service.login("TEST@EXAMPLE.COM", "SecurePass123!")
         
         assert isinstance(access_token, str)
         mock_user_repo.get_by_email.assert_called_with("test@example.com")
@@ -273,8 +274,8 @@ class TestAuthServiceLogin:
     def test_login_multiple_times_creates_different_refresh_tokens(self, auth_service, mock_user_repo, mock_refresh_token_repo, valid_user):
         mock_user_repo.get_by_email.return_value = valid_user
         
-        _, refresh1, _ = auth_service.login("test@example.com", "SecurePass123!")
-        _, refresh2, _ = auth_service.login("test@example.com", "SecurePass123!")
+        _, refresh1, _, _ = auth_service.login("test@example.com", "SecurePass123!")
+        _, refresh2, _, _ = auth_service.login("test@example.com", "SecurePass123!")
         
         assert refresh1 != refresh2
         assert mock_refresh_token_repo.create.call_count == 2
@@ -286,7 +287,7 @@ class TestAuthServiceLogin:
         mock_user_repo.get_by_email.return_value = valid_user
         settings = get_settings()
         
-        access_token, _, _ = auth_service.login("test@example.com", "SecurePass123!")
+        access_token, _, _, _ = auth_service.login("test@example.com", "SecurePass123!")
         
         decoded = jwt.decode(access_token, settings.SECRET_KEY, algorithms=["HS256"])
         assert decoded["sub"] == str(valid_user.id)
