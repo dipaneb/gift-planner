@@ -58,3 +58,19 @@ class RecipientResponse(BaseModel):
 
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PaginationMeta(BaseModel):
+    """Pagination metadata."""
+    page: int
+    limit: int
+    total: int
+    totalPages: int
+    hasPrev: bool
+    hasNext: bool
+
+
+class PaginatedRecipientsResponse(BaseModel):
+    """Paginated response for recipients list."""
+    items: list[RecipientResponse]
+    meta: PaginationMeta

@@ -6,7 +6,7 @@ from fastapi import APIRouter, Body, Depends, status
 from src.core.pagination import PaginationDeps
 from src.domains.auth.dependencies import get_current_user_id
 from .service import RecipientService
-from .schemas import RecipientCreate, RecipientUpdate, RecipientResponse
+from .schemas import RecipientCreate, RecipientUpdate, RecipientResponse, PaginatedRecipientsResponse
 from .router_examples import CREATE_RECIPIENT_EXAMPLE, UPDATE_RECIPIENT_EXAMPLE
 
 router = APIRouter(prefix="/recipients", tags=["recipients"])
@@ -26,7 +26,7 @@ def create_recipient(
     )
 
 
-@router.get("", response_model=list[RecipientResponse])
+@router.get("", response_model=PaginatedRecipientsResponse)
 def get_recipients(
     pagination: PaginationDeps,
     recipient_service: Annotated[RecipientService, Depends()],

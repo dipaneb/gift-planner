@@ -1,11 +1,12 @@
 from typing import Annotated
 import uuid
+import math
 
 from fastapi import Depends, HTTPException, status
 
 from .models import Recipient
 from .repository import RecipientRepository
-from .schemas import RecipientUpdate
+from .schemas import RecipientUpdate, PaginatedRecipientsResponse, PaginationMeta, RecipientResponse
 
 
 class RecipientService:
@@ -16,8 +17,27 @@ class RecipientService:
         new_recipient = Recipient(user_id=user_id, name=name, notes=notes)
         return self.repo.create(new_recipient)
 
-    def get(self, pagination: dict, user_id: uuid.UUID) -> list[Recipient]:
-        return self.repo.get(pagination, user_id)
+    def get(self, pagination: dict, user_id: uuid.UUID) -> PaginatedRecipientsResponse:
+        page = pagination["page"]
+        limit = pagination["limit"]
+        
+        recipients, total = self.repo.get(pagination, user_id)
+        
+        total_pages = math.ceil(total / limit) if total > 0 else 0
+        
+        meta = PaginationMeta(
+            page=page,
+            limit=limit,
+            total=total,
+            totalPages=total_pages,
+            hasPrev=page > 1,
+            hasNext=page < total_pages
+        )
+        
+        return PaginatedRecipientsResponse(
+            items=[RecipientResponse.model_validate(r) for r in recipients],
+            meta=meta
+        )
 
     def get_by_id(self, user_id: uuid.UUID, recipient_id: uuid.UUID) -> Recipient:
         """

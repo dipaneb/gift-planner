@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
-declare module 'vue-router' {
+declare module "vue-router" {
   interface RouteMeta {
-    requiresAuth?: boolean
-    guestOnly?: boolean
+    requiresAuth?: boolean;
+    guestOnly?: boolean;
   }
 }
 
@@ -53,6 +53,16 @@ const routes: RouteRecordRaw[] = [
         name: "settings",
         component: () => import("@/views/SettingsView.vue"),
       },
+      {
+        path: "recipients",
+        name: "recipients",
+        component: () => import("@/views/RecipientsView.vue"),
+      },
+      {
+        path: "recipients/:recipient_id",
+        name: "recipientDetails",
+        component: () => import("@/views/RecipientDetailsView.vue"),
+      },
     ],
   },
   {
@@ -85,12 +95,12 @@ router.beforeEach(async (to, from) => {
       query: { redirect: to.fullPath },
     };
   }
-  
+
   if (guestOnly && isAuthenticated) {
     // Redirect authenticated users away from guest pages
     return { name: "dashboard" };
   }
-  
+
   // Allow navigation
   return true;
 });
