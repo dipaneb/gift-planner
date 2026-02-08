@@ -1,4 +1,5 @@
-import { type FetchParams } from ".";
+
+import { type FetchParams, type PaginationMeta } from ".";
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -17,15 +18,6 @@ export interface Recipient {
   user_id: string;
   name: string;
   notes: string | null;
-}
-
-export interface PaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-  hasPrev: boolean;
-  hasNext: boolean;
 }
 
 export interface PaginatedRecipientsResponse {

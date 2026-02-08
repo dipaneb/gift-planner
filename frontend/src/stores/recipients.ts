@@ -1,13 +1,12 @@
 import { ref, computed } from "vue";
 import { defineStore } from "pinia";
 
-import { type FetchParams } from "@/api";
+import { type FetchParams, type PaginationMeta, } from "@/api";
 import {
   recipientsApi,
   type Recipient,
   type RecipientCreate,
   type RecipientUpdate,
-  type PaginationMeta,
 } from "@/api/recipients";
 
 export const useRecipientsStore = defineStore("recipients", () => {

@@ -1,0 +1,133 @@
+import { ref } from "vue";
+
+import { type FetchParams } from "@/api";
+import { useGiftsStore } from "@/stores/gifts";
+import { useAuthStore } from "@/stores/auth";
+import type { GiftCreate, GiftUpdate } from "@/api/gifts";
+
+/**
+ * Composable for gifts actions with component-scoped loading and error states.
+ * Uses the gifts store for global state management but provides local UI state.
+ *
+ * This separates concerns:
+ * - Store: Global state (gifts list)
+ * - Composable: Local UI state (loading, error)
+ */
+export function useGifts() {
+  const giftsStore = useGiftsStore();
+  const authStore = useAuthStore();
+
+  const loading = ref(false);
+  const error = ref<string | null>(null);
+
+  /**
+   * Fetch all gifts with optional pagination
+   */
+  async function fetchAll(params?: FetchParams): Promise<boolean> {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      await giftsStore.fetchAll(authStore.accessToken!, params);
+      return true;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : "Failed to fetch gifts";
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
+   * Fetch a specific gift by ID
+   */
+  async function fetchById(giftId: string): Promise<boolean> {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      await giftsStore.fetchById(authStore.accessToken!, giftId);
+      return true;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : "Failed to fetch gift";
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
+   * Create a new gift
+   */
+  async function createGift(data: GiftCreate): Promise<boolean> {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      await giftsStore.create(authStore.accessToken!, data);
+      return true;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : "Failed to create gift";
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
+   * Update an existing gift
+   */
+  async function updateGift(giftId: string, data: GiftUpdate): Promise<boolean> {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      await giftsStore.update(authStore.accessToken!, giftId, data);
+      return true;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : "Failed to update gift";
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
+   * Quick-update gift status only
+   */
+  async function updateGiftStatus(
+    giftId: string,
+    status: GiftUpdate["status"],
+  ): Promise<boolean> {
+    return updateGift(giftId, { status });
+  }
+
+  /**
+   * Delete a gift
+   */
+  async function deleteGift(giftId: string): Promise<boolean> {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      await giftsStore.remove(authStore.accessToken!, giftId);
+      return true;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : "Failed to delete gift";
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  return {
+    loading,
+    error,
+    fetchAll,
+    fetchById,
+    createGift,
+    updateGift,
+    updateGiftStatus,
+    deleteGift,
+  };
+}
