@@ -5,6 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import EmailStr
 
 from src.config.settings import get_settings
+from src.core.rate_limit import limiter
 from .service import AuthService
 from .schemas import LoginData, UserCreate, UserUpdatePartial
 from .router_examples import REGISTER_EXAMPLES, RESET_PASSWORD_EXAMPLE
@@ -17,16 +18,18 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED, response_model=LoginData)
-def signup_user(response: Response, service: Annotated[AuthService, Depends()], user_create: Annotated[UserCreate, Body(openapi_examples=REGISTER_EXAMPLES)]):
+@limiter.limit("3/minute")
+def signup_user(request: Request, response: Response, service: Annotated[AuthService, Depends()], user_create: Annotated[UserCreate, Body(openapi_examples=REGISTER_EXAMPLES)]):
     service.register_user(user_create)
     
     # Automatically log in the user after registration by calling the login endpoint
     form_data = OAuth2PasswordRequestForm(username=user_create.email, password=user_create.password)
-    return login(response, service, form_data)
+    return login(request, response, service, form_data)
 
 
 @router.post("/login", response_model=LoginData)
-def login(response: Response, auth_service: Annotated[AuthService, Depends()], form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+@limiter.limit("5/minute")
+def login(request: Request, response: Response, auth_service: Annotated[AuthService, Depends()], form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     email = form_data.username # clarification because OAuth2PasswordRequestForm requires 'username'
     password = form_data.password
 
@@ -101,7 +104,8 @@ def logout(request: Request, response: Response, auth_service: Annotated[AuthSer
 
 
 @router.post("/forgot-password")
-def send_email_for_forgot_password(email: Annotated[EmailStr, Body(embed=True)], auth_service: Annotated[AuthService, Depends()], background_tasks: BackgroundTasks):
+@limiter.limit("3/minute")
+def send_email_for_forgot_password(request: Request, email: Annotated[EmailStr, Body(embed=True)], auth_service: Annotated[AuthService, Depends()], background_tasks: BackgroundTasks):
     email_job = auth_service.request_reset(email)
 
     if email_job:
@@ -125,7 +129,8 @@ def send_email_for_forgot_password(email: Annotated[EmailStr, Body(embed=True)],
 
 
 @router.post("/reset-password")
-def reset_password(reset_password_token: Annotated[str, Query(alias="token")], body: Annotated[UserUpdatePartial, Body(openapi_examples=RESET_PASSWORD_EXAMPLE)], auth_service: Annotated[AuthService, Depends()]):
+@limiter.limit("5/minute")
+def reset_password(request: Request, reset_password_token: Annotated[str, Query(alias="token")], body: Annotated[UserUpdatePartial, Body(openapi_examples=RESET_PASSWORD_EXAMPLE)], auth_service: Annotated[AuthService, Depends()]):
     try:
         auth_service.reset_password(reset_password_token, body.password)
     except ValueError:

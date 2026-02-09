@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from src.infrastructure.database.base import Base
 import src.infrastructure.database.models
 from src.infrastructure.database.session import get_db
+from src.core.rate_limit import limiter
 from src.main import app
 
 
@@ -45,8 +46,10 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
             pass
     
     app.dependency_overrides[get_db] = override_get_db
+    limiter.enabled = False
     with TestClient(app) as test_client:
         yield test_client
+    limiter.enabled = True
     app.dependency_overrides.clear()
 
 

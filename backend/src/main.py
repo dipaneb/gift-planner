@@ -2,11 +2,11 @@ from typing import Annotated
 
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from src.config.settings import get_settings
-from src.infrastructure.database.session import get_db
+from src.core.rate_limit import limiter
 from src.domains.auth.router import router as auth_router
 from src.domains.users.router import router as users_router
 from src.domains.recipients.router import router as recipients_router
@@ -22,6 +22,12 @@ app = FastAPI(
     # swagger_ui_parameters={"persistAuthorization": True}
 )
 
+# ── Rate Limiting ────────────────────────────────────────
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# ── Middleware (order matters: last added = first executed) ──
+# 1. CORS — must be outermost to handle preflight OPTIONS requests
 origins = [settings.FRONTEND_BASE_URL]
 app.add_middleware(
     CORSMiddleware,
@@ -35,10 +41,3 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(recipients_router)
 app.include_router(gifts_router)
-
-@app.get("/")
-async def root(db: Annotated[Session, Depends(get_db)]):
-    return {
-        "message": "Hello from FastAPI",
-        "token": token
-    }
