@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
 
+    # Trusted hosts (comma-separated). Empty = allow all (dev only).
+    ALLOWED_HOSTS: str = ""
+
     # Security
     SECRET_KEY: str = "default_secret_key_to_change_in_production"
     REFRESH_TOKEN_TTL_DAYS: int = 30
