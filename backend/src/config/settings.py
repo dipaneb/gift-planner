@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     def OPENAPI_URL(self) -> str:
         return "/openapi.json" if self.ENABLE_DOCS else None
 
+    # Logging
+    LOG_LEVEL: str = "INFO"
+
     # Security
     SECRET_KEY: str = "default_secret_key_to_change_in_production"
     REFRESH_TOKEN_TTL_DAYS: int = 30

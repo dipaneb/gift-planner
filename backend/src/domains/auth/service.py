@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 import uuid
 from datetime import datetime, timezone, timedelta
@@ -15,6 +16,7 @@ from .access_token_handler import create_access_token
 from .refresh_token_handler import hash_token, get_refresh_token_fingerprint, verify_refresh_token
 from .reset_password_token_handler import get_reset_password_token_fingerprint, hash_token as hash_reset_password_token, verify_reset_password_token
 
+logger = logging.getLogger("api.auth")
 
 settings = get_settings()
 
@@ -37,11 +39,14 @@ class AuthService:
         # check email uniqueness
         existing = self.user_repo.get_by_email(user_create.email)
         if existing:
+            logger.warning("Registration attempt with existing email: %s", user_create.email)
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already in use.")
 
         hashed_password = get_password_hash(user_create.password)  
         user = User(email=user_create.email, name=user_create.name, password_hash=hashed_password)
-        return self.user_repo.create(user)
+        created_user = self.user_repo.create(user)
+        logger.info("New user registered: %s", created_user.id)
+        return created_user
 
 
     def login(self, email: str, password: str) -> tuple[str, str, int, User]:
@@ -53,6 +58,7 @@ class AuthService:
 
         # Prevent enumeration by raising the same error if user is absent or password is false.
         if not user or not verify_password(password, user.password_hash):
+            logger.warning("Failed login attempt for email: %s", normalized_email)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password",
@@ -67,6 +73,7 @@ class AuthService:
         raw_refresh_token = self.__create_refresh_token_for_user(user.id)
 
         expires_in_seconds = access_token_lifespan_in_minutes * 60
+        logger.info("Successful login for user: %s", user.id)
         return access_token, raw_refresh_token, expires_in_seconds, user
     
 
@@ -83,6 +90,7 @@ class AuthService:
         if not verify_refresh_token(raw_token, refresh_token.token_hash):
             return
 
+        logger.info("Global logout for user: %s", refresh_token.user_id)
         self.refresh_token_repo.delete_all_tokens_for_user(refresh_token.user_id)
 
 
@@ -100,6 +108,7 @@ class AuthService:
         
         # If refresh token already revoked => possible reuse => cyberattack or concurent refresh
         if token.revoked_at is not None:
+            logger.warning("Refresh token reuse detected for user: %s — all tokens revoked", token.user_id)
             self.refresh_token_repo.delete_all_tokens_for_user(token.user_id)
             raise ValueError("refresh_reuse")
         
@@ -229,4 +238,5 @@ class AuthService:
         self.user_repo.set_password(user.id, new_password)
         self.reset_password_repo.mark_used(reset_password_token.id)
         self.refresh_token_repo.delete_all_tokens_for_user(user.id)
+        logger.info("Password reset completed for user: %s", user.id)
 

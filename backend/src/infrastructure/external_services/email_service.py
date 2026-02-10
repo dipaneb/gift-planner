@@ -1,4 +1,9 @@
+import logging
+
 import httpx
+
+logger = logging.getLogger("api.email")
+
 
 class MailJetClient():
     def __init__(self, api_key: str, api_secret: str):
@@ -29,7 +34,14 @@ class MailJetClient():
         }
 
         with httpx.Client(timeout=10) as client:
-            result = client.post("https://api.mailjet.com/v3.1/send", auth=(self.api_key, self.api_secret), json=payload)
-            
-            result.raise_for_status() # Raises the `HTTPStatusError` if one occurred.
+            try:
+                result = client.post("https://api.mailjet.com/v3.1/send", auth=(self.api_key, self.api_secret), json=payload)
+                result.raise_for_status()
+                logger.info("Email sent to %s (subject: %s)", to_email, subject)
+            except httpx.HTTPStatusError:
+                logger.error("Mailjet API error sending to %s: %s", to_email, result.status_code)
+                raise
+            except httpx.RequestError as exc:
+                logger.error("Network error sending email to %s: %s", to_email, exc)
+                raise
 
