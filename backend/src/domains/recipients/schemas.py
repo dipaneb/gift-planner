@@ -8,6 +8,7 @@ class RecipientCreate(BaseModel):
     """Model for recipient creation."""
     name: str = Field(max_length=255)
     notes: str | None = Field(default=None, max_length=6000, description="Optional notes")
+    gift_ids: list[uuid.UUID] = Field(default_factory=list, description="List of gift IDs to associate")
 
     @field_validator("name", mode="before")
     @classmethod
@@ -30,6 +31,7 @@ class RecipientUpdate(BaseModel):
     """Model for recipient update (PATCH - all fields optional)."""
     name: str | None = Field(default=None, max_length=255)
     notes: str | None = Field(default=None, max_length=6000, description="Optional notes")
+    gift_ids: list[uuid.UUID] | None = Field(default=None, description="Replace associated gifts")
 
     @field_validator("name", mode="before")
     @classmethod
@@ -56,7 +58,7 @@ class RecipientResponse(BaseModel):
     user_id: uuid.UUID
     name: str
     notes: str | None
-
+    gift_ids: list[uuid.UUID] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 

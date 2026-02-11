@@ -65,12 +65,46 @@ class TestCreateGiftEndpoint:
         data = response.json()
         assert data["recipient_ids"] == [rid]
 
+    def test_create_gift_with_multiple_recipients(self, client, authenticated_user):
+        user, headers = authenticated_user
+
+        r1 = client.post("/recipients", json={"name": "Mom"}, headers=headers)
+        r2 = client.post("/recipients", json={"name": "Dad"}, headers=headers)
+        rid1 = r1.json()["id"]
+        rid2 = r2.json()["id"]
+
+        gift_data = {
+            "name": "Family vacation",
+            "recipient_ids": [rid1, rid2],
+        }
+
+        response = client.post("/gifts", json=gift_data, headers=headers)
+
+        assert response.status_code == 201
+        data = response.json()
+        assert sorted(data["recipient_ids"]) == sorted([rid1, rid2])
+
     def test_create_gift_with_invalid_recipient_returns_404(self, client, authenticated_user):
         user, headers = authenticated_user
 
         gift_data = {
             "name": "Scarf",
             "recipient_ids": [str(uuid.uuid4())],
+        }
+
+        response = client.post("/gifts", json=gift_data, headers=headers)
+
+        assert response.status_code == 404
+
+    def test_create_gift_with_other_user_recipient_returns_404(self, client, authenticated_user, other_user_with_recipients):
+        user, headers = authenticated_user
+        other_user, other_recipients = other_user_with_recipients
+
+        other_rid = other_recipients[0]["id"]
+
+        gift_data = {
+            "name": "Scarf",
+            "recipient_ids": [other_rid],
         }
 
         response = client.post("/gifts", json=gift_data, headers=headers)
@@ -250,6 +284,26 @@ class TestGetGiftsEndpoint:
         names = [item["name"] for item in data["items"]]
         assert names == ["Zara gift", "Bob gift", "Alice gift"]
 
+    def test_get_gifts_list_includes_recipient_ids(self, client, authenticated_user):
+        user, headers = authenticated_user
+
+        r = client.post("/recipients", json={"name": "Mom"}, headers=headers)
+        rid = r.json()["id"]
+
+        client.post(
+            "/gifts",
+            json={"name": "Scarf", "recipient_ids": [rid]},
+            headers=headers,
+        )
+
+        response = client.get("/gifts", headers=headers)
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["items"]) >= 1
+        scarf = next(g for g in data["items"] if g["name"] == "Scarf")
+        assert scarf["recipient_ids"] == [rid]
+
     def test_get_gifts_requires_authentication(self, client):
         response = client.get("/gifts")
         assert response.status_code == 401
@@ -276,6 +330,25 @@ class TestGetGiftByIdEndpoint:
         assert data["name"] == "Test Gift"
         assert float(data["price"]) == 29.99
         assert data["status"] == "achete"
+
+    def test_get_gift_by_id_includes_recipient_ids(self, client, authenticated_user):
+        user, headers = authenticated_user
+
+        r = client.post("/recipients", json={"name": "Mom"}, headers=headers)
+        rid = r.json()["id"]
+
+        create_response = client.post(
+            "/gifts",
+            json={"name": "Scarf", "recipient_ids": [rid]},
+            headers=headers,
+        )
+        gift_id = create_response.json()["id"]
+
+        response = client.get(f"/gifts/{gift_id}", headers=headers)
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["recipient_ids"] == [rid]
 
     def test_get_gift_not_found_returns_404(self, client, authenticated_user):
         user, headers = authenticated_user
@@ -395,6 +468,74 @@ class TestUpdateGiftEndpoint:
 
         assert response.status_code == 200
         assert response.json()["recipient_ids"] == []
+
+    def test_update_gift_replace_recipients(self, client, authenticated_user):
+        user, headers = authenticated_user
+
+        r1 = client.post("/recipients", json={"name": "Mom"}, headers=headers)
+        r2 = client.post("/recipients", json={"name": "Dad"}, headers=headers)
+        rid1 = r1.json()["id"]
+        rid2 = r2.json()["id"]
+
+        create_response = client.post(
+            "/gifts",
+            json={"name": "Scarf", "recipient_ids": [rid1]},
+            headers=headers,
+        )
+        gift_id = create_response.json()["id"]
+
+        # Replace recipient
+        update_data = {"recipient_ids": [rid2]}
+        response = client.patch(f"/gifts/{gift_id}", json=update_data, headers=headers)
+
+        assert response.status_code == 200
+        assert response.json()["recipient_ids"] == [rid2]
+
+    def test_update_gift_with_invalid_recipient_returns_404(self, client, authenticated_user):
+        user, headers = authenticated_user
+
+        create_response = client.post("/gifts", json={"name": "Scarf"}, headers=headers)
+        gift_id = create_response.json()["id"]
+
+        update_data = {"recipient_ids": [str(uuid.uuid4())]}
+        response = client.patch(f"/gifts/{gift_id}", json=update_data, headers=headers)
+
+        assert response.status_code == 404
+
+    def test_update_gift_with_other_user_recipient_returns_404(self, client, authenticated_user, other_user_with_recipients):
+        user, headers = authenticated_user
+        other_user, other_recipients = other_user_with_recipients
+
+        create_response = client.post("/gifts", json={"name": "Scarf"}, headers=headers)
+        gift_id = create_response.json()["id"]
+
+        other_rid = other_recipients[0]["id"]
+        update_data = {"recipient_ids": [other_rid]}
+        response = client.patch(f"/gifts/{gift_id}", json=update_data, headers=headers)
+
+        assert response.status_code == 404
+
+    def test_update_gift_preserves_recipients_when_updating_other_fields(self, client, authenticated_user):
+        user, headers = authenticated_user
+
+        r = client.post("/recipients", json={"name": "Mom"}, headers=headers)
+        rid = r.json()["id"]
+
+        create_response = client.post(
+            "/gifts",
+            json={"name": "Scarf", "recipient_ids": [rid]},
+            headers=headers,
+        )
+        gift_id = create_response.json()["id"]
+
+        # Update name only — recipients should be preserved
+        update_data = {"name": "Silk Scarf"}
+        response = client.patch(f"/gifts/{gift_id}", json=update_data, headers=headers)
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["name"] == "Silk Scarf"
+        assert data["recipient_ids"] == [rid]
 
     def test_update_gift_clear_url(self, client, authenticated_user):
         user, headers = authenticated_user

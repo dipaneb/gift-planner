@@ -22,7 +22,8 @@ def create_recipient(
     return recipient_service.create(
         user_id=user_id,
         name=new_recipient.name,
-        notes=new_recipient.notes
+        notes=new_recipient.notes,
+        gift_ids=new_recipient.gift_ids,
     )
 
 
