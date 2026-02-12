@@ -19,6 +19,14 @@
           Link &nearr;
         </a>
       </div>
+
+      <div v-if="recipientNames.length > 0" class="card-recipients">
+        <span
+          v-for="name in recipientNames"
+          :key="name"
+          class="recipient-tag"
+        >{{ name }}</span>
+      </div>
     </div>
 
     <div class="card-actions">
@@ -47,6 +55,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { type Gift, type GiftStatus, GIFT_STATUS_LABELS } from "@/api/gifts";
+import { useRecipientsStore } from "@/stores/recipients";
 import GiftStatusBadge from "@/components/GiftStatusBadge.vue";
 
 const props = defineProps<{
@@ -58,12 +67,23 @@ const emit = defineEmits<{
   "status-change": [id: string, status: GiftStatus];
 }>();
 
+const recipientsStore = useRecipientsStore();
+
 const formattedPrice = computed(() => {
   if (!props.gift.price) return null;
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
     currency: "EUR",
   }).format(Number(props.gift.price));
+});
+
+const recipientNames = computed(() => {
+  return props.gift.recipient_ids
+    .map((id) => {
+      const r = recipientsStore.allRecipients.find((r) => r.id === id);
+      return r?.name ?? null;
+    })
+    .filter((n): n is string => n !== null);
 });
 
 function onStatusChange(event: Event) {
@@ -144,6 +164,23 @@ function onDelete() {
 
 .meta-link:hover {
   text-decoration: underline;
+}
+
+.card-recipients {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.recipient-tag {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  background: #ede9fe;
+  color: #6d28d9;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .card-actions {

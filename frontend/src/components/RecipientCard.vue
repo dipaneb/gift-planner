@@ -3,6 +3,13 @@
     <div class="card-body">
       <h2 class="card-name">{{ props.name }}</h2>
       <p v-if="props.notes" class="card-notes">{{ props.notes }}</p>
+      <div v-if="giftNames.length > 0" class="card-gifts">
+        <span
+          v-for="name in giftNames"
+          :key="name"
+          class="gift-tag"
+        >{{ name }}</span>
+      </div>
     </div>
 
     <div class="card-actions">
@@ -18,9 +25,19 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import type { Recipient } from "@/api/recipients";
+import { useGiftsStore } from "@/stores/gifts";
 
 const props = defineProps<Recipient>();
+const giftsStore = useGiftsStore();
+
+const giftNames = computed(() => {
+  return props.gift_ids
+    .map((id) => giftsStore.allGifts.find((g) => g.id === id))
+    .filter((g): g is NonNullable<typeof g> => g != null)
+    .map((g) => g.name);
+});
 
 const emit = defineEmits<{
   delete: [id: string];
@@ -52,6 +69,23 @@ function onDelete() {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
+}
+
+.card-gifts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.gift-tag {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .card-notes {

@@ -60,6 +60,27 @@
           </option>
         </select>
       </div>
+
+      <div class="form-group">
+        <label>Recipients</label>
+        <div class="checkbox-list">
+          <p v-if="recipientsStore.allRecipients.length === 0" class="checkbox-empty">
+            No recipients yet.
+          </p>
+          <label
+            v-for="recipient in recipientsStore.allRecipients"
+            :key="recipient.id"
+            class="checkbox-item"
+          >
+            <input
+              type="checkbox"
+              :value="recipient.id"
+              v-model="form.recipient_ids"
+            />
+            {{ recipient.name }}
+          </label>
+        </div>
+      </div>
     </form>
 
     <template #footer>
@@ -74,10 +95,12 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, watch } from "vue";
+import { onMounted, reactive, watch } from "vue";
 import { z } from "zod/v4";
 import BaseModal from "@/components/BaseModal.vue";
 import { GIFT_STATUS_LABELS, type Gift, type GiftUpdate, type GiftStatus } from "@/api/gifts";
+import { useRecipients } from "@/composables/useRecipients";
+import { useRecipientsStore } from "@/stores/recipients";
 
 const props = defineProps<{
   gift: Gift | null;
@@ -88,6 +111,12 @@ const openModel = defineModel<boolean>("open", { required: true });
 const emit = defineEmits<{
   submit: [id: string, data: GiftUpdate];
 }>();
+
+const recipientsStore = useRecipientsStore();
+const { fetchAll } = useRecipients();
+onMounted(() => {
+  fetchAll();
+});
 
 const giftSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(255, "Name is too long (max 255)"),
@@ -101,6 +130,7 @@ const giftSchema = z.object({
     .nullable(),
   quantity: z.coerce.number().int().min(1, "Quantity must be at least 1"),
   status: z.string() as z.ZodType<GiftStatus>,
+  recipient_ids: z.array(z.uuid()),
 });
 
 const form = reactive({
@@ -109,6 +139,7 @@ const form = reactive({
   price: "" as string | number,
   quantity: 1,
   status: "idee" as GiftStatus,
+  recipient_ids: [] as string[],
 });
 
 const errors = reactive<Record<string, string>>({
@@ -127,6 +158,7 @@ watch(
       form.price = gift.price ? Number(gift.price) : "";
       form.quantity = gift.quantity;
       form.status = gift.status;
+      form.recipient_ids = [...gift.recipient_ids];
       clearErrors();
     }
   },
@@ -162,6 +194,7 @@ function onSubmit(): void {
     price: result.data.price,
     status: result.data.status,
     quantity: result.data.quantity,
+    recipient_ids: result.data.recipient_ids,
   };
 
   emit("submit", props.gift.id, data);
@@ -216,6 +249,44 @@ function onSubmit(): void {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.checkbox-list {
+  max-height: 160px;
+  overflow-y: auto;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.checkbox-item:hover {
+  background: #f3f4f6;
+}
+
+.checkbox-item input[type="checkbox"] {
+  accent-color: #3b82f6;
+}
+
+.checkbox-empty {
+  margin: 0;
+  padding: 0.5rem;
+  color: #9ca3af;
+  font-size: 0.8125rem;
+  font-style: italic;
 }
 
 .field-error {

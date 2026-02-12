@@ -6,11 +6,13 @@ const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
 export interface RecipientCreate {
   name: string;
   notes?: string | null;
+  gift_ids?: string[];
 }
 
 export interface RecipientUpdate {
   name?: string | null;
   notes?: string | null;
+  gift_ids?: string[] | null;
 }
 
 export interface Recipient {
@@ -18,6 +20,7 @@ export interface Recipient {
   user_id: string;
   name: string;
   notes: string | null;
+  gift_ids: string[];
 }
 
 export interface PaginatedRecipientsResponse {

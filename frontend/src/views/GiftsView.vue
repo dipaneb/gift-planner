@@ -28,7 +28,7 @@
     <div v-if="loading" class="loading-state">Loading gifts...</div>
 
     <!-- Empty state -->
-    <div v-else-if="store.gifts.length === 0 && !statusFilter" class="empty-state">
+    <div v-else-if="store.paginatedGifts.length === 0 && !statusFilter" class="empty-state">
       <div class="empty-icon">🎁</div>
       <h2>No gifts yet</h2>
       <p>Start tracking your gift ideas by adding your first one.</p>
@@ -62,6 +62,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useGifts } from "@/composables/useGifts";
 import { useGiftsStore } from "@/stores/gifts";
+import { useRecipients } from "@/composables/useRecipients";
 import { GIFT_STATUS_LABELS, type GiftCreate, type GiftStatus } from "@/api/gifts";
 import type { FetchParams } from "@/api";
 import GiftCard from "@/components/GiftCard.vue";
@@ -69,7 +70,8 @@ import GiftStatusFilter from "@/components/GiftStatusFilter.vue";
 import Paginator from "@/components/Paginator.vue";
 import AddGiftModal from "@/components/AddGiftModal.vue";
 
-const { fetchAll, createGift, deleteGift, updateGiftStatus, loading, error } = useGifts();
+const { fetchPaginated, createGift, deleteGift, updateGiftStatus, loading, error } = useGifts();
+const { fetchAll: fetchAllRecipients } = useRecipients();
 const store = useGiftsStore();
 
 const currentPage = ref(1);
@@ -79,12 +81,12 @@ const isAddModalOpen = ref(false);
 const statusFilter = ref<GiftStatus | null>(null);
 
 const filteredGifts = computed(() => {
-  if (!statusFilter.value) return store.gifts;
-  return store.gifts.filter((g) => g.status === statusFilter.value);
+  if (!statusFilter.value) return store.paginatedGifts;
+  return store.paginatedGifts.filter((g) => g.status === statusFilter.value);
 });
 
 async function loadGifts() {
-  await fetchAll({ limit: limit.value, page: currentPage.value, sort: sortOrder.value });
+  await fetchPaginated({ limit: limit.value, page: currentPage.value, sort: sortOrder.value });
 }
 
 async function onGiftCreated(data: GiftCreate) {
@@ -113,6 +115,7 @@ function handlePageChange(page: number) {
 
 onMounted(() => {
   loadGifts();
+  fetchAllRecipients();
 });
 </script>
 

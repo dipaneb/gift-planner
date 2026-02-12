@@ -13,7 +13,7 @@
     
     <ul v-if="!loading" class="recipient-list">
       <RecipientCard
-        v-for="recipient in store.recipients"
+        v-for="recipient in store.paginatedRecipients"
         :key="recipient.id"
         v-bind="recipient"
         @delete="onRecipientDeleted"
@@ -28,12 +28,14 @@
 import { ref, onMounted } from "vue";
 import { useRecipients } from "@/composables/useRecipients";
 import { useRecipientsStore } from "@/stores/recipients";
+import { useGifts } from "@/composables/useGifts";
 import type { RecipientCreate } from "@/api/recipients";
 import RecipientCard from "@/components/RecipientCard.vue";
 import Paginator from "@/components/Paginator.vue";
 import AddRecipientModal from "@/components/AddRecipientModal.vue";
 
-const { fetchAll, createRecipient, deleteRecipient, loading, error } = useRecipients();
+const { fetchPaginated, createRecipient, deleteRecipient, loading, error } = useRecipients();
+const { fetchAll: fetchAllGifts } = useGifts();
 const store = useRecipientsStore();
 
 const currentPage = ref(1);
@@ -41,7 +43,7 @@ const limit = ref(10);
 const isModalOpen = ref(false);
 
 async function loadRecipients() {
-  await fetchAll({ limit: limit.value, page: currentPage.value });
+  await fetchPaginated({ limit: limit.value, page: currentPage.value });
 }
 
 async function onRecipientCreated(data: RecipientCreate) {
@@ -66,6 +68,7 @@ function handlePageChange(page: number) {
 
 onMounted(() => {
   loadRecipients();
+  fetchAllGifts();
 });
 </script>
 

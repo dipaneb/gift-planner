@@ -21,17 +21,36 @@ export function useGifts() {
   const error = ref<string | null>(null);
 
   /**
-   * Fetch all gifts with optional pagination
+   * Fetch gifts (paginated)
    */
-  async function fetchAll(params?: FetchParams): Promise<boolean> {
+  async function fetchPaginated(params?: FetchParams): Promise<boolean> {
     loading.value = true;
     error.value = null;
 
     try {
-      await giftsStore.fetchAll(authStore.accessToken!, params);
+      await giftsStore.fetchPaginated(authStore.accessToken!, params);
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : "Failed to fetch gifts";
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
+   * Fetch every gift (pages through the backend automatically).
+   * Results available via giftsStore.allGifts.
+   */
+  async function fetchAll(): Promise<boolean> {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      await giftsStore.fetchAll(authStore.accessToken!);
+      return true;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : "Failed to fetch all gifts";
       return false;
     } finally {
       loading.value = false;
@@ -123,6 +142,7 @@ export function useGifts() {
   return {
     loading,
     error,
+    fetchPaginated,
     fetchAll,
     fetchById,
     createGift,

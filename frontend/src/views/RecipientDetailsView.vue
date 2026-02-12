@@ -27,7 +27,19 @@
 
       <section class="detail-section">
         <h2>Gift ideas</h2>
-        <p class="placeholder">Gift tracking is not available yet. Coming soon.</p>
+        <p v-if="recipient.gift_ids.length === 0" class="placeholder">
+          No gifts assigned to this recipient.
+        </p>
+        <div v-else class="gifts-list">
+          <RouterLink
+            v-for="g in resolvedGifts"
+            :key="g.id"
+            :to="{ name: 'giftDetails', params: { gift_id: g.id } }"
+            class="gift-chip"
+          >
+            {{ g.name }}
+          </RouterLink>
+        </div>
       </section>
 
       <section class="detail-section">
@@ -43,6 +55,8 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useRecipients } from "@/composables/useRecipients";
 import { useRecipientsStore } from "@/stores/recipients";
+import { useGifts } from "@/composables/useGifts";
+import { useGiftsStore } from "@/stores/gifts";
 import type { RecipientUpdate } from "@/api/recipients";
 import EditRecipientModal from "@/components/EditRecipientModal.vue";
 
@@ -50,16 +64,26 @@ const route = useRoute();
 const router = useRouter();
 const store = useRecipientsStore();
 const { fetchById, updateRecipient, deleteRecipient, loading, error } = useRecipients();
+const giftsStore = useGiftsStore();
+const { fetchAll: fetchAllGifts } = useGifts();
 
 const recipientId = computed(() => route.params.recipient_id as string);
 const recipient = computed(() =>
-  store.recipients.find((r) => r.id === recipientId.value) ?? null,
+  store.paginatedRecipients.find((r) => r.id === recipientId.value) ?? null,
 );
 
 const isEditModalOpen = ref(false);
 
+const resolvedGifts = computed(() => {
+  if (!recipient.value) return [];
+  return recipient.value.gift_ids
+    .map((id) => giftsStore.allGifts.find((g) => g.id === id))
+    .filter((g): g is NonNullable<typeof g> => g != null);
+});
+
 onMounted(async () => {
   await fetchById(recipientId.value);
+  fetchAllGifts();
 });
 
 async function onUpdate(data: RecipientUpdate) {
@@ -183,5 +207,27 @@ async function onDelete() {
 .placeholder {
   color: #9ca3af;
   font-style: italic;
+}
+
+.gifts-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.gift-chip {
+  display: inline-block;
+  padding: 0.3rem 0.75rem;
+  background: #dbeafe;
+  color: #1d4ed8;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.15s;
+}
+
+.gift-chip:hover {
+  background: #bfdbfe;
 }
 </style>

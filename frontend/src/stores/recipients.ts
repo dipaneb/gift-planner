@@ -11,22 +11,43 @@ import {
 
 export const useRecipientsStore = defineStore("recipients", () => {
   // State
-  const recipients = ref<Recipient[]>([]);
+  const paginatedRecipients = ref<Recipient[]>([]);
+  const allRecipients = ref<Recipient[]>([]);
   const paginationMeta = ref<PaginationMeta | null>(null);
 
 
   // Actions
 
   /**
-   * Fetch all recipients for the current user
+   * Fetch recipients for the current user (paginated)
    */
-  async function fetchAll(
+  async function fetchPaginated(
     token: string,
     params?: FetchParams,
   ): Promise<void> {
     const response = await recipientsApi.getAll(token, params);
-    recipients.value = response.items;
+    paginatedRecipients.value = response.items;
     paginationMeta.value = response.meta;
+  }
+
+  /**
+   * Fetch every recipient by paging through the backend.
+   * Results are stored in `allRecipients` (separate from `paginatedRecipients`).
+   */
+  async function fetchAll(token: string): Promise<void> {
+    const pageSize = 100;
+    let page = 1;
+    let all: Recipient[] = [];
+    let totalPages = 1;
+
+    do {
+      const response = await recipientsApi.getAll(token, { page, limit: pageSize });
+      all = all.concat(response.items);
+      totalPages = response.meta.totalPages;
+      page++;
+    } while (page <= totalPages);
+
+    allRecipients.value = all;
   }
 
   /**
@@ -35,11 +56,11 @@ export const useRecipientsStore = defineStore("recipients", () => {
   async function fetchById(token: string, recipientId: string): Promise<Recipient> {
     const recipient = await recipientsApi.getById(token, recipientId);
 
-    const index = recipients.value.findIndex((r) => r.id === recipientId);
+    const index = paginatedRecipients.value.findIndex((r) => r.id === recipientId);
     if (index !== -1) {
-      recipients.value[index] = recipient;
+      paginatedRecipients.value[index] = recipient;
     } else {
-      recipients.value.push(recipient);
+      paginatedRecipients.value.push(recipient);
     }
 
     return recipient;
@@ -50,7 +71,7 @@ export const useRecipientsStore = defineStore("recipients", () => {
    */
   async function create(token: string, data: RecipientCreate): Promise<Recipient> {
     const newRecipient = await recipientsApi.create(token, data);
-    recipients.value.push(newRecipient);
+    paginatedRecipients.value.push(newRecipient);
     return newRecipient;
   }
 
@@ -64,9 +85,9 @@ export const useRecipientsStore = defineStore("recipients", () => {
   ): Promise<Recipient> {
     const updatedRecipient = await recipientsApi.update(token, recipientId, data);
 
-    const index = recipients.value.findIndex((r) => r.id === recipientId);
+    const index = paginatedRecipients.value.findIndex((r) => r.id === recipientId);
     if (index !== -1) {
-      recipients.value[index] = updatedRecipient;
+      paginatedRecipients.value[index] = updatedRecipient;
     }
 
     return updatedRecipient;
@@ -77,22 +98,24 @@ export const useRecipientsStore = defineStore("recipients", () => {
    */
   async function remove(token: string, recipientId: string): Promise<void> {
     await recipientsApi.delete(token, recipientId);
-    recipients.value = recipients.value.filter((r) => r.id !== recipientId);
+    paginatedRecipients.value = paginatedRecipients.value.filter((r) => r.id !== recipientId);
   }
 
   /**
    * Clear all recipients from state
    */
   function clearRecipients(): void {
-    recipients.value = [];
+    paginatedRecipients.value = [];
   }
 
   return {
     // State
-    recipients,
+    paginatedRecipients,
+    allRecipients,
     paginationMeta,
 
     // Actions
+    fetchPaginated,
     fetchAll,
     fetchById,
     create,

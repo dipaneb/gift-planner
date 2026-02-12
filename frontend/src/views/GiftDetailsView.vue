@@ -58,15 +58,22 @@
         </div>
       </section>
 
-      <!-- Recipients section (placeholder for now) -->
+      <!-- Recipients section -->
       <section class="detail-section">
         <h2>Recipients</h2>
         <p v-if="gift.recipient_ids.length === 0" class="placeholder">
           No recipients assigned to this gift.
         </p>
-        <p v-else class="placeholder">
-          {{ gift.recipient_ids.length }} recipient(s) assigned.
-        </p>
+        <div v-else class="recipients-list">
+          <RouterLink
+            v-for="r in resolvedRecipients"
+            :key="r.id"
+            :to="{ name: 'recipientDetails', params: { recipient_id: r.id } }"
+            class="recipient-chip"
+          >
+            {{ r.name }}
+          </RouterLink>
+        </div>
       </section>
 
       <EditGiftModal
@@ -83,6 +90,8 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useGifts } from "@/composables/useGifts";
 import { useGiftsStore } from "@/stores/gifts";
+import { useRecipients } from "@/composables/useRecipients";
+import { useRecipientsStore } from "@/stores/recipients";
 import {
   GIFT_STATUS_LABELS,
   GIFT_STATUS_COLORS,
@@ -96,9 +105,11 @@ const route = useRoute();
 const router = useRouter();
 const store = useGiftsStore();
 const { fetchById, updateGift, updateGiftStatus, deleteGift, loading, error } = useGifts();
+const recipientsStore = useRecipientsStore();
+const { fetchAll: fetchAllRecipients } = useRecipients();
 
 const giftId = computed(() => route.params.gift_id as string);
-const gift = computed(() => store.gifts.find((g) => g.id === giftId.value) ?? null);
+const gift = computed(() => store.paginatedGifts.find((g) => g.id === giftId.value) ?? null);
 
 const isEditModalOpen = ref(false);
 
@@ -110,8 +121,16 @@ const formattedPrice = computed(() => {
   }).format(Number(gift.value.price));
 });
 
+const resolvedRecipients = computed(() => {
+  if (!gift.value) return [];
+  return gift.value.recipient_ids
+    .map((id) => recipientsStore.allRecipients.find((r) => r.id === id))
+    .filter((r): r is NonNullable<typeof r> => r != null);
+});
+
 onMounted(async () => {
   await fetchById(giftId.value);
+  fetchAllRecipients();
 });
 
 async function onUpdate(id: string, data: GiftUpdate) {
@@ -269,6 +288,28 @@ async function onDelete() {
 .placeholder {
   color: #9ca3af;
   font-style: italic;
+}
+
+.recipients-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.recipient-chip {
+  display: inline-block;
+  padding: 0.3rem 0.75rem;
+  background: #ede9fe;
+  color: #6d28d9;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.15s;
+}
+
+.recipient-chip:hover {
+  background: #ddd6fe;
 }
 
 .btn {

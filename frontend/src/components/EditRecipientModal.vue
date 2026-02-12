@@ -21,6 +21,27 @@
           placeholder="Likes, dislikes, ideas..."
         />
       </div>
+
+      <div class="form-group">
+        <label>Gifts</label>
+        <div class="checkbox-list">
+          <p v-if="giftsStore.allGifts.length === 0" class="checkbox-empty">
+            No gifts yet.
+          </p>
+          <label
+            v-for="gift in giftsStore.allGifts"
+            :key="gift.id"
+            class="checkbox-item"
+          >
+            <input
+              type="checkbox"
+              :value="gift.id"
+              v-model="giftIds"
+            />
+            {{ gift.name }}
+          </label>
+        </div>
+      </div>
     </form>
 
     <template #footer>
@@ -35,9 +56,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import BaseModal from "@/components/BaseModal.vue";
 import type { Recipient, RecipientUpdate } from "@/api/recipients";
+import { useGifts } from "@/composables/useGifts";
+import { useGiftsStore } from "@/stores/gifts";
 
 interface Props {
   recipient: Recipient;
@@ -51,13 +74,21 @@ const emit = defineEmits<{
   submit: [data: RecipientUpdate];
 }>();
 
+const giftsStore = useGiftsStore();
+const { fetchAll } = useGifts();
+onMounted(() => {
+  fetchAll();
+});
+
 const name = ref("");
 const notes = ref("");
+const giftIds = ref<string[]>([]);
 
 watch(openModel, (isOpen) => {
   if (isOpen) {
     name.value = props.recipient.name;
     notes.value = props.recipient.notes ?? "";
+    giftIds.value = [...props.recipient.gift_ids];
   }
 });
 
@@ -74,6 +105,13 @@ function onSubmit(): void {
   }
   if (trimmedNotes !== props.recipient.notes) {
     update.notes = trimmedNotes;
+  }
+
+  // Always send gift_ids so the user can add/remove/clear
+  const currentIds = [...giftIds.value].sort();
+  const originalIds = [...props.recipient.gift_ids].sort();
+  if (JSON.stringify(currentIds) !== JSON.stringify(originalIds)) {
+    update.gift_ids = giftIds.value;
   }
 
   if (Object.keys(update).length === 0) {
@@ -121,6 +159,44 @@ function onSubmit(): void {
 
 .form-group textarea {
   resize: vertical;
+}
+
+.checkbox-list {
+  max-height: 160px;
+  overflow-y: auto;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.checkbox-item:hover {
+  background: #f3f4f6;
+}
+
+.checkbox-item input[type="checkbox"] {
+  accent-color: #3b82f6;
+}
+
+.checkbox-empty {
+  margin: 0;
+  padding: 0.5rem;
+  color: #9ca3af;
+  font-size: 0.8125rem;
+  font-style: italic;
 }
 
 .btn {

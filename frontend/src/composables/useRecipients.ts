@@ -21,17 +21,36 @@ export function useRecipients() {
   const error = ref<string | null>(null);
 
   /**
-   * Fetch all recipients with optional pagination
+   * Fetch recipients (paginated)
    */
-  async function fetchAll(params?: FetchParams): Promise<boolean> {
+  async function fetchPaginated(params?: FetchParams): Promise<boolean> {
     loading.value = true;
     error.value = null;
 
     try {
-      await recipientsStore.fetchAll(authStore.accessToken!, params);
+      await recipientsStore.fetchPaginated(authStore.accessToken!, params);
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : "Failed to fetch recipients";
+      return false;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
+   * Fetch every recipient (pages through the backend automatically).
+   * Results available via recipientsStore.allRecipients.
+   */
+  async function fetchAll(): Promise<boolean> {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      await recipientsStore.fetchAll(authStore.accessToken!);
+      return true;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : "Failed to fetch all recipients";
       return false;
     } finally {
       loading.value = false;
@@ -113,6 +132,7 @@ export function useRecipients() {
   return {
     loading,
     error,
+    fetchPaginated,
     fetchAll,
     fetchById,
     createRecipient,
