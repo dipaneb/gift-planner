@@ -1,8 +1,9 @@
 import pytest
 import uuid
+from decimal import Decimal
 from pydantic import ValidationError
 
-from src.domains.users.schemas import UserRead
+from src.domains.users.schemas import BudgetUpdate, UserRead
 
 
 class TestUserReadSchema:
@@ -12,19 +13,33 @@ class TestUserReadSchema:
         user_data = UserRead(
             id=user_id,
             email="test@example.com",
-            name="Test User"
+            name="Test User",
+            budget=None
         )
         
         assert user_data.id == user_id
         assert user_data.email == "test@example.com"
         assert user_data.name == "Test User"
+        assert user_data.budget is None
+    
+    def test_user_read_with_budget(self):
+        user_id = uuid.uuid4()
+        user_data = UserRead(
+            id=user_id,
+            email="test@example.com",
+            name="Test User",
+            budget=Decimal("150.00")
+        )
+        
+        assert user_data.budget == Decimal("150.00")
     
     def test_user_read_without_name(self):
         user_id = uuid.uuid4()
         user_data = UserRead(
             id=user_id,
             email="test@example.com",
-            name=None
+            name=None,
+            budget=None
         )
         
         assert user_data.id == user_id
@@ -69,7 +84,8 @@ class TestUserReadSchema:
         user_data = UserRead(
             id=user_id,
             email="test@example.com",
-            name="Test User"
+            name="Test User",
+            budget=Decimal("100.00")
         )
         
         serialized = user_data.model_dump()
@@ -77,3 +93,40 @@ class TestUserReadSchema:
         assert serialized["id"] == user_id
         assert serialized["email"] == "test@example.com"
         assert serialized["name"] == "Test User"
+        assert serialized["budget"] == Decimal("100.00")
+
+
+class TestBudgetUpdateSchema:
+
+    def test_valid_budget(self):
+        data = {"budget": 150.00}
+        schema = BudgetUpdate(**data)
+        assert schema.budget == Decimal("150.00")
+
+    def test_valid_budget_decimal(self):
+        data = {"budget": 0.01}
+        schema = BudgetUpdate(**data)
+        assert schema.budget == Decimal("0.01")
+
+    def test_budget_zero_raises_validation_error(self):
+        with pytest.raises(ValidationError) as exc_info:
+            BudgetUpdate(budget=0)
+        errors = exc_info.value.errors()
+        assert any(e["loc"] == ("budget",) for e in errors)
+
+    def test_budget_negative_raises_validation_error(self):
+        with pytest.raises(ValidationError) as exc_info:
+            BudgetUpdate(budget=-10.00)
+        errors = exc_info.value.errors()
+        assert any(e["loc"] == ("budget",) for e in errors)
+
+    def test_budget_missing_raises_validation_error(self):
+        with pytest.raises(ValidationError) as exc_info:
+            BudgetUpdate()
+        errors = exc_info.value.errors()
+        assert any(e["loc"] == ("budget",) for e in errors)
+
+    def test_budget_large_value(self):
+        data = {"budget": 99999999.99}
+        schema = BudgetUpdate(**data)
+        assert schema.budget == Decimal("99999999.99")

@@ -1,7 +1,8 @@
 from __future__ import annotations
 import uuid
+from decimal import Decimal
 
-from sqlalchemy import String
+from sqlalchemy import CheckConstraint, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -32,6 +33,10 @@ class User(Base):
         String(255),
     )
 
+    budget: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 2),
+    )
+
     groups: Mapped[list["Group"]] = relationship(
         "Group",
         back_populates="user",
@@ -56,3 +61,6 @@ class User(Base):
         cascade="all, delete-orphan",
     )
 
+    __table_args__ = (
+        CheckConstraint("budget > 0", name="ck_users_budget_positive"),
+    )

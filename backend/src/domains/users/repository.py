@@ -1,5 +1,6 @@
 from typing import Annotated
 import uuid
+from decimal import Decimal
 
 from fastapi import Depends
 from sqlalchemy import select, update
@@ -32,4 +33,10 @@ class UserRepository:
         stmt = update(User).where(User.id == user_id).values(password_hash=new_hashed_password)
         self.db.execute(stmt)
         self.db.commit()
+
+    def set_budget(self, user_id: uuid.UUID, budget: Decimal | None) -> User:
+        stmt = update(User).where(User.id == user_id).values(budget=budget)
+        self.db.execute(stmt)
+        self.db.commit()
+        return self.get_by_id(user_id)
 
