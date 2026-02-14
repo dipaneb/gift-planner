@@ -2,11 +2,11 @@
 
 import uuid
 from typing import Annotated
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 
 from src.domains.auth.dependencies import get_current_user, get_current_user_id
 from .models import User
-from .schemas import BudgetUpdate, UserRead
+from .schemas import BudgetUpdate, UserRead, UserNameUpdate, UserPasswordUpdate
 from .service import UserService
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -42,3 +42,23 @@ def delete_budget(
 ):
     """Remove the user's budget (set to null)."""
     return user_service.delete_budget(user_id)
+
+
+@router.patch("/me", response_model=UserRead)
+def update_name(
+    body: UserNameUpdate,
+    user_service: Annotated[UserService, Depends()],
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+):
+    """Update the user's display name."""
+    return user_service.update_name(user_id, body.name)
+
+
+@router.patch("/me/password", status_code=status.HTTP_204_NO_CONTENT)
+def update_password(
+    body: UserPasswordUpdate,
+    user_service: Annotated[UserService, Depends()],
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+):
+    """Update the user's password."""        
+    user_service.update_password(user_id, body.current_password, body.new_password)

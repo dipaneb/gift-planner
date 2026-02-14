@@ -2,7 +2,7 @@ from typing import Annotated
 import uuid
 from decimal import Decimal
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
 
 from .repository import UserRepository
 from .schemas import UserRead
@@ -41,3 +41,21 @@ class UserService:
     def get_current_user(self, user_id: uuid.UUID) -> UserRead:
         """Get current user with computed budget fields."""
         return self._build_user_read(user_id)
+
+    def update_name(self, user_id: uuid.UUID, name: str) -> UserRead:
+        """Update user's display name."""
+        self.user_repo.update_name(user_id, name)
+        return self._build_user_read(user_id)
+
+    def update_password(self, user_id: uuid.UUID, current_password: str, new_password: str) -> None:
+        """Update user's password after verifying current password."""
+        from src.domains.auth.password_handler import verify_password
+        
+        user = self.user_repo.get_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        
+        if not verify_password(current_password, user.password_hash):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Current password is incorrect")
+        
+        self.user_repo.set_password(user_id, new_password)

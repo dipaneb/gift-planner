@@ -53,3 +53,10 @@ class UserRepository:
         result = self.db.execute(stmt).scalar_one()
         return Decimal(str(result))
 
+    def update_name(self, user_id: uuid.UUID, name: str) -> User:
+        """Update the user's display name."""
+        stmt = update(User).where(User.id == user_id).values(name=name)
+        self.db.execute(stmt)
+        self.db.commit()
+        return self.get_by_id(user_id)
+

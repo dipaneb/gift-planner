@@ -8,7 +8,6 @@
 
         <div class="nav-links">
           <RouterLink :to="{ name: 'dashboard' }">Dashboard</RouterLink>
-          <RouterLink :to="{ name: 'profile' }">Profile</RouterLink>
           <RouterLink :to="{ name: 'settings' }">Settings</RouterLink>
           <RouterLink :to="{ name: 'recipients' }">Recipients</RouterLink>
           <RouterLink :to="{ name: 'gifts' }">Gifts</RouterLink>

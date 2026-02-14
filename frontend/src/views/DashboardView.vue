@@ -4,7 +4,7 @@
     <div class="dashboard-content">
       <p>
         Welcome back<strong>{{
-          authStore.user?.name === null ? "" : `${", "}authStore.user?.name`
+          authStore.user?.name === null ? "" : `, ${authStore.user?.name}`
         }}</strong
         >!
       </p>
