@@ -12,6 +12,7 @@
           <RouterLink :to="{ name: 'settings' }">Settings</RouterLink>
           <RouterLink :to="{ name: 'recipients' }">Recipients</RouterLink>
           <RouterLink :to="{ name: 'gifts' }">Gifts</RouterLink>
+          <RouterLink :to="{ name: 'budget' }">Budget</RouterLink>
         </div>
 
         <div class="nav-actions">

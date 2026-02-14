@@ -14,13 +14,17 @@ class TestUserReadSchema:
             id=user_id,
             email="test@example.com",
             name="Test User",
-            budget=None
+            budget=None,
+            spent=Decimal("0.00"),
+            remaining=None
         )
         
         assert user_data.id == user_id
         assert user_data.email == "test@example.com"
         assert user_data.name == "Test User"
         assert user_data.budget is None
+        assert user_data.spent == Decimal("0.00")
+        assert user_data.remaining is None
     
     def test_user_read_with_budget(self):
         user_id = uuid.uuid4()
@@ -28,10 +32,14 @@ class TestUserReadSchema:
             id=user_id,
             email="test@example.com",
             name="Test User",
-            budget=Decimal("150.00")
+            budget=Decimal("150.00"),
+            spent=Decimal("50.00"),
+            remaining=Decimal("100.00")
         )
         
         assert user_data.budget == Decimal("150.00")
+        assert user_data.spent == Decimal("50.00")
+        assert user_data.remaining == Decimal("100.00")
     
     def test_user_read_without_name(self):
         user_id = uuid.uuid4()
@@ -39,7 +47,9 @@ class TestUserReadSchema:
             id=user_id,
             email="test@example.com",
             name=None,
-            budget=None
+            budget=None,
+            spent=Decimal("0.00"),
+            remaining=None
         )
         
         assert user_data.id == user_id
@@ -85,7 +95,9 @@ class TestUserReadSchema:
             id=user_id,
             email="test@example.com",
             name="Test User",
-            budget=Decimal("100.00")
+            budget=Decimal("100.00"),
+            spent=Decimal("30.00"),
+            remaining=Decimal("70.00")
         )
         
         serialized = user_data.model_dump()
@@ -94,6 +106,8 @@ class TestUserReadSchema:
         assert serialized["email"] == "test@example.com"
         assert serialized["name"] == "Test User"
         assert serialized["budget"] == Decimal("100.00")
+        assert serialized["spent"] == Decimal("30.00")
+        assert serialized["remaining"] == Decimal("70.00")
 
 
 class TestBudgetUpdateSchema:

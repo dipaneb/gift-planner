@@ -161,7 +161,15 @@ class TestLoginDataSchema:
     
     @pytest.fixture
     def sample_user_response(self):
-        return UserResponse(id=uuid.uuid4(), email="test@example.com", name="Test")
+        from decimal import Decimal
+        return UserResponse(
+            id=uuid.uuid4(),
+            email="test@example.com",
+            name="Test",
+            budget=None,
+            spent=Decimal("0.00"),
+            remaining=None
+        )
 
     def test_login_data_valid(self, sample_user_response):
         data = LoginData(

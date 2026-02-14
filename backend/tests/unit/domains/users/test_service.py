@@ -26,11 +26,14 @@ class TestUserServiceUpdateBudget:
 
         user_id = uuid.uuid4()
         expected_user = _make_user(user_id=user_id, budget=Decimal("200.00"))
-        mock_repo.set_budget.return_value = expected_user
+        mock_repo.get_by_id.return_value = expected_user
+        mock_repo.get_spent_amount.return_value = Decimal("0.00")
 
         result = service.update_budget(user_id, Decimal("200.00"))
 
         assert result.budget == Decimal("200.00")
+        assert result.spent == Decimal("0.00")
+        assert result.remaining == Decimal("200.00")
         mock_repo.set_budget.assert_called_once_with(user_id, Decimal("200.00"))
 
     def test_update_budget_replaces_existing(self):
@@ -39,11 +42,14 @@ class TestUserServiceUpdateBudget:
 
         user_id = uuid.uuid4()
         expected_user = _make_user(user_id=user_id, budget=Decimal("300.00"))
-        mock_repo.set_budget.return_value = expected_user
+        mock_repo.get_by_id.return_value = expected_user
+        mock_repo.get_spent_amount.return_value = Decimal("50.00")
 
         result = service.update_budget(user_id, Decimal("300.00"))
 
         assert result.budget == Decimal("300.00")
+        assert result.spent == Decimal("50.00")
+        assert result.remaining == Decimal("250.00")
         mock_repo.set_budget.assert_called_once_with(user_id, Decimal("300.00"))
 
 
@@ -55,9 +61,12 @@ class TestUserServiceDeleteBudget:
 
         user_id = uuid.uuid4()
         expected_user = _make_user(user_id=user_id, budget=None)
-        mock_repo.set_budget.return_value = expected_user
+        mock_repo.get_by_id.return_value = expected_user
+        mock_repo.get_spent_amount.return_value = Decimal("25.00")
 
         result = service.delete_budget(user_id)
 
         assert result.budget is None
+        assert result.spent == Decimal("25.00")
+        assert result.remaining is None
         mock_repo.set_budget.assert_called_once_with(user_id, None)

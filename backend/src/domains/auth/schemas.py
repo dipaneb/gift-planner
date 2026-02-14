@@ -1,6 +1,7 @@
 from typing_extensions import Self
 import re
 import uuid
+from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator, field_validator
 
@@ -93,6 +94,9 @@ class UserResponse(BaseModel):
     id: uuid.UUID
     email: str
     name: str | None
+    budget: Decimal | None
+    spent: Decimal
+    remaining: Decimal | None
     
     model_config = ConfigDict(from_attributes=True)
 

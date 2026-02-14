@@ -9,6 +9,8 @@ class UserRead(BaseModel):
     email: EmailStr
     name: str | None
     budget: Decimal | None
+    spent: Decimal
+    remaining: Decimal | None
 
     model_config = ConfigDict(from_attributes=True)
 

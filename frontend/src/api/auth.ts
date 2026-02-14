@@ -21,6 +21,9 @@ export interface AuthResponse {
     id: string; // UUID serialized as string in JSON
     email: string;
     name: string | null;
+    budget: string | null;
+    spent: string;
+    remaining: string | null;
   };
 }
 
@@ -28,6 +31,9 @@ export interface User {
   id: string; // UUID serialized as string in JSON
   email: string;
   name: string | null;
+  budget: string | null;
+  spent: string;
+  remaining: string | null;
 }
 
 export interface RefreshResponse {
@@ -166,22 +172,5 @@ export const authApi = {
       },
     );
     await handleResponse<void>(response);
-  },
-
-  /**
-   * Get the current authenticated user
-   * @param token - The access token (JWT)
-   * @returns Promise with user data
-   */
-  async getCurrentUser(token: string): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/auth/me`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-    });
-    return handleResponse<User>(response);
   },
 };

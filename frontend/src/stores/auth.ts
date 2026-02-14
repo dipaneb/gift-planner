@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
 import { authApi, type AuthResponse, type User, type LoginRequest, type RegisterRequest } from '@/api/auth'
+import { usersApi } from '@/api/users'
 
 
 export const useAuthStore = defineStore('auth', () => {
@@ -94,6 +95,21 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
   }
 
+  /**
+   * Refresh user data from the backend
+   * Useful after operations that affect computed fields (e.g., budget spent/remaining)
+   */
+  async function refreshUser(): Promise<void> {
+    if (!accessToken.value) return
+    
+    try {
+      const updatedUser = await usersApi.getCurrentUser(accessToken.value)
+      user.value = updatedUser
+    } catch (error) {
+      console.error('Failed to refresh user data:', error)
+    }
+  }
+
   return {
     // State
     accessToken,
@@ -109,5 +125,6 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     register,
     logout,
+    refreshUser,
   }
 })

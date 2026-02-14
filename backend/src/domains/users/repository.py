@@ -3,11 +3,13 @@ import uuid
 from decimal import Decimal
 
 from fastapi import Depends
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
 from sqlalchemy.orm import Session
 
 from src.infrastructure.database.session import get_db
 from src.domains.auth.password_handler import get_password_hash
+from src.domains.gifts.models import Gift
+from src.domains.gifts.enums import GiftStatusEnum
 from .models import User
 
 class UserRepository:
@@ -39,4 +41,15 @@ class UserRepository:
         self.db.execute(stmt)
         self.db.commit()
         return self.get_by_id(user_id)
+
+    def get_spent_amount(self, user_id: uuid.UUID) -> Decimal:
+        """Calculate total spent from gifts that are no longer just ideas."""
+        stmt = (
+            select(func.coalesce(func.sum(Gift.price * Gift.quantity), 0))
+            .where(Gift.user_id == user_id)
+            .where(Gift.status != GiftStatusEnum.idee)
+            .where(Gift.price.is_not(None))
+        )
+        result = self.db.execute(stmt).scalar_one()
+        return Decimal(str(result))
 

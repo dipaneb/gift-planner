@@ -46,7 +46,8 @@ def login(request: Request, response: Response, auth_service: Annotated[AuthServ
         max_age=60 * 60 * 24 * 30,  # 30 days (should match refresh token TTL)
     )
 
-    return LoginData(access_token=access_token, expires_in=expires_in, user=user)
+    user_response = auth_service._build_user_response(user.id)
+    return LoginData(access_token=access_token, expires_in=expires_in, user=user_response)
 
 
 @router.post("/refresh", response_model=LoginData)
@@ -82,10 +83,11 @@ def refresh(request: Request, response: Response, auth_service: Annotated[AuthSe
         max_age=60 * 60 * 24 * 30,  # 30 days (should match refresh token TTL)
     )
 
+    user_response = auth_service._build_user_response(user_id)
     return LoginData(
         access_token=new_access_token,
         expires_in=access_token_lifespan_in_minutes * 60,
-        user=user,
+        user=user_response,
     )
 
 

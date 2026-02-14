@@ -84,6 +84,7 @@ export function useGifts() {
 
     try {
       await giftsStore.create(authStore.accessToken!, data);
+      await authStore.refreshUser();
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : "Failed to create gift";
@@ -102,6 +103,7 @@ export function useGifts() {
 
     try {
       await giftsStore.update(authStore.accessToken!, giftId, data);
+      await authStore.refreshUser();
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : "Failed to update gift";
@@ -130,6 +132,7 @@ export function useGifts() {
 
     try {
       await giftsStore.remove(authStore.accessToken!, giftId);
+      await authStore.refreshUser();
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : "Failed to delete gift";

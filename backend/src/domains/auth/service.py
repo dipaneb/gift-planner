@@ -10,7 +10,7 @@ from src.domains.users.repository import UserRepository
 from src.domains.users.models import User
 from .repository import RefreshTokenRepository, ResetPasswordRepository
 from .models import RefreshToken, PasswordResetToken
-from .schemas import UserCreate
+from .schemas import UserCreate, UserResponse
 from .password_handler import get_password_hash, verify_password
 from .access_token_handler import create_access_token
 from .refresh_token_handler import hash_token, get_refresh_token_fingerprint, verify_refresh_token
@@ -31,6 +31,24 @@ class AuthService:
         self.user_repo = user_repo
         self.refresh_token_repo = refresh_token_repo
         self.reset_password_repo = reset_password_repo
+
+    def _build_user_response(self, user_id: uuid.UUID) -> UserResponse | None:
+        """Build UserResponse with computed spent and remaining."""
+        user = self.user_repo.get_by_id(user_id)
+        if not user:
+            return None
+        
+        spent = self.user_repo.get_spent_amount(user_id)
+        remaining = user.budget - spent if user.budget is not None else None
+        
+        return UserResponse(
+            id=user.id,
+            email=user.email,
+            name=user.name,
+            budget=user.budget,
+            spent=spent,
+            remaining=remaining,
+        )
         
     # ===================
     # Register/Login

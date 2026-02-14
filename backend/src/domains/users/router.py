@@ -13,8 +13,16 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.get("/me", response_model=UserRead)
-def me(current_user: Annotated[User, Depends(get_current_user)]) -> User:
-    return current_user
+def me(
+    user_service: Annotated[UserService, Depends()],
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+) -> UserRead:
+    """Get current user with computed budget fields."""
+    user_read = user_service.get_current_user(user_id)
+    if not user_read:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    return user_read
 
 
 @router.patch("/me/budget", response_model=UserRead)
