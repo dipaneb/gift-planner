@@ -69,7 +69,7 @@ class Gift(Base):
 
     __table_args__ = (
         CheckConstraint("quantity >= 1", name="ck_gifts_quantity"),
-        CheckConstraint("price >= 9", name="ck_gifts_price"),
+        CheckConstraint("price >= 0", name="ck_gifts_price"),
         Index("idx_gifts_user", "user_id"),
         Index("idx_gifts_status", "status"),
     )
