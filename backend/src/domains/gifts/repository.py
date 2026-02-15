@@ -37,7 +37,8 @@ class GiftRepository:
             stmt = stmt.order_by(Gift.name.asc())
         elif sort == "desc":
             stmt = stmt.order_by(Gift.name.desc())
-        # else: default order (no explicit order_by)
+        else:
+            stmt = stmt.order_by(Gift.created_at.desc())
 
         stmt = stmt.offset((page - 1) * limit).limit(limit)
 
