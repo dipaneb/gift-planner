@@ -49,7 +49,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_LIFESPAN_IN_MINUTES: int = 15
 
     # Used to send emails via Mailjet
-    PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES: int
+    PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES: int = 30
+    ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS: int = 1
     MAILJET_API_KEY: str
     MAILJET_API_SECRET_KEY: str
     MAIL_FROM_EMAIL: EmailStr = "noreply@your-domain.com"

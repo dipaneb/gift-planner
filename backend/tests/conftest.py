@@ -80,7 +80,8 @@ def sample_user(db_session):
     user = User(
         email="existing@example.com",
         password_hash="$2b$12$hashed_password_here",
-        name="Existing User"
+        name="Existing User",
+        is_verified=True
     )
     db_session.add(user)
     db_session.commit()
@@ -92,32 +93,29 @@ def sample_user(db_session):
 def authenticated_user(client, db_session):
     """Create a user and return (user, auth_headers) tuple."""
     from src.domains.users.models import User
+    from src.domains.auth.password_handler import get_password_hash
     
-    # Create user
-    user_data = {
-        "email": "auth@example.com",
-        "password": "SecurePass123!",
-        "confirmed_password": "SecurePass123!",
-        "name": "Auth User"
-    }
-    register_response = client.post("/auth/register", json=user_data)
-    assert register_response.status_code == 201
+    # Create verified user directly in DB
+    user = User(
+        email="auth@example.com",
+        password_hash=get_password_hash("SecurePass123!"),
+        name="Auth User",
+        is_verified=True
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
     
     # Login to get token
     login_data = {
-        "username": user_data["email"],
-        "password": user_data["password"]
+        "username": user.email,
+        "password": "SecurePass123!"
     }
     login_response = client.post("/auth/login", data=login_data)
     assert login_response.status_code == 200
     
     access_token = login_response.json()["access_token"]
     headers = {"Authorization": f"Bearer {access_token}"}
-    
-    # Get user from DB
-    from sqlalchemy import select
-    stmt = select(User).where(User.email == user_data["email"])
-    user = db_session.execute(stmt).scalar_one()
     
     return user, headers
 
@@ -150,7 +148,8 @@ def other_user_with_recipients(client, db_session):
     other_user = User(
         email="other@example.com",
         password_hash="$2b$12$hashed_password",
-        name="Other User"
+        name="Other User",
+        is_verified=True
     )
     db_session.add(other_user)
     db_session.commit()
@@ -207,7 +206,8 @@ def other_user_with_gifts(client, db_session):
     other_user = User(
         email="othergifts@example.com",
         password_hash="$2b$12$hashed_password",
-        name="Other Gift User"
+        name="Other Gift User",
+        is_verified=True
     )
     db_session.add(other_user)
     db_session.commit()

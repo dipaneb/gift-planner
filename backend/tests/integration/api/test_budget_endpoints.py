@@ -13,7 +13,8 @@ class TestBudgetEndpoints:
         user = User(
             email="budget@example.com",
             password_hash=get_password_hash("SecurePass123!"),
-            name="Budget User"
+            name="Budget User",
+            is_verified=True
         )
         db_session.add(user)
         db_session.commit()

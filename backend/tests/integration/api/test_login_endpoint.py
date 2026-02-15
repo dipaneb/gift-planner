@@ -13,7 +13,8 @@ class TestLoginEndpoint:
         user = User(
             email="john@example.com",
             password_hash=get_password_hash("SecurePass123!"),
-            name="John Doe"
+            name="John Doe",
+            is_verified=True
         )
         db_session.add(user)
         db_session.commit()
@@ -233,12 +234,14 @@ class TestLoginEndpoint:
         user1 = User(
             email="user1@example.com",
             password_hash=get_password_hash("Password123!"),
-            name="User One"
+            name="User One",
+            is_verified=True
         )
         user2 = User(
             email="user2@example.com",
             password_hash=get_password_hash("Password123!"),
-            name="User Two"
+            name="User Two",
+            is_verified=True
         )
         db_session.add(user1)
         db_session.add(user2)
@@ -282,3 +285,26 @@ class TestLoginEndpoint:
         )
         
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    
+    def test_login_unverified_email_returns_403(self, client, db_session):
+        """Test that users with unverified emails cannot log in. 403 is safe here because correct password is required to reach this check."""
+        unverified_user = User(
+            email="unverified@example.com",
+            password_hash=get_password_hash("SecurePass123!"),
+            name="Unverified User",
+            is_verified=False
+        )
+        db_session.add(unverified_user)
+        db_session.commit()
+        
+        response = client.post(
+            "/auth/login",
+            data={
+                "username": "unverified@example.com",
+                "password": "SecurePass123!"
+            }
+        )
+        
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        data = response.json()
+        assert "verify" in data["detail"].lower()

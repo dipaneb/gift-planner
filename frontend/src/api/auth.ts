@@ -52,6 +52,16 @@ export interface ResetPasswordRequest {
   confirmed_password: string;
 }
 
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface VerifyEmailResponse {
+  success: boolean;
+  message: string;
+}
+
 // Helper function to handle API errors
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
@@ -72,11 +82,11 @@ async function handleResponse<T>(response: Response): Promise<T> {
 export const authApi = {
   /**
    * Register a new user
-   * Returns access token (JWT) and sets refresh token as httpOnly cookie
+   * Sends verification email to the user
    * @param data - User registration data
-   * @returns Promise with auth response including access token and user data
+   * @returns Promise with success message
    */
-  async register(data: RegisterRequest): Promise<AuthResponse> {
+  async register(data: RegisterRequest): Promise<RegisterResponse> {
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: "POST",
       headers: {
@@ -85,7 +95,7 @@ export const authApi = {
       credentials: "include",
       body: JSON.stringify(data),
     });
-    return handleResponse<AuthResponse>(response);
+    return handleResponse<RegisterResponse>(response);
   },
 
   /**
@@ -172,5 +182,22 @@ export const authApi = {
       },
     );
     await handleResponse<void>(response);
+  },
+
+  /**
+   * Verify email using token from email
+   * @param token - Verification token from email
+   */
+  async verifyEmail(token: string): Promise<VerifyEmailResponse> {
+    const response = await fetch(
+      `${API_BASE_URL}/auth/verify-email?token=${encodeURIComponent(token)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+    return handleResponse<VerifyEmailResponse>(response);
   },
 };

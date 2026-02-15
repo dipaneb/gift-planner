@@ -15,6 +15,7 @@ from .password_handler import get_password_hash, verify_password
 from .access_token_handler import create_access_token
 from .refresh_token_handler import hash_token, get_refresh_token_fingerprint, verify_refresh_token
 from .reset_password_token_handler import get_reset_password_token_fingerprint, hash_token as hash_reset_password_token, verify_reset_password_token
+from .verification_token_handler import hash_verification_token, verify_verification_token
 
 logger = logging.getLogger("api.auth")
 
@@ -53,18 +54,50 @@ class AuthService:
     # ===================
     # Register/Login
     # ===================
-    def register_user(self, user_create: UserCreate) -> User:
-        # check email uniqueness
+    def register_user(self, user_create: UserCreate) -> dict:
+        """
+        Create user account and return email information for sending verification email.
+        Returns dict with email details for BackgroundTasks.
+        """
         existing = self.user_repo.get_by_email(user_create.email)
         if existing:
             logger.warning("Registration attempt with existing email: %s", user_create.email)
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already in use.")
 
         hashed_password = get_password_hash(user_create.password)  
-        user = User(email=user_create.email, name=user_create.name, password_hash=hashed_password)
+        user = User(
+            email=user_create.email, 
+            name=user_create.name, 
+            password_hash=hashed_password,
+            is_verified=False
+        )
         created_user = self.user_repo.create(user)
-        logger.info("New user registered: %s", created_user.id)
-        return created_user
+
+        raw_token = uuid.uuid4().hex
+        token_hash = hash_verification_token(raw_token)
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
+        
+        self.user_repo.set_verification_token(created_user.id, token_hash, expires_at)
+
+        verification_link = f"{settings.FRONTEND_BASE_URL}/verify-email?token={raw_token}"
+        
+        subject = "Verify your email address"
+        html = f"""
+            <p>Welcome! Please verify your email address by clicking the link below:</p>
+            <p><a href="{verification_link}">Verify Email</a></p>
+            <p>This link expires in {settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS} {"hour" if settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS == 1 else "hours"}.</p>
+        """
+        text = f"Verify your email: {verification_link}"
+
+        logger.info("New user registered (unverified): %s", created_user.id)
+        
+        return {
+            "to_email": created_user.email,
+            "to_name": created_user.name,
+            "subject": subject,
+            "html": html,
+            "text": text,
+        }
 
 
     def login(self, email: str, password: str) -> tuple[str, str, int, User]:
@@ -81,6 +114,13 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password",
                 headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        if not user.is_verified:
+            logger.warning("Login attempt with unverified email: %s", normalized_email)
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Please verify your email address before logging in.",
             )
         access_token_lifespan_in_minutes = settings.ACCESS_TOKEN_LIFESPAN_IN_MINUTES
         access_token = create_access_token(
@@ -253,8 +293,48 @@ class AuthService:
         if not user:
             raise ValueError("invalid_token")
         
+
         self.user_repo.set_password(user.id, new_password)
         self.reset_password_repo.mark_used(reset_password_token.id)
         self.refresh_token_repo.delete_all_tokens_for_user(user.id)
         logger.info("Password reset completed for user: %s", user.id)
 
+
+    # ===================
+    # Email Verification
+    # ===================
+    def verify_email(self, raw_token: str) -> User:
+        """
+        Verify a user's email using the verification token.
+        Returns the verified user.
+        Raises ValueError if token is invalid, expired, or already used.
+        """
+        
+        logger.debug("Attempting email verification with token: %s...", raw_token[:16])
+        user = self.user_repo.get_by_verification_token(raw_token)
+        
+        # If user not found, token is invalid (already verified in repository to find user)
+        if not user:
+            logger.warning("Email verification failed: user not found for token")
+            raise ValueError("invalid_token")
+        
+        logger.debug("Found user %s for verification token", user.id)
+        
+        # Check expiration
+        now = datetime.now(timezone.utc)
+        expires_at = user.verification_token_expires_at
+        if expires_at is None:
+            logger.warning("Email verification failed for user %s: no expiration set", user.id)
+            raise ValueError("invalid_token")
+        
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        
+        if expires_at <= now:
+            logger.warning("Email verification failed for user %s: token expired (expires_at=%s, now=%s)", 
+                          user.id, expires_at, now)
+            raise ValueError("expired_token")
+        
+        self.user_repo.verify_email(user.id)
+        logger.info("Email verified for user: %s", user.id)
+        return self.user_repo.get_by_id(user.id)

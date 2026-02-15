@@ -16,7 +16,8 @@ class TestRefreshEndpoint:
         user = User(
             email="john@example.com",
             password_hash=get_password_hash("SecurePass123!"),
-            name="John Doe"
+            name="John Doe",
+            is_verified=True
         )
         db_session.add(user)
         db_session.commit()
@@ -235,8 +236,8 @@ class TestRefreshEndpoint:
         assert len(remaining_tokens) == 0
     
     def test_refresh_different_users_get_different_tokens(self, client, db_session):
-        user1 = User(email="user1@example.com", password_hash=get_password_hash("Pass1!"), name="User 1")
-        user2 = User(email="user2@example.com", password_hash=get_password_hash("Pass2!"), name="User 2")
+        user1 = User(email="user1@example.com", password_hash=get_password_hash("Pass1!"), name="User 1", is_verified=True)
+        user2 = User(email="user2@example.com", password_hash=get_password_hash("Pass2!"), name="User 2", is_verified=True)
         db_session.add(user1)
         db_session.add(user2)
         db_session.commit()

@@ -17,14 +17,27 @@ settings = get_settings()
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register", status_code=status.HTTP_201_CREATED, response_model=LoginData)
+@router.post("/register", status_code=status.HTTP_201_CREATED)
 @limiter.limit("3/minute")
-def signup_user(request: Request, response: Response, service: Annotated[AuthService, Depends()], user_create: Annotated[UserCreate, Body(openapi_examples=REGISTER_EXAMPLES)]):
-    service.register_user(user_create)
+def signup_user(request: Request, service: Annotated[AuthService, Depends()], user_create: Annotated[UserCreate, Body(openapi_examples=REGISTER_EXAMPLES)], background_tasks: BackgroundTasks):
+    email_job = service.register_user(user_create)
     
-    # Automatically log in the user after registration by calling the login endpoint
-    form_data = OAuth2PasswordRequestForm(username=user_create.email, password=user_create.password)
-    return login(request, response, service, form_data)
+    mailjet_client = MailJetClient(settings.MAILJET_API_KEY, settings.MAILJET_API_SECRET_KEY)
+    background_tasks.add_task(
+        mailjet_client.send_email,
+        from_email=settings.MAIL_FROM_EMAIL,
+        from_name=settings.MAIL_FROM_NAME,
+        to_email=email_job["to_email"],
+        to_name=email_job["to_name"],
+        subject=email_job["subject"],
+        html=email_job["html"],
+        text=email_job["text"],
+    )
+    
+    return {
+        "success": True,
+        "message": "Registration successful. Please check your email to verify your account."
+    }
 
 
 @router.post("/login", response_model=LoginData)
@@ -139,3 +152,20 @@ def reset_password(request: Request, reset_password_token: Annotated[str, Query(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")
     
     return {"success": True, "message": "Password updated."}
+
+
+@router.post("/verify-email")
+@limiter.limit("5/minute")
+def verify_email(request: Request, verification_token: Annotated[str, Query(alias="token")], auth_service: Annotated[AuthService, Depends()]):
+    try:
+        auth_service.verify_email(verification_token)
+    except ValueError as e:
+        error_msg = str(e)
+        if error_msg == "already_verified":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already verified")
+        elif error_msg == "expired_token":
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Verification link expired")
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid verification token")
+    
+    return {"success": True, "message": "Email verified successfully. You can now log in."}

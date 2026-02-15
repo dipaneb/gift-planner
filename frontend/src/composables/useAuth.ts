@@ -41,19 +41,18 @@ export function useAuth() {
 
   /**
    * Register a new user
-   * Automatically logs in after successful registration
+   * Sends verification email instead of auto-login
    */
-  async function register(data: RegisterRequest): Promise<boolean> {
+  async function register(data: RegisterRequest): Promise<{ success: boolean; message?: string }> {
     loading.value = true
     error.value = null
 
     try {
-      await authStore.register(data)
-      await router.push('/app')
-      return true
+      const response = await authStore.register(data)
+      return { success: true, message: response.message }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Registration failed'
-      return false
+      return { success: false }
     } finally {
       loading.value = false
     }
@@ -115,6 +114,24 @@ export function useAuth() {
     }
   }
 
+  /**
+   * Verify email using token from email
+   */
+  async function verifyEmail(token: string): Promise<{ success: boolean; message?: string }> {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await authApi.verifyEmail(token)
+      return { success: true, message: response.message }
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to verify email'
+      return { success: false }
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     loading,
     error,
@@ -123,5 +140,6 @@ export function useAuth() {
     logout,
     forgotPassword,
     resetPassword,
+    verifyEmail,
   }
 }

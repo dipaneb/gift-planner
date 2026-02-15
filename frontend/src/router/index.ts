@@ -34,6 +34,12 @@ const routes: RouteRecordRaw[] = [
     meta: { guestOnly: true },
   },
   {
+    path: "/verify-email",
+    name: "verifyEmail",
+    component: () => import("@/views/VerifyEmailView.vue"),
+    meta: { guestOnly: true },
+  },
+  {
     path: "",
     component: () => import("@/layouts/AuthLayout.vue"),
     meta: { requiresAuth: true },
@@ -87,31 +93,40 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from) => {
+  console.log("Start of the beforeEach router.");
+  
   const authStore = useAuthStore();
-
+  
   // Initialize auth state on first navigation
   if (!authStore.isInitialized && !authStore.isInitializing) {
+    console.log("authStore.initialize(): start");
     await authStore.initialize();
+    console.log("authStore.initialize(): end");
   }
 
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
   const guestOnly = to.matched.some((record) => record.meta.guestOnly);
   const isAuthenticated = authStore.isAuthenticated;
+  console.log("isAuthenticated:", isAuthenticated, "and requiresAuth:", requiresAuth, "and guestOnly:", guestOnly);
 
   if (requiresAuth && !isAuthenticated) {
     // Redirect to login with return path
+    console.log("Redirecting to login with return path");
     return {
       name: "login",
       query: { redirect: to.fullPath },
     };
   }
-
+  
   if (guestOnly && isAuthenticated) {
     // Redirect authenticated users away from guest pages
+    console.log("Redirecting authenticated users away from guest pages");
+    
     return { name: "dashboard" };
   }
 
   // Allow navigation
+  console.log('allowing navigation');
   return true;
 });
 

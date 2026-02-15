@@ -1,8 +1,9 @@
 from __future__ import annotations
 import uuid
+from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import CheckConstraint, Numeric, String
+from sqlalchemy import CheckConstraint, DateTime, Numeric, String, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -35,6 +36,22 @@ class User(Base):
 
     budget: Mapped[Decimal | None] = mapped_column(
         Numeric(10, 2),
+    )
+
+    is_verified: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+
+    verification_token_hash: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+
+    verification_token_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
     )
 
     groups: Mapped[list["Group"]] = relationship(

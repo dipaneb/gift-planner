@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 
-import { authApi, type AuthResponse, type User, type LoginRequest, type RegisterRequest } from '@/api/auth'
+import { authApi, type AuthResponse, type User, type LoginRequest, type RegisterRequest, type RegisterResponse } from '@/api/auth'
 import { usersApi } from '@/api/users'
 
 
@@ -58,10 +58,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * Register a new user
+   * Returns success message for email verification
    */
-  async function register(data: RegisterRequest): Promise<void> {
+  async function register(data: RegisterRequest): Promise<RegisterResponse> {
     const response = await authApi.register(data)
-    setAuthData(response)
+    return response
   }
 
   /**

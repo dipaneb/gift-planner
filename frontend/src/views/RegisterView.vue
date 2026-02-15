@@ -1,7 +1,12 @@
 <template>
   <h1>Register</h1>
 
-  <form @submit.prevent="onSubmit" novalidate>
+  <div v-if="successMessage" class="success-message">
+    {{ successMessage }}
+    <RouterLink :to="{ name: 'login' }">Go to Login</RouterLink>
+  </div>
+
+  <form v-else @submit.prevent="onSubmit" novalidate>
     <label for="name">Name</label>
     <input v-model="name" type="text" name="name" id="name" :disabled="loading" />
 
@@ -46,7 +51,7 @@
     </button>
   </form>
 
-  <RouterLink :to="{ name: 'login' }">Login</RouterLink>
+  <RouterLink v-if="!successMessage" :to="{ name: 'login' }">Login</RouterLink>
 </template>
 
 <script setup lang="ts">
@@ -60,6 +65,7 @@ const name = ref("");
 const email = ref("");
 const password = ref("");
 const confirmed_password = ref("");
+const successMessage = ref("");
 
 const registerSchema = z
   .object({
@@ -93,11 +99,15 @@ const onSubmit = async (): Promise<void> => {
     return;
   }
 
-  await register({
+  const response = await register({
     name: name.value,
     email: email.value,
     password: password.value,
     confirmed_password: confirmed_password.value,
   });
+
+  if (response.success && response.message) {
+    successMessage.value = response.message;
+  }
 };
 </script>

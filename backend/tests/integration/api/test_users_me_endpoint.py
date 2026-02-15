@@ -12,7 +12,8 @@ class TestUsersMeEndpoint:
         user = User(
             email="john@example.com",
             password_hash=get_password_hash("SecurePass123!"),
-            name="John Doe"
+            name="John Doe",
+            is_verified=True
         )
         db_session.add(user)
         db_session.commit()
@@ -103,7 +104,8 @@ class TestUsersMeEndpoint:
         user = User(
             email="noname@example.com",
             password_hash=get_password_hash("SecurePass123!"),
-            name=None
+            name=None,
+            is_verified=True
         )
         db_session.add(user)
         db_session.commit()

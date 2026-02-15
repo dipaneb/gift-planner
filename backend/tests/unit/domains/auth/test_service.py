@@ -23,13 +23,18 @@ class TestAuthServiceRegisterUser:
         service = AuthService(user_repo, refresh_repo, reset_password_repo)
         user_create = UserCreate(**valid_user_data)
         
-        created_user = service.register_user(user_create)
+        email_job = service.register_user(user_create)
         
-        assert created_user.id is not None
-        assert created_user.email == valid_user_data["email"]
-        assert created_user.name == valid_user_data["name"]
-        assert created_user.password_hash != valid_user_data["password"]
-        assert len(created_user.password_hash) > 0
+        assert isinstance(email_job, dict)
+        assert email_job["to_email"] == valid_user_data["email"]
+        assert email_job["to_name"] == valid_user_data["name"]
+        assert "subject" in email_job
+        assert "html" in email_job
+        assert "verify" in email_job["html"].lower()
+        
+        created_user = user_repo.get_by_email(valid_user_data["email"])
+        assert created_user is not None
+        assert created_user.is_verified is False
     
     def test_register_user_without_name(self, db_session, valid_user_data_no_name):
         user_repo = UserRepository(db_session)
@@ -38,10 +43,13 @@ class TestAuthServiceRegisterUser:
         service = AuthService(user_repo, refresh_repo, reset_password_repo)
         user_create = UserCreate(**valid_user_data_no_name)
         
-        created_user = service.register_user(user_create)
+        email_job = service.register_user(user_create)
         
-        assert created_user.id is not None
-        assert created_user.email == valid_user_data_no_name["email"]
+        assert isinstance(email_job, dict)
+        assert email_job["to_email"] == valid_user_data_no_name["email"]
+        
+        created_user = user_repo.get_by_email(valid_user_data_no_name["email"])
+        assert created_user is not None
         assert created_user.name is None
     
     def test_register_user_hashes_password(self, db_session, valid_user_data):
@@ -53,8 +61,9 @@ class TestAuthServiceRegisterUser:
         service = AuthService(user_repo, refresh_repo, reset_password_repo)
         user_create = UserCreate(**valid_user_data)
         
-        created_user = service.register_user(user_create)
+        service.register_user(user_create)
         
+        created_user = user_repo.get_by_email(valid_user_data["email"])
         assert verify_password(valid_user_data["password"], created_user.password_hash)
     
     def test_register_user_duplicate_email_raises_409(self, db_session, sample_user, valid_user_data):
@@ -102,7 +111,9 @@ class TestAuthServiceRegisterUser:
             name="Test User"
         )
         
-        created_user = service.register_user(user_create)
+        service.register_user(user_create)
+        created_user = user_repo.get_by_email("newuser@example.com")
+        assert created_user is not None
         assert created_user.email == "newuser@example.com"
     
     def test_register_user_calls_repository_methods(self, valid_user_data):
@@ -110,6 +121,7 @@ class TestAuthServiceRegisterUser:
         mock_user_repo.get_by_email.return_value = None
         
         expected_user = User(
+            id=uuid.uuid4(),
             email=valid_user_data["email"],
             password_hash="hashed",
             name=valid_user_data["name"]
@@ -125,7 +137,10 @@ class TestAuthServiceRegisterUser:
         
         mock_user_repo.get_by_email.assert_called_once_with(valid_user_data["email"])
         mock_user_repo.create.assert_called_once()
-        assert result == expected_user
+        mock_user_repo.set_verification_token.assert_called_once()
+        assert isinstance(result, dict)
+        assert "to_email" in result
+        assert result["to_email"] == valid_user_data["email"]
     
     def test_register_user_calls_create_on_user_repo(self, valid_user_data):
         mock_user_repo = Mock()
@@ -147,7 +162,8 @@ class TestAuthServiceRegisterUser:
         
         mock_user_repo.get_by_email.assert_called_once_with(valid_user_data["email"])
         mock_user_repo.create.assert_called_once()
-        assert result == expected_user
+        assert isinstance(result, dict)
+        assert "subject" in result
     
     def test_register_user_does_not_call_create_on_duplicate(self, valid_user_data):
         mock_user_repo = Mock()
@@ -194,7 +210,8 @@ class TestAuthServiceLogin:
             id=uuid.uuid4(),
             email="test@example.com",
             password_hash=get_password_hash("SecurePass123!"),
-            name="Test User"
+            name="Test User",
+            is_verified=True
         )
         return user
     
