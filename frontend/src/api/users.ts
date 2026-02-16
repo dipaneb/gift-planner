@@ -1,6 +1,5 @@
+import api from '.'
 import type { User } from './auth'
-
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL
 
 export interface BudgetUpdateRequest {
   budget: number
@@ -16,83 +15,32 @@ export interface UserPasswordUpdateRequest {
   confirmed_password: string
 }
 
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'An error occurred' }))
-    throw new Error(error.detail || error.message || `HTTP error! status: ${response.status}`)
-  }
-  return response.json()
-}
-
 export const usersApi = {
   /**
    * Get the current authenticated user
-   * @param token - The access token (JWT)
    * @returns Promise with user data
    */
-  async getCurrentUser(token: string): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/users/me`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: 'include',
-    })
-    return handleResponse<User>(response)
+  async getCurrentUser(): Promise<User> {
+    const response = await api.get<User>('/users/me')
+    return response.data
   },
 
-  async updateBudget(token: string, data: BudgetUpdateRequest): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/users/me/budget`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: 'include',
-      body: JSON.stringify(data),
-    })
-    return handleResponse<User>(response)
+  async updateBudget(data: BudgetUpdateRequest): Promise<User> {
+    const response = await api.patch<User>('/users/me/budget', data)
+    return response.data
   },
 
-  async deleteBudget(token: string): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/users/me/budget`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: 'include',
-    })
-    return handleResponse<User>(response)
+  async deleteBudget(): Promise<User> {
+    const response = await api.delete<User>('/users/me/budget')
+    return response.data
   },
 
-  async updateName(token: string, data: UserNameUpdateRequest): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/users/me`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: 'include',
-      body: JSON.stringify(data),
-    })
-    return handleResponse<User>(response)
+  async updateName(data: UserNameUpdateRequest): Promise<User> {
+    const response = await api.patch<User>('/users/me', data)
+    return response.data
   },
 
-  async updatePassword(token: string, data: UserPasswordUpdateRequest): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/users/me/password`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: 'include',
-      body: JSON.stringify(data),
-    })
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'An error occurred' }))
-      throw new Error(error.detail || error.message || `HTTP error! status: ${response.status}`)
-    }
+  async updatePassword(data: UserPasswordUpdateRequest): Promise<void> {
+    await api.patch('/users/me/password', data)
   },
 }

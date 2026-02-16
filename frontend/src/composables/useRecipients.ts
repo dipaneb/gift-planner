@@ -15,7 +15,6 @@ import type { RecipientCreate, RecipientUpdate } from "@/api/recipients";
  */
 export function useRecipients() {
   const recipientsStore = useRecipientsStore();
-  const authStore = useAuthStore();
 
   const loading = ref(false);
   const error = ref<string | null>(null);
@@ -28,7 +27,7 @@ export function useRecipients() {
     error.value = null;
 
     try {
-      await recipientsStore.fetchPaginated(authStore.accessToken!, params);
+      await recipientsStore.fetchPaginated(params);
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : "Failed to fetch recipients";
@@ -47,7 +46,7 @@ export function useRecipients() {
     error.value = null;
 
     try {
-      await recipientsStore.fetchAll(authStore.accessToken!);
+      await recipientsStore.fetchAll();
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : "Failed to fetch all recipients";
@@ -65,7 +64,7 @@ export function useRecipients() {
     error.value = null;
 
     try {
-      await recipientsStore.fetchById(authStore.accessToken!, recipientId);
+      await recipientsStore.fetchById(recipientId);
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : "Failed to fetch recipient";
@@ -83,7 +82,7 @@ export function useRecipients() {
     error.value = null;
 
     try {
-      await recipientsStore.create(authStore.accessToken!, data);
+      await recipientsStore.create(data);
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : "Failed to create recipient";
@@ -101,7 +100,7 @@ export function useRecipients() {
     error.value = null;
 
     try {
-      await recipientsStore.update(authStore.accessToken!, recipientId, data);
+      await recipientsStore.update(recipientId, data);
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : "Failed to update recipient";
@@ -119,7 +118,7 @@ export function useRecipients() {
     error.value = null;
 
     try {
-      await recipientsStore.remove(authStore.accessToken!, recipientId);
+      await recipientsStore.remove(recipientId);
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : "Failed to delete recipient";

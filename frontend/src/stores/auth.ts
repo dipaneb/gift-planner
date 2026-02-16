@@ -104,7 +104,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!accessToken.value) return
     
     try {
-      const updatedUser = await usersApi.getCurrentUser(accessToken.value)
+      const updatedUser = await usersApi.getCurrentUser()
       user.value = updatedUser
     } catch (error) {
       console.error('Failed to refresh user data:', error)

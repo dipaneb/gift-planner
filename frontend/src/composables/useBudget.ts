@@ -21,7 +21,7 @@ export function useBudget() {
     error.value = null
 
     try {
-      const updatedUser = await usersApi.updateBudget(authStore.accessToken!, { budget })
+      const updatedUser = await usersApi.updateBudget({ budget })
       authStore.user = updatedUser
       return true
     } catch (err) {
@@ -40,7 +40,7 @@ export function useBudget() {
     error.value = null
 
     try {
-      const updatedUser = await usersApi.deleteBudget(authStore.accessToken!)
+      const updatedUser = await usersApi.deleteBudget()
       authStore.user = updatedUser
       return true
     } catch (err) {

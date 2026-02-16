@@ -28,7 +28,7 @@ export function useGifts() {
     error.value = null;
 
     try {
-      await giftsStore.fetchPaginated(authStore.accessToken!, params);
+      await giftsStore.fetchPaginated(params);
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : "Failed to fetch gifts";
@@ -47,7 +47,7 @@ export function useGifts() {
     error.value = null;
 
     try {
-      await giftsStore.fetchAll(authStore.accessToken!);
+      await giftsStore.fetchAll();
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : "Failed to fetch all gifts";
@@ -65,7 +65,7 @@ export function useGifts() {
     error.value = null;
 
     try {
-      await giftsStore.fetchById(authStore.accessToken!, giftId);
+      await giftsStore.fetchById(giftId);
       return true;
     } catch (err) {
       error.value = err instanceof Error ? err.message : "Failed to fetch gift";
@@ -83,7 +83,7 @@ export function useGifts() {
     error.value = null;
 
     try {
-      await giftsStore.create(authStore.accessToken!, data);
+      await giftsStore.create(data);
       await authStore.refreshUser();
       return true;
     } catch (err) {
@@ -102,7 +102,7 @@ export function useGifts() {
     error.value = null;
 
     try {
-      await giftsStore.update(authStore.accessToken!, giftId, data);
+      await giftsStore.update(giftId, data);
       await authStore.refreshUser();
       return true;
     } catch (err) {
@@ -131,7 +131,7 @@ export function useGifts() {
     error.value = null;
 
     try {
-      await giftsStore.remove(authStore.accessToken!, giftId);
+      await giftsStore.remove(giftId);
       await authStore.refreshUser();
       return true;
     } catch (err) {

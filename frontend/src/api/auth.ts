@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
+import api from ".";
 
 // Type definitions for request/response data
 export interface RegisterRequest {
@@ -62,15 +62,6 @@ export interface VerifyEmailResponse {
   message: string;
 }
 
-// Helper function to handle API errors
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: "An error occurred" }));
-    throw new Error(error.message || `HTTP error! status: ${response.status}`);
-  }
-  return response.json();
-}
-
 /**
  * Auth API Service
  *
@@ -87,15 +78,8 @@ export const authApi = {
    * @returns Promise with success message
    */
   async register(data: RegisterRequest): Promise<RegisterResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify(data),
-    });
-    return handleResponse<RegisterResponse>(response);
+    const response = await api.post<RegisterResponse>("/auth/register", data);
+    return response.data;
   },
 
   /**
@@ -109,15 +93,10 @@ export const authApi = {
     data.append("username", credentials.email);
     data.append("password", credentials.password);
 
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      credentials: "include",
-      body: data,
+    const response = await api.post<AuthResponse>("/auth/login", data, {
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
-    return handleResponse<AuthResponse>(response);
+    return response.data;
   },
 
   /**
@@ -125,14 +104,8 @@ export const authApi = {
    * @returns Promise with new access token
    */
   async refresh(): Promise<RefreshResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-    return handleResponse<RefreshResponse>(response);
+    const response = await api.post<RefreshResponse>("/auth/refresh");
+    return response.data;
   },
 
   /**
@@ -140,14 +113,7 @@ export const authApi = {
    * Deletes all refresh tokens for the user using the refresh token from cookie
    */
   async logout(): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-    await handleResponse<void>(response);
+    await api.post("/auth/logout");
   },
 
   /**
@@ -155,14 +121,7 @@ export const authApi = {
    * @param data - Email address for password reset
    */
   async forgotPassword(data: ForgotPasswordRequest): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-    await handleResponse<void>(response);
+    await api.post("/auth/forgot-password", data);
   },
 
   /**
@@ -171,17 +130,9 @@ export const authApi = {
    * @param data - New password
    */
   async resetPassword(token: string, data: ResetPasswordRequest): Promise<void> {
-    const response = await fetch(
-      `${API_BASE_URL}/auth/reset-password?token=${encodeURIComponent(token)}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      },
-    );
-    await handleResponse<void>(response);
+    await api.post("/auth/reset-password", data, {
+      params: { token },
+    });
   },
 
   /**
@@ -189,15 +140,9 @@ export const authApi = {
    * @param token - Verification token from email
    */
   async verifyEmail(token: string): Promise<VerifyEmailResponse> {
-    const response = await fetch(
-      `${API_BASE_URL}/auth/verify-email?token=${encodeURIComponent(token)}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-    return handleResponse<VerifyEmailResponse>(response);
+    const response = await api.post<VerifyEmailResponse>("/auth/verify-email", null, {
+      params: { token },
+    });
+    return response.data;
   },
 };

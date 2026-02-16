@@ -123,7 +123,7 @@ const handleUpdateName = async () => {
   isUpdatingName.value = true
 
   try {
-    const updatedUser = await usersApi.updateName(authStore.accessToken!, {
+    const updatedUser = await usersApi.updateName({
       name: nameForm.name,
     })
     authStore.user = updatedUser
@@ -152,7 +152,7 @@ const handleUpdatePassword = async () => {
   isUpdatingPassword.value = true
 
   try {
-    await usersApi.updatePassword(authStore.accessToken!, {
+    await usersApi.updatePassword({
       current_password: passwordForm.current_password,
       new_password: passwordForm.new_password,
       confirmed_password: passwordForm.confirmed_password,

@@ -22,8 +22,8 @@ export const useGiftsStore = defineStore("gifts", () => {
   /**
    * Fetch gifts for the current user (paginated)
    */
-  async function fetchPaginated(token: string, params?: FetchParams): Promise<void> {
-    const response = await giftsApi.getAll(token, params);
+  async function fetchPaginated(params?: FetchParams): Promise<void> {
+    const response = await giftsApi.getAll(params);
     paginatedGifts.value = response.items;
     paginationMeta.value = response.meta;
   }
@@ -32,14 +32,14 @@ export const useGiftsStore = defineStore("gifts", () => {
    * Fetch every gift by paging through the backend.
    * Results are stored in `allGifts` (separate from `paginatedGifts`).
    */
-  async function fetchAll(token: string): Promise<void> {
+  async function fetchAll(): Promise<void> {
     const pageSize = 100;
     let page = 1;
     let all: Gift[] = [];
     let totalPages = 1;
 
     do {
-      const response = await giftsApi.getAll(token, { page, limit: pageSize });
+      const response = await giftsApi.getAll({ page, limit: pageSize });
       all = all.concat(response.items);
       totalPages = response.meta.totalPages;
       page++;
@@ -51,8 +51,8 @@ export const useGiftsStore = defineStore("gifts", () => {
   /**
    * Fetch a specific gift by ID
    */
-  async function fetchById(token: string, giftId: string): Promise<Gift> {
-    const gift = await giftsApi.getById(token, giftId);
+  async function fetchById(giftId: string): Promise<Gift> {
+    const gift = await giftsApi.getById(giftId);
 
     const index = paginatedGifts.value.findIndex((g) => g.id === giftId);
     if (index !== -1) {
@@ -67,8 +67,8 @@ export const useGiftsStore = defineStore("gifts", () => {
   /**
    * Create a new gift
    */
-  async function create(token: string, data: GiftCreate): Promise<Gift> {
-    const newGift = await giftsApi.create(token, data);
+  async function create(data: GiftCreate): Promise<Gift> {
+    const newGift = await giftsApi.create(data);
     paginatedGifts.value.push(newGift);
     return newGift;
   }
@@ -76,8 +76,8 @@ export const useGiftsStore = defineStore("gifts", () => {
   /**
    * Update an existing gift
    */
-  async function update(token: string, giftId: string, data: GiftUpdate): Promise<Gift> {
-    const updatedGift = await giftsApi.update(token, giftId, data);
+  async function update(giftId: string, data: GiftUpdate): Promise<Gift> {
+    const updatedGift = await giftsApi.update(giftId, data);
 
     const index = paginatedGifts.value.findIndex((g) => g.id === giftId);
     if (index !== -1) {
@@ -90,8 +90,8 @@ export const useGiftsStore = defineStore("gifts", () => {
   /**
    * Delete a gift
    */
-  async function remove(token: string, giftId: string): Promise<void> {
-    await giftsApi.delete(token, giftId);
+  async function remove(giftId: string): Promise<void> {
+    await giftsApi.delete(giftId);
     paginatedGifts.value = paginatedGifts.value.filter((g) => g.id !== giftId);
   }
 
