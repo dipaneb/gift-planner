@@ -74,11 +74,12 @@ api.interceptors.response.use(
     };
 
     // Only intercept 401s that haven't already been retried and that are not
-    // the refresh endpoint itself (to avoid infinite loops).
+    // the refresh endpoint itself (to avoid infinite loops) or the login endpoint for better errors.
     if (
       error.response?.status !== 401 ||
       originalRequest._retry ||
-      originalRequest.url === "/auth/refresh"
+      originalRequest.url === "/auth/refresh" ||
+      originalRequest.url === "/auth/login"
     ) {
       return Promise.reject(error);
     }

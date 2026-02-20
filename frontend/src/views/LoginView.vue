@@ -1,48 +1,86 @@
 <template>
-  <h1>Login</h1>
+  <div class="flex h-screen">
+    <div class="flex-1" />
+    <div class="flex flex-1 flex-col items-center justify-center gap-10">
+      <h1>Welcome back.</h1>
+      <UCard class="min-w-100">
+        <UForm :schema="loginSchema" :state="state" @submit="onSubmit" class="flex flex-col gap-6">
+          <UFormField label="Email" name="email" required>
+            <UInput
+              v-model="state.email"
+              type="email"
+              name="email"
+              id="email"
+              inputmode="email"
+              class="w-full"
+              :disabled="loading"
+              :loading="loading"
+            />
+          </UFormField>
 
-  <form @submit.prevent="onSubmit" novalidate>
-    <label for="email">Email</label>
-    <input
-      v-model="email"
-      type="email"
-      name="email"
-      id="email"
-      inputmode="email"
-      :disabled="loading"
-    />
+          <UFormField label="Password" name="password" required>
+            <template #hint>
+              <RouterLink :to="{ name: 'forgotPassword' }" class="text-sm">
+                Forgot password?
+              </RouterLink>
+            </template>
+            <UInput
+              v-model="state.password"
+              :type="isPasswordVisible ? 'text' : 'password'"
+              name="password"
+              id="password"
+              autocomplete="current-password"
+              class="w-full"
+              :disabled="loading"
+            >
+              <template #trailing>
+                <UIcon
+                  :name="isPasswordVisible ? 'i-lucide-eye' : 'i-lucide-eye-closed'"
+                  class="cursor-pointer"
+                  @click="toggleVisibility"
+                />
+              </template>
+            </UInput>
+          </UFormField>
 
-    <label for="password">Password</label>
-    <input
-      v-model="password"
-      type="password"
-      name="password"
-      id="password"
-      autocomplete="current-password"
-      :disabled="loading"
-    />
-    <button type="button">Toggle visibility</button>
+          <UAlert
+            v-if="error"
+            color="error"
+            variant="subtle"
+            icon="i-lucide-circle-alert"
+            :description="error"
+          />
 
-    <button type="submit" :disabled="loading">{{ loading ? "Submitting..." : "Submit" }}</button>
-  </form>
+          <UButton type="submit" color="primary" block :loading="loading">
+            {{ loading ? "Submitting..." : "Sign in" }}
+          </UButton>
+        </UForm>
 
-  <RouterLink :to="{ name: 'register' }">Register</RouterLink>
-  <RouterLink :to="{ name: 'forgotPassword' }">Forgot password</RouterLink>
-
-  <p v-if="error">Error is {{ error }}</p>
+        <template #footer>
+          <p class="text-center text-sm text-muted">
+            Don't have an account yet?
+            <RouterLink :to="{ name: 'register' }" class="font-medium text-primary">
+              Register<UIcon class="inline align-middle" name="i-lucide-move-up-right" />
+            </RouterLink>
+          </p>
+        </template>
+      </UCard>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { reactive, ref } from "vue";
 import { useRoute } from "vue-router";
 import * as z from "zod";
+import type { FormSubmitEvent } from "@nuxt/ui";
+
 import { useAuth } from "@/composables/useAuth";
 
 const route = useRoute();
 const { login, loading, error } = useAuth();
 
-const email = ref("");
-const password = ref("");
+const isPasswordVisible = ref(false);
 
 const loginSchema = z.object({
   email: z.email(),
@@ -56,14 +94,21 @@ const loginSchema = z.object({
     .regex(/[^A-Za-z0-9\s]/, "Password must include a special character."),
 });
 
-const onSubmit = async (): Promise<void> => {
-  const result = loginSchema.safeParse({ email: email.value, password: password.value });
-  if (!result.success) {
-    console.error("Error from zod for login is: ", result.error);
-    return;
-  }
+type Schema = z.infer<typeof loginSchema>;
 
+const state = reactive<Partial<Schema>>({
+  email: "",
+  password: ""
+});
+
+
+
+const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
   const redirect = route.query.redirect as string | undefined;
-  await login({ email: email.value, password: password.value }, redirect);
+  await login({ email: event.data.email, password: event.data.password }, redirect);
+};
+
+const toggleVisibility = (): void => {
+  isPasswordVisible.value = !isPasswordVisible.value;
 };
 </script>

@@ -1,3 +1,52 @@
 @import "./base.css";
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+
+
+
+:root {
+  --ui-bg: var(--ui-color-taupe-50);
+}
+
+.dark {
+  /* --ui-bg: var(--ui-color-neutral-950); */
+  --ui-bg: var(--color-taupe-950)
+}
+
+h1 {
+    font-size: 2.986rem;
+    font-weight: 900;
+    letter-spacing: -1px;
+    line-height: 1.2;
+}
+h2 {
+    font-size: 2.488rem;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1.2;
+}
+h3 {
+    font-size: 2.074rem;
+    font-weight: 600;
+    letter-spacing: -1px;
+    line-height: 1.2;
+}
+h4 {
+    font-size: 1.728rem;
+    font-weight: 600;
+    letter-spacing: -1px;
+    line-height: 1.2;
+}
+h5 {
+    font-size: 1.44rem;
+    font-weight: 500;
+    letter-spacing: -1px;
+    line-height: 1.2;
+}
+h6 {
+    font-size: 1.2rem;
+    font-weight: 500;
+    letter-spacing: -1px;
+    line-height: 1.2;
+}
