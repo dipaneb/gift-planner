@@ -1,70 +1,126 @@
 <template>
-  <h1>Register</h1>
+  <div class="flex h-screen">
+    <div class="flex-1" />
+    <div class="flex flex-1 flex-col items-center justify-center gap-10">
+      <h1>Create your account.</h1>
+      <UCard class="min-w-100">
+        <div v-if="successMessage" class="flex flex-col gap-4">
+          <UAlert
+            color="success"
+            variant="subtle"
+            icon="i-lucide-circle-check"
+            :description="successMessage"
+          />
+        </div>
 
-  <div v-if="successMessage" class="success-message">
-    {{ successMessage }}
-    <RouterLink :to="{ name: 'login' }">Go to Login</RouterLink>
-  </div>
+        <UForm
+          v-else
+          :schema="registerSchema"
+          :state="state"
+          @submit="onSubmit"
+          class="flex flex-col gap-6"
+        >
+          <UFormField label="Name" name="name">
+            <UInput
+              v-model="state.name"
+              type="text"
+              name="name"
+              id="name"
+              autocomplete="name"
+              class="w-full"
+              :disabled="loading"
+            />
+          </UFormField>
 
-  <form v-else @submit.prevent="onSubmit" novalidate>
-    <label for="name">Name</label>
-    <input v-model="name" type="text" name="name" id="name" :disabled="loading" />
+          <UFormField label="Email" name="email" required>
+            <UInput
+              v-model="state.email"
+              type="email"
+              name="email"
+              id="email"
+              inputmode="email"
+              autocomplete="email"
+              class="w-full"
+              :disabled="loading"
+            />
+          </UFormField>
 
-    <label for="email">Email</label>
-    <input
-      v-model="email"
-      type="email"
-      name="email"
-      id="email"
-      inputmode="email"
-      :disabled="loading"
-    />
+          <UFormField label="Password" name="password" required>
+            <UInput
+              v-model="state.password"
+              :type="isPasswordVisible ? 'text' : 'password'"
+              name="password"
+              id="password"
+              autocomplete="new-password"
+              class="w-full"
+              :disabled="loading"
+            >
+              <template #trailing>
+                <UIcon
+                  :name="isPasswordVisible ? 'i-lucide-eye' : 'i-lucide-eye-closed'"
+                  class="cursor-pointer"
+                  @click="isPasswordVisible = !isPasswordVisible"
+                />
+              </template>
+            </UInput>
+          </UFormField>
 
-    <label for="password">Password</label>
-    <input
-      v-model="password"
-      type="password"
-      name="password"
-      id="password"
-      autocomplete="new-password"
-      :disabled="loading"
-    />
+          <UFormField label="Confirm password" name="confirmed_password" required>
+            <UInput
+              v-model="state.confirmed_password"
+              :type="isPasswordVisible ? 'text' : 'password'"
+              name="confirmed_password"
+              id="confirmed_password"
+              autocomplete="new-password"
+              class="w-full"
+              :disabled="loading"
+            >
+              <template #trailing>
+                <UIcon
+                  :name="isPasswordVisible ? 'i-lucide-eye' : 'i-lucide-eye-closed'"
+                  class="cursor-pointer"
+                  @click="isPasswordVisible = !isPasswordVisible"
+                />
+              </template>
+            </UInput>
+          </UFormField>
 
-    <label for="confirmed_password">Confirmed Password</label>
-    <input
-      v-model="confirmed_password"
-      type="password"
-      name="confirmed_password"
-      id="confirmed_password"
-      autocomplete="new-password"
-      :disabled="loading"
-    />
+          <UAlert
+            v-if="error"
+            color="error"
+            variant="subtle"
+            icon="i-lucide-circle-alert"
+            :description="error"
+          />
 
-    <button type="button">Toggle visibility</button>
+          <UButton type="submit" color="primary" block :loading="loading">
+            {{ loading ? "Submitting..." : "Create account" }}
+          </UButton>
+        </UForm>
 
-    <div v-if="error" class="error-message">
-      {{ error }}
+        <template #footer>
+          <p class="text-center text-sm text-muted">
+            Already have an account?
+            <RouterLink :to="{ name: 'login' }" class="font-medium text-primary">
+              Sign in<UIcon class="inline align-middle" name="i-lucide-move-up-right" />
+            </RouterLink>
+          </p>
+        </template>
+      </UCard>
     </div>
-
-    <button type="submit" :disabled="loading">
-      {{ loading ? "Submitting..." : "Submit" }}
-    </button>
-  </form>
-
-  <RouterLink v-if="!successMessage" :to="{ name: 'login' }">Login</RouterLink>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { reactive, ref } from "vue";
 import * as z from "zod";
+import type { FormSubmitEvent } from "@nuxt/ui";
+
 import { useAuth } from "@/composables/useAuth";
 
 const { register, loading, error } = useAuth();
 
-const name = ref("");
-const email = ref("");
-const password = ref("");
-const confirmed_password = ref("");
+const isPasswordVisible = ref(false);
 const successMessage = ref("");
 
 const registerSchema = z
@@ -79,31 +135,28 @@ const registerSchema = z
       .regex(/[a-z]/, "Password must include a lowercase letter.")
       .regex(/\d/, "Password must include a digit.")
       .regex(/[^A-Za-z0-9\s]/, "Password must include a special character."),
-    confirmed_password: z.string().min(8, "Password must be at least 8 characters.").max(255),
+    confirmed_password: z.string().min(1, "Please confirm your password."),
   })
   .refine((data) => data.password === data.confirmed_password, {
     message: "Passwords don't match.",
-    path: ["confirm"],
+    path: ["confirmed_password"],
   });
 
-const onSubmit = async (): Promise<void> => {
-  const result = registerSchema.safeParse({
-    name: name.value,
-    email: email.value,
-    password: password.value,
-    confirmed_password: confirmed_password.value,
-  });
+type Schema = z.infer<typeof registerSchema>;
 
-  if (!result.success) {
-    console.error(result);
-    return;
-  }
+const state = reactive<Partial<Schema>>({
+  name: "",
+  email: "",
+  password: "",
+  confirmed_password: "",
+});
 
+const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
   const response = await register({
-    name: name.value,
-    email: email.value,
-    password: password.value,
-    confirmed_password: confirmed_password.value,
+    name: event.data.name,
+    email: event.data.email,
+    password: event.data.password,
+    confirmed_password: event.data.confirmed_password,
   });
 
   if (response.success && response.message) {
