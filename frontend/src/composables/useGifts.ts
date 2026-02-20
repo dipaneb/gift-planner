@@ -1,6 +1,7 @@
 import { ref } from "vue";
 
 import { type FetchParams } from "@/api";
+import { getErrorMessage } from "./utils";
 import { useGiftsStore } from "@/stores/gifts";
 import { useAuthStore } from "@/stores/auth";
 import type { GiftCreate, GiftUpdate } from "@/api/gifts";
@@ -31,7 +32,7 @@ export function useGifts() {
       await giftsStore.fetchPaginated(params);
       return true;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Failed to fetch gifts";
+      error.value = getErrorMessage(err, "Failed to fetch gifts");
       return false;
     } finally {
       loading.value = false;
@@ -50,7 +51,7 @@ export function useGifts() {
       await giftsStore.fetchAll();
       return true;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Failed to fetch all gifts";
+      error.value = getErrorMessage(err, "Failed to fetch all gifts");
       return false;
     } finally {
       loading.value = false;
@@ -68,7 +69,7 @@ export function useGifts() {
       await giftsStore.fetchById(giftId);
       return true;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Failed to fetch gift";
+      error.value = getErrorMessage(err, "Failed to fetch gift");
       return false;
     } finally {
       loading.value = false;
@@ -87,7 +88,7 @@ export function useGifts() {
       await authStore.refreshUser();
       return true;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Failed to create gift";
+      error.value = getErrorMessage(err, "Failed to create gift");
       return false;
     } finally {
       loading.value = false;
@@ -106,7 +107,7 @@ export function useGifts() {
       await authStore.refreshUser();
       return true;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Failed to update gift";
+      error.value = getErrorMessage(err, "Failed to update gift");
       return false;
     } finally {
       loading.value = false;
@@ -135,7 +136,7 @@ export function useGifts() {
       await authStore.refreshUser();
       return true;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Failed to delete gift";
+      error.value = getErrorMessage(err, "Failed to delete gift");
       return false;
     } finally {
       loading.value = false;

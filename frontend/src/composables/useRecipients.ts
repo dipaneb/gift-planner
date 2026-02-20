@@ -1,6 +1,7 @@
 import { ref } from "vue";
 
 import { type FetchParams } from "@/api";
+import { getErrorMessage } from "./utils";
 import { useRecipientsStore } from "@/stores/recipients";
 import { useAuthStore } from "@/stores/auth";
 import type { RecipientCreate, RecipientUpdate } from "@/api/recipients";
@@ -30,7 +31,7 @@ export function useRecipients() {
       await recipientsStore.fetchPaginated(params);
       return true;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Failed to fetch recipients";
+      error.value = getErrorMessage(err, "Failed to fetch recipients");
       return false;
     } finally {
       loading.value = false;
@@ -49,7 +50,7 @@ export function useRecipients() {
       await recipientsStore.fetchAll();
       return true;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Failed to fetch all recipients";
+      error.value = getErrorMessage(err, "Failed to fetch all recipients");
       return false;
     } finally {
       loading.value = false;
@@ -67,7 +68,7 @@ export function useRecipients() {
       await recipientsStore.fetchById(recipientId);
       return true;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Failed to fetch recipient";
+      error.value = getErrorMessage(err, "Failed to fetch recipient");
       return false;
     } finally {
       loading.value = false;
@@ -85,7 +86,7 @@ export function useRecipients() {
       await recipientsStore.create(data);
       return true;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Failed to create recipient";
+      error.value = getErrorMessage(err, "Failed to create recipient");
       return false;
     } finally {
       loading.value = false;
@@ -103,7 +104,7 @@ export function useRecipients() {
       await recipientsStore.update(recipientId, data);
       return true;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Failed to update recipient";
+      error.value = getErrorMessage(err, "Failed to update recipient");
       return false;
     } finally {
       loading.value = false;
@@ -121,7 +122,7 @@ export function useRecipients() {
       await recipientsStore.remove(recipientId);
       return true;
     } catch (err) {
-      error.value = err instanceof Error ? err.message : "Failed to delete recipient";
+      error.value = getErrorMessage(err, "Failed to delete recipient");
       return false;
     } finally {
       loading.value = false;

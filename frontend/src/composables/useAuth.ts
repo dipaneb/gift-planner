@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { authApi } from '@/api/auth'
 import type { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest } from '@/api/auth'
+import { getErrorMessage } from './utils'
 
 /**
  * Composable for auth actions with component-scoped loading and error states.
@@ -12,6 +13,7 @@ import type { LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswor
  * - Store: Global state (token, user)
  * - Composable: Local UI state (loading, error)
  */
+
 export function useAuth() {
   const router = useRouter()
   const authStore = useAuthStore()
@@ -32,7 +34,7 @@ export function useAuth() {
       await router.push(redirectPath || '/app')
       return true
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Login failed'
+      error.value = getErrorMessage(err, 'Login failed')
       return false
     } finally {
       loading.value = false
@@ -51,7 +53,7 @@ export function useAuth() {
       const response = await authStore.register(data)
       return { success: true, message: response.message }
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Registration failed'
+      error.value = getErrorMessage(err, 'Registration failed')
       return { success: false }
     } finally {
       loading.value = false
@@ -69,7 +71,7 @@ export function useAuth() {
       await authStore.logout()
       await router.push('/login')
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Logout failed'
+      error.value = getErrorMessage(err, 'Logout failed')
       // Still redirect to login even if logout fails
       await router.push('/login')
     } finally {
@@ -88,7 +90,7 @@ export function useAuth() {
       await authApi.forgotPassword(data)
       return true
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to send reset email'
+      error.value = getErrorMessage(err, 'Failed to send reset email')
       return false
     } finally {
       loading.value = false
@@ -107,7 +109,7 @@ export function useAuth() {
       await router.push('/login')
       return true
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to reset password'
+      error.value = getErrorMessage(err, 'Failed to reset password')
       return false
     } finally {
       loading.value = false
@@ -125,7 +127,7 @@ export function useAuth() {
       const response = await authApi.verifyEmail(token)
       return { success: true, message: response.message }
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to verify email'
+      error.value = getErrorMessage(err, 'Failed to verify email')
       return { success: false }
     } finally {
       loading.value = false

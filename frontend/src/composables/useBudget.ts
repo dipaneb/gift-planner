@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 
+import { getErrorMessage } from './utils'
 import { useAuthStore } from '@/stores/auth'
 import { usersApi } from '@/api/users'
 
@@ -25,7 +26,7 @@ export function useBudget() {
       authStore.user = updatedUser
       return true
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to update budget'
+      error.value = getErrorMessage(err, 'Failed to update budget')
       return false
     } finally {
       loading.value = false
@@ -44,7 +45,7 @@ export function useBudget() {
       authStore.user = updatedUser
       return true
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to delete budget'
+      error.value = getErrorMessage(err, 'Failed to delete budget')
       return false
     } finally {
       loading.value = false
