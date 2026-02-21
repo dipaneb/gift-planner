@@ -1,49 +1,80 @@
 <template>
-  <div class="verify-email-container">
-    <h1>Email Verification</h1>
+  <div class="flex h-screen">
+    <div class="flex-1" />
+    <div class="flex flex-1 flex-col items-center justify-center gap-10">
+      <h1>Email verification.</h1>
+      <UCard class="min-w-100">
+        <div class="flex flex-col items-center gap-4">
+          <template v-if="status === 'loading'">
+            <UIcon name="i-lucide-loader-circle" class="size-10 animate-spin text-primary" />
+            <p class="text-sm text-muted">Verifying your email...</p>
+          </template>
 
-    <div v-if="loading" class="loading-message">
-      <p>Verifying your email...</p>
-    </div>
+          <template v-else-if="status === 'success'">
+            <UAlert
+              color="success"
+              variant="subtle"
+              icon="i-lucide-circle-check"
+              title="Email verified!"
+              :description="message"
+              class="w-full"
+            />
+            <UButton :to="{ name: 'login' }" color="primary" block>
+              Go to sign in
+            </UButton>
+          </template>
 
-    <div v-else-if="success" class="success-message">
-      <p>{{ message }}</p>
-      <p>Your email has been verified successfully!</p>
-      <RouterLink :to="{ name: 'login' }">Go to Login</RouterLink>
-    </div>
-
-    <div v-else class="error-message">
-      <p>{{ error }}</p>
-      <p>The verification link may be invalid or expired.</p>
-      <RouterLink :to="{ name: 'login' }">Go to Login</RouterLink>
+          <template v-else>
+            <UAlert
+              color="error"
+              variant="subtle"
+              icon="i-lucide-circle-alert"
+              title="Verification failed"
+              :description="errorMessage"
+              class="w-full"
+            />
+            <UButton :to="{ name: 'login' }" color="primary" variant="outline" block>
+              Back to sign in
+            </UButton>
+          </template>
+        </div>
+      </UCard>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
+
 import { useAuth } from "@/composables/useAuth";
 
 const route = useRoute();
-const { verifyEmail, loading, error } = useAuth();
+const { verifyEmail, error } = useAuth();
 
-const success = ref(false);
+const rawToken = route.query.token;
+const token = Array.isArray(rawToken) ? rawToken[0] : rawToken;
+
+type Status = "loading" | "success" | "error";
+const status = ref<Status>("loading");
 const message = ref("");
+const errorMessage = ref("");
 
 onMounted(async () => {
-  const token = route.query.token as string;
-
-  if (!token) {
-    error.value = "Verification token is missing";
+  if (typeof token !== "string" || !token) {
+    errorMessage.value = "Verification token is missing.";
+    status.value = "error";
     return;
   }
 
   const response = await verifyEmail(token);
 
-  if (response.success && response.message) {
-    success.value = true;
-    message.value = response.message;
+  if (response.success) {
+    message.value = response.message ?? "Your email has been verified.";
+    status.value = "success";
+  } else {
+    errorMessage.value = error.value ?? "The verification link may be invalid or expired.";
+    status.value = "error";
   }
 });
 </script>
