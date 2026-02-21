@@ -1,43 +1,110 @@
 <template>
-  <h1>Forgot Password</h1>
+  <div class="flex h-screen">
+    <div class="flex-1" />
+    <div class="flex flex-1 flex-col items-center justify-center gap-10">
+      <h1>Forgot password.</h1>
+      <UCard class="min-w-100">
+        <UForm
+          :schema="forgotPasswordSchema"
+          :state="state"
+          @submit="onSubmit"
+          class="flex flex-col gap-6"
+        >
+          <UFormField label="Email" name="email" required>
+            <UInput
+              v-model="state.email"
+              type="email"
+              name="email"
+              id="email"
+              inputmode="email"
+              autocomplete="email"
+              class="w-full"
+              :disabled="loading"
+            />
+          </UFormField>
 
-  <form @submit.prevent="onSubmit" novalidate>
-    <label for="email">Email</label>
-    <input v-model="email" type="email" id="email" inputmode="email" :disabled="loading" />
-    <p>{{ error }}</p>
+          <UAlert
+            v-if="error"
+            color="error"
+            variant="subtle"
+            icon="i-lucide-circle-alert"
+            :description="error"
+          />
 
-    <button type="submit" :disabled="loading">{{ loading ? "Submitting..." : "Submit" }}</button>
-  </form>
+          <UButton
+            type="submit"
+            color="primary"
+            block
+            :loading="loading"
+            :disabled="cooldown > 0"
+          >
+            {{ loading ? "Sending..." : cooldown > 0 ? `Retry in ${cooldown}s` : "Send reset link" }}
+          </UButton>
+        </UForm>
 
-  <p v-if="emailSent">If this email address exists, an email has been sent.</p>
+        <template #footer>
+          <p class="text-center text-sm text-muted">
+            Remember your password?
+            <RouterLink :to="{ name: 'login' }" class="font-medium text-primary">
+              Sign in<UIcon class="inline align-middle" name="i-lucide-move-up-right" />
+            </RouterLink>
+          </p>
+        </template>
+      </UCard>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { onUnmounted, reactive, ref } from "vue";
 import * as z from "zod";
+import type { FormSubmitEvent } from "@nuxt/ui";
+
 import { useAuth } from "@/composables/useAuth";
 
 const { forgotPassword, loading, error } = useAuth();
+const toast = useToast();
 
-const email = ref("");
-const emailSent = ref(false);
-watch(email, () => (emailSent.value = false));
+const COOLDOWN_SECONDS = 60;
+const cooldown = ref(0);
+let cooldownInterval: ReturnType<typeof setInterval> | null = null;
 
 const forgotPasswordSchema = z.object({
   email: z.email(),
 });
 
-const onSubmit = async (): Promise<void> => {
-  const result = forgotPasswordSchema.safeParse({ email: email.value });
-  if (!result.success) {
-    console.log("Error from zod is: ", result.error);
-    return;
-  }
-  try {
-    await forgotPassword({ email: email.value });
-    emailSent.value = true;
-  } catch (e) {
-    console.log("error from backend: ", e);
+type Schema = z.infer<typeof forgotPasswordSchema>;
+
+const state = reactive<Partial<Schema>>({
+  email: "",
+});
+
+function startCooldown(): void {
+  const endTime = Date.now() + COOLDOWN_SECONDS * 1000;
+  cooldown.value = COOLDOWN_SECONDS;
+  cooldownInterval = setInterval(() => {
+    cooldown.value = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+    if (cooldown.value <= 0) {
+      clearInterval(cooldownInterval!);
+      cooldownInterval = null;
+    }
+  }, 250);
+}
+
+onUnmounted(() => {
+  if (cooldownInterval) clearInterval(cooldownInterval);
+});
+
+const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
+  const success = await forgotPassword({ email: event.data.email });
+  if (success) {
+    toast.add({
+      title: "Email sent",
+      description: "If this address is registered, a reset link has been sent.",
+      color: "success",
+      icon: "i-lucide-circle-check",
+    });
+    startCooldown();
   }
 };
 </script>
