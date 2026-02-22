@@ -1,26 +1,44 @@
 <template>
-  <div>
-    <h1>Recipients</h1>
-    <p>People you love and want to surprise.</p>
+  <div class="flex flex-col gap-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Recipients</h1>
+        <p class="text-sm text-gray-500 mt-1">People you love and want to surprise.</p>
+      </div>
+      <UButton icon="i-lucide-plus" @click="isModalOpen = true">
+        Add new recipient
+      </UButton>
+    </div>
 
-    <div v-if="loading">Loading...</div>
-    <div v-if="error" class="error">{{ error }}</div>
+    <UAlert
+      v-if="error"
+      color="error"
+      variant="subtle"
+      icon="i-lucide-circle-alert"
+      :description="error"
+    />
 
-    <button @click="isModalOpen = true">Add new recipient</button>
+    <div v-if="loading" class="flex justify-center py-12">
+      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+    </div>
+
+    <template v-else>
+      <ul v-if="store.paginatedRecipients.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <RecipientCard
+          v-for="recipient in store.paginatedRecipients"
+          :key="recipient.id"
+          v-bind="recipient"
+          @delete="onRecipientDeleted"
+        />
+      </ul>
+      <div v-else class="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+        No recipients found. Add one to get started!
+      </div>
+
+      <Paginator :meta="store.paginationMeta" @page-change="handlePageChange" />
+    </template>
 
     <AddRecipientModal v-model:open="isModalOpen" @submit="onRecipientCreated" />
-
-    
-    <ul v-if="!loading" class="recipient-list">
-      <RecipientCard
-        v-for="recipient in store.paginatedRecipients"
-        :key="recipient.id"
-        v-bind="recipient"
-        @delete="onRecipientDeleted"
-      />
-    </ul>
-
-    <Paginator :meta="store.paginationMeta" @page-change="handlePageChange" />
   </div>
 </template>
 
@@ -57,6 +75,7 @@ async function onRecipientCreated(data: RecipientCreate) {
 async function onRecipientDeleted(id: string) {
   const success = await deleteRecipient(id);
   if (success) {
+    // Optional: if last item on page is deleted, handle pagination logic if necessary
     await loadRecipients();
   }
 }
@@ -71,22 +90,3 @@ onMounted(() => {
   fetchAllGifts();
 });
 </script>
-
-<style scoped>
-.error {
-  color: #b91c1c;
-  padding: 1rem;
-  margin: 1rem 0;
-  background: #fef2f2;
-  border-radius: 6px;
-}
-
-.recipient-list {
-  list-style: none;
-  padding: 0;
-  margin: 1.5rem 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-</style>

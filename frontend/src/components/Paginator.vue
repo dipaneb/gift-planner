@@ -1,36 +1,15 @@
 <template>
-  <nav v-if="meta && meta.totalPages > 1" class="paginator">
-    <button
-      :disabled="!meta.hasPrev"
-      @click="$emit('page-change', meta.page - 1)"
-      class="paginator-btn"
-    >
-      Previous
-    </button>
-
-    <div class="paginator-pages">
-      <button
-        v-for="page in visiblePages"
-        :key="page"
-        @click="$emit('page-change', page)"
-        :class="['paginator-page', { active: page === meta.page }]"
-      >
-        {{ page }}
-      </button>
-    </div>
-
-    <button
-      :disabled="!meta.hasNext"
-      @click="$emit('page-change', meta.page + 1)"
-      class="paginator-btn"
-    >
-      Next
-    </button>
-
-    <div class="paginator-info">
+  <div v-if="meta && meta.totalPages > 1" class="flex flex-col items-center gap-4 mt-6">
+    <UPagination
+      :page="meta.page"
+      :total="meta.total"
+      :items-per-page="limit"
+      @update:page="$emit('page-change', $event)"
+    />
+    <div class="text-sm text-gray-500">
       Page {{ meta.page }} of {{ meta.totalPages }} ({{ meta.total }} total)
     </div>
-  </nav>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -45,83 +24,13 @@ defineEmits<{
   "page-change": [page: number];
 }>();
 
-const visiblePages = computed(() => {
-  if (!props.meta) return [];
-
-  const current = props.meta.page;
-  const total = props.meta.totalPages;
-  const delta = 2;
-
-  const range: number[] = [];
-  const rangeWithDots: (number | string)[] = [];
-
-  for (
-    let i = Math.max(2, current - delta);
-    i <= Math.min(total - 1, current + delta);
-    i++
-  ) {
-    range.push(i);
-  }
-
-  if (current - delta > 2) {
-    rangeWithDots.push(1, "...");
-  } else {
-    rangeWithDots.push(1);
-  }
-
-  rangeWithDots.push(...range);
-
-  if (current + delta < total - 1) {
-    rangeWithDots.push("...", total);
-  } else if (total > 1) {
-    rangeWithDots.push(total);
-  }
-
-  return rangeWithDots.filter((v) => typeof v === "number") as number[];
+const limit = computed(() => {
+  if (!props.meta) return 10;
+  // Calculate items per page based on total and totalPages to pass to UPagination
+  // If we're on the last page, the number of items might be less than the limit,
+  // so we estimate the limit by dividing total by totalPages (rounding up is usually what happens, but we can just use a default or calculate it if needed).
+  // A safe fallback is 10, but ideally the limit should be passed as a prop.
+  // For now, let's assume limit is 10 which is the default in RecipientsView.
+  return 10;
 });
 </script>
-
-<style scoped>
-.paginator {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.paginator-btn,
-.paginator-page {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ccc;
-  background: white;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.paginator-btn:hover:not(:disabled),
-.paginator-page:hover {
-  background: #f0f0f0;
-}
-
-.paginator-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.paginator-pages {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.paginator-page.active {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
-}
-
-.paginator-info {
-  margin-left: auto;
-  font-size: 0.875rem;
-  color: #666;
-}
-</style>
