@@ -54,8 +54,8 @@
           </UButton>
         </div>
       </div>
-
-      <div class="pt-6 border-t">
+      <USeparator />
+      <div>
         <h2>Update status</h2>
         <div class="flex flex-wrap gap-1 pt-4">
           <UButton
@@ -71,8 +71,8 @@
           </UButton>
         </div>
       </div>
-
-      <div class="pt-6 border-t">
+      <USeparator />
+      <div>
         <h2>Recipients</h2>
         <p v-if="gift.recipient_ids.length === 0" class="text-gray-400 italic">
           No recipients assigned to this gift.

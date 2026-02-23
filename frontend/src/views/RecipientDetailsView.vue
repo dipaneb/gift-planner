@@ -34,8 +34,8 @@
           <UButton icon="i-lucide-trash" color="error" @click="onDelete"> Delete </UButton>
         </div>
       </div>
-
-      <div class="pt-6 border-t border-gray-200">
+      <USeparator />
+      <div>
         <h2 class="text-xl font-semibold mb-3">Gift ideas</h2>
         <p v-if="recipient.gift_ids.length === 0" class="text-gray-400 italic">
           No gifts assigned to this recipient.
@@ -52,8 +52,8 @@
           </RouterLink>
         </div>
       </div>
-
-      <div class="pt-6 border-t border-gray-200">
+      <USeparator />
+      <div>
         <h2 class="text-xl font-semibold mb-3">Groups</h2>
         <p class="text-gray-400 italic">Group management is not available yet. Coming soon.</p>
       </div>

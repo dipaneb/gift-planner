@@ -8,10 +8,11 @@
       </template>
 
       <div class="flex flex-col gap-4">
-        <div class="py-3 border-b">
+        <div class="py-3">
           <span>Email: </span>
           <span>{{ authStore.user?.email }}</span>
         </div>
+        <USeparator/>
         <div v-if="!editingName">
           <div class="py-3">
             <span>Name: </span>
