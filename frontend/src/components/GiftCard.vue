@@ -13,6 +13,7 @@
           variant="soft"
           color="error"
           @click="onDelete"
+          class="cursor-pointer"
         />
       </div>
     </template>
@@ -51,8 +52,10 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+
 import { type Gift, type GiftStatus, GIFT_STATUS_LABELS } from "@/api/gifts";
 import { useRecipientsStore } from "@/stores/recipients";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 
 const props = defineProps<{
   gift: Gift;
@@ -64,6 +67,7 @@ const emit = defineEmits<{
 }>();
 
 const recipientsStore = useRecipientsStore();
+const confirm = useConfirmDialog();
 
 const formattedPrice = computed(() => {
   if (!props.gift.price) return null;
@@ -94,8 +98,13 @@ function onStatusChange(status: GiftStatus) {
   emit("status-change", props.gift.id, status);
 }
 
-function onDelete() {
-  if (!confirm(`Delete "${props.gift.name}"? This cannot be undone.`)) return;
+async function onDelete() {
+  const confirmed = await confirm({
+    title: `Delete "${props.gift.name}"?`,
+    description: "This action cannot be undone.",
+  });
+  
+  if (!confirmed) return;
   emit("delete", props.gift.id);
 }
 </script>
