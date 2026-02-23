@@ -16,7 +16,7 @@
       </template>
     </UHeader>
 
-    <main class="mx-auto w-full flex-1 px-4 py-8">
+    <main class="mx-auto w-full flex-1 px-4 md:px-6 lg:px-10 py-8">
       <RouterView />
     </main>
   </div>

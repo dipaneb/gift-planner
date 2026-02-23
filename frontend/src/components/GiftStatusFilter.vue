@@ -1,29 +1,26 @@
 <template>
-  <div class="status-filter">
-    <button
-      :class="['filter-chip', { active: modelValue === null }]"
+  <ul class="flex flex-wrap gap-0.5">
+    <UBadge
+      :color="modelValue===null ? 'primary' : 'neutral'"
+      :variant="modelValue===null ? 'subtle' : 'soft'"
+      size="lg"
+      class="rounded-full cursor-pointer"
       @click="$emit('update:modelValue', null)"
     >
       All
-    </button>
-    <button
+    </UBadge>
+    <UBadge
       v-for="(label, key) in GIFT_STATUS_LABELS"
       :key="key"
-      :class="['filter-chip', { active: modelValue === key }]"
-      :style="
-        modelValue === key
-          ? {
-              backgroundColor: GIFT_STATUS_COLORS[key].bg,
-              color: GIFT_STATUS_COLORS[key].text,
-              borderColor: GIFT_STATUS_COLORS[key].border,
-            }
-          : {}
-      "
+      :color="modelValue===key ? 'primary' : 'neutral'"
+      :variant="modelValue===key ? 'subtle' : 'soft'"
+      size="lg"
+      class="rounded-full cursor-pointer"
       @click="$emit('update:modelValue', key)"
     >
       {{ label }}
-    </button>
-  </div>
+    </UBadge>
+  </ul>
 </template>
 
 <script setup lang="ts">
@@ -41,36 +38,3 @@ defineEmits<{
   "update:modelValue": [value: GiftStatus | null];
 }>();
 </script>
-
-<style scoped>
-.status-filter {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-}
-
-.filter-chip {
-  padding: 0.3rem 0.7rem;
-  border: 1px solid #d1d5db;
-  border-radius: 9999px;
-  background: #fff;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: #6b7280;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-
-.filter-chip:hover {
-  border-color: #9ca3af;
-  color: #374151;
-}
-
-.filter-chip.active {
-  background: #f3f4f6;
-  color: #111827;
-  border-color: #9ca3af;
-  font-weight: 600;
-}
-</style>
