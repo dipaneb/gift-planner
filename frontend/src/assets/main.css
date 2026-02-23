@@ -6,13 +6,7 @@
 
 
 :root {
-  --ui-bg: var(--ui-color-taupe-50);
-  --ui-container: 100vw
-}
-
-.dark {
-  /* --ui-bg: var(--ui-color-neutral-950); */
-  --ui-bg: var(--color-taupe-950)
+  --ui-container: 100vw;
 }
 
 h1 {

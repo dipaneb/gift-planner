@@ -2,12 +2,10 @@
   <div class="flex flex-col gap-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold tracking-tight">Recipients</h1>
-        <p class="text-sm text-gray-500 mt-1">People you love and want to surprise.</p>
+        <h1 class="tracking-tight">Recipients</h1>
+        <p>People you love and want to surprise.</p>
       </div>
-      <UButton icon="i-lucide-plus" @click="isModalOpen = true">
-        Add new recipient
-      </UButton>
+      <AddRecipientModal v-model:open="isModalOpen" @submit="onRecipientCreated" />
     </div>
 
     <UAlert
@@ -23,7 +21,10 @@
     </div>
 
     <template v-else>
-      <ul v-if="store.paginatedRecipients.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <ul
+        v-if="store.paginatedRecipients.length > 0"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+      >
         <RecipientCard
           v-for="recipient in store.paginatedRecipients"
           :key="recipient.id"
@@ -31,14 +32,15 @@
           @delete="onRecipientDeleted"
         />
       </ul>
-      <div v-else class="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+      <div
+        v-else
+        class="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-200"
+      >
         No recipients found. Add one to get started!
       </div>
 
       <Paginator :meta="store.paginationMeta" @page-change="handlePageChange" />
     </template>
-
-    <AddRecipientModal v-model:open="isModalOpen" @submit="onRecipientCreated" />
   </div>
 </template>
 
