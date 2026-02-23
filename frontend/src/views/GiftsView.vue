@@ -5,7 +5,7 @@
         <h1 class="m-0">Gifts</h1>
         <p class="mt-1 mb-0 text-gray-500">Track your gift ideas through their lifecycle.</p>
       </div>
-      <UButton @click="isAddModalOpen = true">Add gift</UButton>
+      <AddGiftModal v-model:open="isAddModalOpen" @submit="onGiftCreated" />
     </div>
 
     <UAlert v-if="error" :title="error" variant="subtle" color="warning" />
@@ -58,8 +58,6 @@
     </ul>
 
     <Paginator :meta="store.paginationMeta" @page-change="handlePageChange" />
-
-    <AddGiftModal v-model:open="isAddModalOpen" @submit="onGiftCreated" />
   </div>
 </template>
 
