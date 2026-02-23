@@ -1,51 +1,62 @@
 <template>
-  <div class="recipient-details">
-    <RouterLink :to="{ name: 'recipients' }" class="back-link">&larr; Back to recipients</RouterLink>
+  <div class="flex flex-col gap-6 max-w-3xl">
+    <UButton
+      :to="{ name: 'recipients' }"
+      icon="i-lucide-arrow-left"
+      color="neutral"
+      variant="ghost"
+    >
+      Back to recipients
+    </UButton>
 
-    <div v-if="loading" class="status-message">Loading...</div>
-    <div v-else-if="error" class="status-message error">{{ error }}</div>
+    <div v-if="loading" class="text-center py-12">
+      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+    </div>
+
+    <UAlert v-else-if="error" :title="error" variant="subtle" color="error" />
 
     <template v-if="recipient">
-      <header class="details-header">
-        <div>
-          <h1>{{ recipient.name }}</h1>
-          <p v-if="recipient.notes" class="notes">{{ recipient.notes }}</p>
-          <p v-else class="notes notes--empty">No notes yet.</p>
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex-1">
+          <h1 class="text-3xl font-bold mb-2">{{ recipient.name }}</h1>
+          <p v-if="recipient.notes" class="text-gray-600 whitespace-pre-wrap">
+            {{ recipient.notes }}
+          </p>
+          <p v-else class="text-gray-400 italic">No notes yet.</p>
         </div>
 
-        <div class="header-actions">
-          <button class="btn btn-primary" @click="isEditModalOpen = true">Edit</button>
-          <button class="btn btn-danger" @click="onDelete">Delete</button>
+        <div class="flex gap-2 shrink-0">
+          <EditRecipientModal
+            v-model:open="isEditModalOpen"
+            :recipient="recipient"
+            @submit="onUpdate"
+          />
+          <UButton icon="i-lucide-trash" color="error" @click="onDelete"> Delete </UButton>
         </div>
-      </header>
+      </div>
 
-      <EditRecipientModal
-        v-model:open="isEditModalOpen"
-        :recipient="recipient"
-        @submit="onUpdate"
-      />
-
-      <section class="detail-section">
-        <h2>Gift ideas</h2>
-        <p v-if="recipient.gift_ids.length === 0" class="placeholder">
+      <div class="pt-6 border-t border-gray-200">
+        <h2 class="text-xl font-semibold mb-3">Gift ideas</h2>
+        <p v-if="recipient.gift_ids.length === 0" class="text-gray-400 italic">
           No gifts assigned to this recipient.
         </p>
-        <div v-else class="gifts-list">
+        <div v-else class="flex flex-wrap gap-2">
           <RouterLink
             v-for="g in resolvedGifts"
             :key="g.id"
             :to="{ name: 'giftDetails', params: { gift_id: g.id } }"
-            class="gift-chip"
           >
-            {{ g.name }}
+            <UBadge color="info" variant="soft" size="lg" class="rounded-full">
+              {{ g.name }}
+            </UBadge>
           </RouterLink>
         </div>
-      </section>
+      </div>
 
-      <section class="detail-section">
-        <h2>Groups</h2>
-        <p class="placeholder">Group management is not available yet. Coming soon.</p>
-      </section>
+      <div class="pt-6 border-t border-gray-200">
+        <h2 class="text-xl font-semibold mb-3">Groups</h2>
+        <p class="text-gray-400 italic">Group management is not available yet. Coming soon.</p>
+      </div>
     </template>
   </div>
 </template>
@@ -57,6 +68,7 @@ import { useRecipients } from "@/composables/useRecipients";
 import { useRecipientsStore } from "@/stores/recipients";
 import { useGifts } from "@/composables/useGifts";
 import { useGiftsStore } from "@/stores/gifts";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import type { RecipientUpdate } from "@/api/recipients";
 import EditRecipientModal from "@/components/EditRecipientModal.vue";
 
@@ -66,10 +78,11 @@ const store = useRecipientsStore();
 const { fetchById, updateRecipient, deleteRecipient, loading, error } = useRecipients();
 const giftsStore = useGiftsStore();
 const { fetchAll: fetchAllGifts } = useGifts();
+const confirm = useConfirmDialog();
 
 const recipientId = computed(() => route.params.recipient_id as string);
-const recipient = computed(() =>
-  store.paginatedRecipients.find((r) => r.id === recipientId.value) ?? null,
+const recipient = computed(
+  () => store.paginatedRecipients.find((r) => r.id === recipientId.value) ?? null,
 );
 
 const isEditModalOpen = ref(false);
@@ -95,7 +108,12 @@ async function onUpdate(data: RecipientUpdate) {
 }
 
 async function onDelete() {
-  if (!confirm(`Delete "${recipient.value?.name}"? This cannot be undone.`)) return;
+  const confirmed = await confirm({
+    title: `Delete "${recipient.value?.name}"?`,
+    description: "This action cannot be undone.",
+  });
+
+  if (!confirmed) return;
 
   const success = await deleteRecipient(recipientId.value);
   if (success) {
@@ -103,131 +121,3 @@ async function onDelete() {
   }
 }
 </script>
-
-<style scoped>
-.recipient-details {
-  max-width: 720px;
-}
-
-.back-link {
-  display: inline-block;
-  margin-bottom: 1.5rem;
-  color: #3b82f6;
-  text-decoration: none;
-  font-size: 0.875rem;
-}
-
-.back-link:hover {
-  text-decoration: underline;
-}
-
-.status-message {
-  padding: 1rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-}
-
-.error {
-  color: #b91c1c;
-  background: #fef2f2;
-}
-
-.details-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.details-header h1 {
-  margin: 0 0 0.25rem;
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.notes {
-  color: #4b5563;
-  margin: 0;
-  line-height: 1.6;
-  white-space: pre-wrap;
-}
-
-.notes--empty {
-  font-style: italic;
-  color: #9ca3af;
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.btn {
-  padding: 0.5rem 1rem;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s;
-}
-
-.btn-primary {
-  background: #3b82f6;
-  color: #fff;
-}
-
-.btn-primary:hover {
-  background: #2563eb;
-}
-
-.btn-danger {
-  background: #ef4444;
-  color: #fff;
-}
-
-.btn-danger:hover {
-  background: #dc2626;
-}
-
-.detail-section {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e5e7eb;
-}
-
-.detail-section h2 {
-  margin: 0 0 0.75rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.placeholder {
-  color: #9ca3af;
-  font-style: italic;
-}
-
-.gifts-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.gift-chip {
-  display: inline-block;
-  padding: 0.3rem 0.75rem;
-  background: #dbeafe;
-  color: #1d4ed8;
-  border-radius: 9999px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: background-color 0.15s;
-}
-
-.gift-chip:hover {
-  background: #bfdbfe;
-}
-</style>
