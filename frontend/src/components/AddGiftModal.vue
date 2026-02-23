@@ -112,10 +112,10 @@ onMounted(() => {
   fetchAll();
 });
 
-const form = reactive({
+const form = reactive<Partial<Schema>>({
   name: "",
   url: "",
-  price: "" as string | number,
+  price: undefined,
   quantity: 1,
   status: "idee" as GiftStatus,
   recipient_ids: [] as string[],

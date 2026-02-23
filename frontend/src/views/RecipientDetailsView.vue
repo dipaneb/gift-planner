@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-6 max-w-3xl">
+  <div class="flex flex-col gap-6">
     <UButton
       :to="{ name: 'recipients' }"
       icon="i-lucide-arrow-left"

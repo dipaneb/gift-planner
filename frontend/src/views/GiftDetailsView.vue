@@ -1,86 +1,94 @@
 <template>
-  <div class="gift-details">
-    <RouterLink :to="{ name: 'gifts' }" class="back-link">&larr; Back to gifts</RouterLink>
+<div class="flex flex-col gap-6">
+    <UButton
+      :to="{ name: 'gifts' }"
+      icon="i-lucide-arrow-left"
+      color="neutral"
+      variant="ghost"
+    >
+      Back to gifts
+    </UButton>
 
-    <div v-if="loading" class="status-message">Loading...</div>
-    <div v-else-if="error" class="status-message error">{{ error }}</div>
+    <div v-if="loading" class="text-center py-12">
+      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+    </div>
+
+    <UAlert v-else-if="error" :title="error" variant="subtle" color="error" />
 
     <template v-if="gift">
-      <header class="details-header">
-        <div class="header-info">
-          <div class="title-row">
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-3 flex-wrap mb-2">
             <h1>{{ gift.name }}</h1>
-            <GiftStatusBadge :status="gift.status" />
           </div>
 
-          <div class="meta-row">
-            <span v-if="gift.price" class="meta-price">{{ formattedPrice }}</span>
-            <span v-if="gift.quantity > 1" class="meta-qty">Quantity: {{ gift.quantity }}</span>
-            <a
+          <div class="flex items-center gap-4 mt-2">
+            <span v-if="gift.price">
+              {{ formattedPrice }}
+            </span>
+            <UBadge v-if="gift.quantity > 1" color="neutral" variant="soft">
+              Quantity: {{ gift.quantity }}
+            </UBadge>
+            <UButton
               v-if="gift.url"
-              :href="gift.url"
+              :to="gift.url"
+              external
               target="_blank"
-              rel="noopener noreferrer"
-              class="meta-link"
+              icon="i-lucide-external-link"
+              color="primary"
+              variant="link"
             >
-              Visit link &nearr;
-            </a>
+              Visit link
+            </UButton>
           </div>
         </div>
 
-        <div class="header-actions">
-          <button class="btn btn-primary" @click="isEditModalOpen = true">Edit</button>
-          <button class="btn btn-danger" @click="onDelete">Delete</button>
+        <div class="flex gap-2 shrink-0">
+          <EditGiftModal
+            v-model:open="isEditModalOpen"
+            :gift="gift"
+            @submit="onUpdate"
+          />
+          <UButton icon="i-lucide-trash" color="error" @click="onDelete">
+            Delete
+          </UButton>
         </div>
-      </header>
+      </div>
 
-      <!-- Quick status update -->
-      <section class="detail-section">
+      <div class="pt-6 border-t">
         <h2>Update status</h2>
-        <div class="status-grid">
-          <button
+        <div class="flex flex-wrap gap-1 pt-4">
+          <UButton
             v-for="(label, key) in GIFT_STATUS_LABELS"
             :key="key"
-            :class="['status-btn', { active: gift.status === key }]"
-            :style="
-              gift.status === key
-                ? {
-                    backgroundColor: GIFT_STATUS_COLORS[key].bg,
-                    color: GIFT_STATUS_COLORS[key].text,
-                    borderColor: GIFT_STATUS_COLORS[key].border,
-                  }
-                : {}
-            "
+            :variant="gift.status === key ? 'solid' : 'outline'"
+            :color="gift.status === key ? getStatusColor(key as GiftStatus) : 'neutral'"
+            size="sm"
             @click="onQuickStatusUpdate(key as GiftStatus)"
+            class="rounded-full"
           >
             {{ label }}
-          </button>
+          </UButton>
         </div>
-      </section>
+      </div>
 
-      <!-- Recipients section -->
-      <section class="detail-section">
+      <div class="pt-6 border-t">
         <h2>Recipients</h2>
-        <p v-if="gift.recipient_ids.length === 0" class="placeholder">
+        <p v-if="gift.recipient_ids.length === 0" class="text-gray-400 italic">
           No recipients assigned to this gift.
         </p>
-        <div v-else class="recipients-list">
+        <div v-else class="flex flex-wrap gap-2">
           <RouterLink
             v-for="r in resolvedRecipients"
             :key="r.id"
             :to="{ name: 'recipientDetails', params: { recipient_id: r.id } }"
-            class="recipient-chip"
           >
-            {{ r.name }}
+            <UBadge color="primary" variant="soft" size="lg" class="rounded-full">
+              {{ r.name }}
+            </UBadge>
           </RouterLink>
         </div>
-      </section>
-
-      <EditGiftModal
-        v-model:open="isEditModalOpen"
-        :gift="gift"
-        @submit="onUpdate"
-      />
+      </div>
     </template>
   </div>
 </template>
@@ -92,6 +100,7 @@ import { useGifts } from "@/composables/useGifts";
 import { useGiftsStore } from "@/stores/gifts";
 import { useRecipients } from "@/composables/useRecipients";
 import { useRecipientsStore } from "@/stores/recipients";
+import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import {
   GIFT_STATUS_LABELS,
   GIFT_STATUS_COLORS,
@@ -107,6 +116,7 @@ const store = useGiftsStore();
 const { fetchById, updateGift, updateGiftStatus, deleteGift, loading, error } = useGifts();
 const recipientsStore = useRecipientsStore();
 const { fetchAll: fetchAllRecipients } = useRecipients();
+const confirm = useConfirmDialog();
 
 const giftId = computed(() => route.params.gift_id as string);
 const gift = computed(() => store.paginatedGifts.find((g) => g.id === giftId.value) ?? null);
@@ -128,6 +138,20 @@ const resolvedRecipients = computed(() => {
     .filter((r): r is NonNullable<typeof r> => r != null);
 });
 
+function getStatusColor(status: GiftStatus) {
+  const colorMap: Record<GiftStatus, "neutral" | "primary" | "success" | "warning" | "info"> = {
+    idee: "neutral",
+    achete: "warning",
+    commande: "warning",
+    en_cours_livraison: "info",
+    livre: "info",
+    recupere: "primary",
+    emballe: "primary",
+    offert: "success",
+  };
+  return colorMap[status] || "neutral";
+}
+
 onMounted(async () => {
   await fetchById(giftId.value);
   fetchAllRecipients();
@@ -147,7 +171,12 @@ async function onQuickStatusUpdate(status: GiftStatus) {
 }
 
 async function onDelete() {
-  if (!confirm(`Delete "${gift.value?.name}"? This cannot be undone.`)) return;
+  const confirmed = await confirm({
+    title: `Delete "${gift.value?.name}"?`,
+    description: "This action cannot be undone.",
+  });
+
+  if (!confirmed) return;
 
   const success = await deleteGift(giftId.value);
   if (success) {
@@ -155,203 +184,3 @@ async function onDelete() {
   }
 }
 </script>
-
-<style scoped>
-.gift-details {
-  max-width: 720px;
-}
-
-.back-link {
-  display: inline-block;
-  margin-bottom: 1.5rem;
-  color: #3b82f6;
-  text-decoration: none;
-  font-size: 0.875rem;
-}
-
-.back-link:hover {
-  text-decoration: underline;
-}
-
-.status-message {
-  padding: 1rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-}
-
-.error {
-  color: #b91c1c;
-  background: #fef2f2;
-}
-
-.details-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.header-info {
-  min-width: 0;
-}
-
-.title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.title-row h1 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.meta-row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-  color: #6b7280;
-}
-
-.meta-price {
-  font-weight: 600;
-  color: #374151;
-  font-size: 1rem;
-}
-
-.meta-qty {
-  background: #f3f4f6;
-  padding: 0.15rem 0.5rem;
-  border-radius: 4px;
-}
-
-.meta-link {
-  color: #3b82f6;
-  text-decoration: none;
-}
-
-.meta-link:hover {
-  text-decoration: underline;
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.detail-section {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e5e7eb;
-}
-
-.detail-section h2 {
-  margin: 0 0 0.75rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.status-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.status-btn {
-  padding: 0.4rem 0.85rem;
-  border: 1px solid #d1d5db;
-  border-radius: 9999px;
-  background: #fff;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: #6b7280;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.status-btn:hover {
-  border-color: #9ca3af;
-  color: #374151;
-}
-
-.status-btn.active {
-  font-weight: 600;
-  cursor: default;
-}
-
-.placeholder {
-  color: #9ca3af;
-  font-style: italic;
-}
-
-.recipients-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.recipient-chip {
-  display: inline-block;
-  padding: 0.3rem 0.75rem;
-  background: #ede9fe;
-  color: #6d28d9;
-  border-radius: 9999px;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: background-color 0.15s;
-}
-
-.recipient-chip:hover {
-  background: #ddd6fe;
-}
-
-.btn {
-  padding: 0.5rem 1rem;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s;
-}
-
-.btn-primary {
-  background: #3b82f6;
-  color: #fff;
-}
-
-.btn-primary:hover {
-  background: #2563eb;
-}
-
-.btn-danger {
-  background: #ef4444;
-  color: #fff;
-}
-
-.btn-danger:hover {
-  background: #dc2626;
-}
-
-@media (max-width: 640px) {
-  .details-header {
-    flex-direction: column;
-  }
-
-  .header-actions {
-    width: 100%;
-  }
-
-  .header-actions .btn {
-    flex: 1;
-    text-align: center;
-  }
-}
-</style>
