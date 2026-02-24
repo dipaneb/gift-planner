@@ -1,288 +1,222 @@
 <template>
-  <div class="budget">
+  <div class="flex flex-col gap-6">
     <h1>Budget</h1>
-    <div class="budget-content">
-      <div class="budget-section">
+
+    <UCard>
+      <template #header>
         <h2>Budget Overview</h2>
+      </template>
 
-        <div class="budget-stats">
-          <div class="stat-card">
-            <div class="stat-label">Total Budget</div>
-            <div class="stat-value" :class="{ 'not-set': !authStore.user?.budget }">
-              {{ authStore.user?.budget ? `${authStore.user.budget} €` : 'Not set' }}
+      <div class="flex flex-col gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div
+            class="bg-linear-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-6 text-center transition-transform hover:-translate-y-1 hover:shadow-lg"
+          >
+            <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+              Total Budget
+            </div>
+            <div
+              class="text-3xl font-bold"
+              :class="!authStore.user?.budget ? 'text-gray-400 italic' : 'text-gray-900'"
+            >
+              {{ authStore.user?.budget ? `${authStore.user.budget} €` : "Not set" }}
             </div>
           </div>
 
-          <div class="stat-card">
-            <div class="stat-label">Spent</div>
-            <div class="stat-value spent">
-              {{ authStore.user?.spent || '0.00' }} €
+          <div
+            class="bg-linear-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-6 text-center transition-transform hover:-translate-y-1 hover:shadow-lg"
+          >
+            <div class="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-2">
+              Spent
+            </div>
+            <div class="text-3xl font-bold text-orange-600">
+              {{ authStore.user?.spent || "0.00" }} €
             </div>
           </div>
 
-          <div class="stat-card">
-            <div class="stat-label">Remaining</div>
-            <div class="stat-value" :class="remainingClass">
+          <div
+            class="bg-linear-to-br from-gray-50 to-gray-100 border rounded-xl p-6 text-center transition-transform hover:-translate-y-1 hover:shadow-lg"
+            :class="remainingColorClass"
+          >
+            <div
+              class="text-xs font-semibold uppercase tracking-wide mb-2"
+              :class="remainingLabelClass"
+            >
+              Remaining
+            </div>
+            <div class="text-3xl font-bold" :class="remainingValueClass">
               {{ remainingDisplay }}
             </div>
           </div>
         </div>
 
-        <form @submit.prevent="handleSubmit" class="budget-form">
-          <div class="form-group">
-            <label for="budget-input">Budget (&euro;)</label>
-            <input
-              id="budget-input"
-              v-model.number="budgetInput"
-              type="number"
-              min="0.01"
-              step="0.01"
-              placeholder="e.g. 500.00"
-              required
-            />
-          </div>
+        <div v-if="authStore.user?.budget && showChart" class="flex justify-center py-4">
+          <DonutChart
+            :data="chartData"
+            :height="250"
+            :categories="categories"
+            :radius="10"
+            :arc-width="25"
+            :pad-angle="0.05"
+            :legend-position="LegendPosition.BottomCenter"
+          />
+        </div>
 
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary" :disabled="loading">
-              {{ loading ? 'Saving...' : 'Set budget' }}
-            </button>
-            <button
+        <USeparator />
+
+        <UForm
+          :schema="budgetSchema"
+          :state="budgetForm"
+          @submit="handleSubmit"
+          class="flex flex-col gap-4"
+        >
+          <UAlert v-if="error" :title="error" color="error" variant="subtle" />
+          <UAlert v-if="successMessage" :title="successMessage" color="success" variant="subtle" />
+
+          <UFormField label="Budget" name="budget" required>
+            <UInputNumber
+              v-model="budgetForm.budget"
+              :min="0"
+              placeholder="e.g. 500.00"
+              :format-options="{
+                style: 'currency',
+                currency: 'EUR',
+                currencyDisplay: 'symbol',
+              }"
+              class="w-full max-w-sm"
+            />
+          </UFormField>
+
+          <div class="flex gap-2">
+            <UButton type="submit" color="primary" :loading="loading"> Set budget </UButton>
+            <UButton
               type="button"
-              class="btn btn-danger"
+              color="error"
+              variant="outline"
               :disabled="loading || !authStore.user?.budget"
               @click="handleDelete"
             >
-              {{ loading ? 'Removing...' : 'Remove budget' }}
-            </button>
+              Remove budget
+            </UButton>
           </div>
-        </form>
-
-        <p v-if="error" class="error-message">{{ error }}</p>
-        <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
+        </UForm>
       </div>
-    </div>
+    </UCard>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import { useBudget } from '@/composables/useBudget'
+import { ref, computed, reactive } from "vue";
+import { z } from "zod";
+import type { FormSubmitEvent } from "@nuxt/ui";
+import { DonutChart, type BulletLegendItemInterface, LegendPosition } from "vue-chrts";
+import { useAuthStore } from "@/stores/auth";
+import { useBudget } from "@/composables/useBudget";
 
-const authStore = useAuthStore()
-const { loading, error, updateBudget, deleteBudget } = useBudget()
+const authStore = useAuthStore();
+const { loading, error, updateBudget, deleteBudget } = useBudget();
 
-const budgetInput = ref<number | null>(
-  authStore.user?.budget ? parseFloat(authStore.user.budget) : null,
-)
-const successMessage = ref<string | null>(null)
+const budgetSchema = z.object({
+  budget: z.number().positive("Budget must be greater than 0."),
+});
+
+type BudgetSchema = z.output<typeof budgetSchema>;
+
+const budgetForm = reactive<Partial<BudgetSchema>>({
+  budget: authStore.user?.budget ? parseFloat(authStore.user.budget) : undefined,
+});
+
+const successMessage = ref<string | null>(null);
 
 const remainingDisplay = computed(() => {
-  if (!authStore.user?.budget) return 'N/A'
-  if (authStore.user.remaining === null) return 'N/A'
-  return `${authStore.user.remaining} €`
-})
+  if (!authStore.user?.budget) return "N/A";
+  if (authStore.user.remaining === null) return "N/A";
+  return `${authStore.user.remaining} €`;
+});
 
-const remainingClass = computed(() => {
-  if (!authStore.user?.budget || authStore.user.remaining === null) return 'not-set'
-  const remaining = parseFloat(authStore.user.remaining)
-  if (remaining < 0) return 'negative'
-  if (remaining === 0) return 'zero'
-  return 'positive'
-})
+const remainingColorClass = computed(() => {
+  if (!authStore.user?.budget || authStore.user.remaining === null) {
+    return "border-gray-200";
+  }
+  const remaining = parseFloat(authStore.user.remaining);
+  if (remaining < 0) return "border-red-200";
+  if (remaining === 0) return "border-gray-300";
+  return "border-green-200";
+});
+
+const remainingLabelClass = computed(() => {
+  if (!authStore.user?.budget || authStore.user.remaining === null) {
+    return "text-gray-600";
+  }
+  const remaining = parseFloat(authStore.user.remaining);
+  if (remaining < 0) return "text-red-700";
+  if (remaining === 0) return "text-gray-600";
+  return "text-green-700";
+});
+
+const remainingValueClass = computed(() => {
+  if (!authStore.user?.budget || authStore.user.remaining === null) {
+    return "text-gray-400 italic";
+  }
+  const remaining = parseFloat(authStore.user.remaining);
+  if (remaining < 0) return "text-red-600";
+  if (remaining === 0) return "text-gray-500";
+  return "text-green-600";
+});
+
+// Chart data with edge case handling
+const chartData = computed(() => {
+  const spent = parseFloat(authStore.user?.spent || "0");
+  const budget = parseFloat(authStore.user?.budget || "0");
+
+  // If no budget set, return empty data
+  if (budget <= 0) return [0, 100];
+
+  // If spent exceeds budget, show 100% spent
+  if (spent >= budget) return [budget, 0];
+
+  // Normal case: show spent and remaining
+  const remaining = budget - spent;
+  return [spent, remaining > 0 ? remaining : 0];
+});
+
+const showChart = computed(() => {
+  const budget = parseFloat(authStore.user?.budget || "0");
+  return budget > 0;
+});
+
+type DonutCategories = Record<string, BulletLegendItemInterface>;
+
+const labels = [
+  { name: "Spent", color: "#f97316" },
+  { name: "Remaining", color: "#22c55e" },
+];
+
+const categories: DonutCategories = Object.fromEntries(
+  labels.map((i) => [i.name, { name: i.name, color: i.color }]),
+);
 
 function clearMessages() {
-  successMessage.value = null
-  error.value = null
+  successMessage.value = null;
+  error.value = null;
 }
 
-async function handleSubmit() {
-  clearMessages()
-  if (budgetInput.value === null || budgetInput.value <= 0) return
+async function handleSubmit(event: FormSubmitEvent<BudgetSchema>) {
+  clearMessages();
 
-  const ok = await updateBudget(budgetInput.value)
+  const ok = await updateBudget(event.data.budget);
   if (ok) {
-    successMessage.value = 'Budget updated successfully.'
+    successMessage.value = "Budget updated successfully.";
   }
 }
 
 async function handleDelete() {
-  clearMessages()
+  clearMessages();
 
-  const ok = await deleteBudget()
+  const ok = await deleteBudget();
   if (ok) {
-    budgetInput.value = null
-    successMessage.value = 'Budget removed.'
+    budgetForm.budget = undefined;
+    successMessage.value = "Budget removed.";
   }
 }
 </script>
-
-<style scoped>
-.budget {
-  padding: 1rem;
-}
-
-h1 {
-  color: #2c3e50;
-  margin-bottom: 1.5rem;
-}
-
-.budget-content {
-  max-width: 800px;
-}
-
-.budget-section {
-  background: #fff;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 2rem;
-}
-
-.budget-section h2 {
-  color: #2c3e50;
-  font-size: 1.3rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #3498db;
-}
-
-.budget-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border: 1px solid #dee2e6;
-  border-radius: 12px;
-  padding: 1.5rem;
-  text-align: center;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.stat-label {
-  font-size: 0.85rem;
-  color: #6c757d;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-}
-
-.stat-value {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #2c3e50;
-}
-
-.stat-value.not-set {
-  color: #999;
-  font-size: 1.4rem;
-  font-style: italic;
-}
-
-.stat-value.spent {
-  color: #e67e22;
-}
-
-.stat-value.positive {
-  color: #27ae60;
-}
-
-.stat-value.negative {
-  color: #e74c3c;
-}
-
-.stat-value.zero {
-  color: #95a5a6;
-}
-
-.budget-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.form-group label {
-  font-weight: 600;
-  color: #555;
-  font-size: 0.9rem;
-}
-
-.form-group input {
-  padding: 0.6rem 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
-  max-width: 250px;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-}
-
-.form-actions {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.btn {
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-primary {
-  background: #3498db;
-  color: #fff;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #2980b9;
-}
-
-.btn-danger {
-  background: #e74c3c;
-  color: #fff;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: #c0392b;
-}
-
-.error-message {
-  color: #e74c3c;
-  margin-top: 0.75rem;
-  font-size: 0.9rem;
-}
-
-.success-message {
-  color: #27ae60;
-  margin-top: 0.75rem;
-  font-size: 0.9rem;
-}
-</style>

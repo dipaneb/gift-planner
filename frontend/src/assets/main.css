@@ -7,6 +7,7 @@
 
 :root {
   --ui-container: 100vw;
+  --vis-donut-background-color: transparent !important;
 }
 
 h1 {
