@@ -43,12 +43,8 @@ const routes: RouteRecordRaw[] = [
     path: "",
     component: () => import("@/layouts/AuthLayout.vue"),
     meta: { requiresAuth: true },
+    redirect: { name: "recipients" },
     children: [
-      {
-        path: "app",
-        name: "dashboard",
-        component: () => import("@/views/DashboardView.vue"),
-      },
       {
         path: "settings",
         name: "settings",
@@ -82,8 +78,9 @@ const routes: RouteRecordRaw[] = [
     ],
   },
   {
-    path: "/",
-    redirect: "/app",
+    path: "/:pathMatch(.*)*",
+    name: "notFound",
+    component: () => import("@/views/NotFoundView.vue"),
   },
 ];
 
@@ -92,7 +89,7 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach(async (to, from) => {
+router.beforeEach(async (to) => {
   console.log("Start of the beforeEach router.");
   
   const authStore = useAuthStore();
@@ -122,7 +119,7 @@ router.beforeEach(async (to, from) => {
     // Redirect authenticated users away from guest pages
     console.log("Redirecting authenticated users away from guest pages");
     
-    return { name: "dashboard" };
+    return { name: "recipients" };
   }
 
   // Allow navigation

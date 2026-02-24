@@ -2,7 +2,7 @@
   <div class="flex min-h-screen flex-col">
     <UHeader >
       <template #left>
-        <RouterLink :to="{name: 'dashboard'}">
+        <RouterLink :to="{name: 'recipients'}">
           Gift Planner
         </RouterLink>
       </template>
@@ -33,11 +33,6 @@ const authStore = useAuthStore();
 const { logout } = useAuth();
 
 const navItems: NavigationMenuItem[] = [
-  {
-    label: "Dashboard",
-    icon: "i-lucide-layout-dashboard",
-    to: { name: "dashboard" },
-  },
   {
     label: "Recipients",
     icon: "i-lucide-person-standing",
