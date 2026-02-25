@@ -63,6 +63,18 @@
       "passwordSpecial": "Password must include a special character.",
       "confirmPasswordRequired": "Please confirm your password.",
       "passwordsMismatch": "Passwords don't match."
+    },
+    "passwordStrength": {
+      "enterPassword": "Enter a password",
+      "weakPassword": "Weak password",
+      "mediumPassword": "Medium password",
+      "strongPassword": "Strong password",
+      "mustContain": "Must contain:",
+      "requirement8Chars": "At least 8 characters",
+      "requirement1Number": "At least 1 number",
+      "requirement1Lowercase": "At least 1 lowercase letter",
+      "requirement1Uppercase": "At least 1 uppercase letter",
+      "requirement1Special": "At least 1 special character"
     }
   },
   "gifts": {

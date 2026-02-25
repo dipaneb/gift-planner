@@ -40,6 +40,12 @@
           >
             {{ loading ? t('common.sending') : cooldown > 0 ? t('auth.forgotPasswordPage.retryIn', { seconds: cooldown }) : t('auth.forgotPasswordPage.submit') }}
           </UButton>
+
+          <UProgress
+            v-if="cooldown > 0"
+            v-model="cooldownProgress"
+            size="sm"
+          />
         </UForm>
 
         <template #footer>
@@ -56,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { onUnmounted, reactive, ref } from "vue";
+import { computed, onUnmounted, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
@@ -80,6 +86,10 @@ type Schema = z.infer<typeof forgotPasswordSchema>;
 const state = reactive<Partial<Schema>>({
   email: "",
 });
+
+const cooldownProgress = computed(() =>
+  (cooldown.value / COOLDOWN_SECONDS) * 100
+);
 
 function startCooldown(): void {
   const endTime = Date.now() + COOLDOWN_SECONDS * 1000;

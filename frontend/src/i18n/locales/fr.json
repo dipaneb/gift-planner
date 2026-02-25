@@ -63,6 +63,18 @@
       "passwordSpecial": "Le mot de passe doit contenir un caractère spécial.",
       "confirmPasswordRequired": "Veuillez confirmer votre mot de passe.",
       "passwordsMismatch": "Les mots de passe ne correspondent pas."
+    },
+    "passwordStrength": {
+      "enterPassword": "Entrez un mot de passe",
+      "weakPassword": "Mot de passe faible",
+      "mediumPassword": "Mot de passe moyen",
+      "strongPassword": "Mot de passe fort",
+      "mustContain": "Doit contenir :",
+      "requirement8Chars": "Au moins 8 caractères",
+      "requirement1Number": "Au moins 1 chiffre",
+      "requirement1Lowercase": "Au moins 1 lettre minuscule",
+      "requirement1Uppercase": "Au moins 1 lettre majuscule",
+      "requirement1Special": "Au moins 1 caractère spécial"
     }
   },
   "gifts": {
