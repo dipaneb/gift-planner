@@ -40,6 +40,11 @@ export const usersApi = {
     return response.data
   },
 
+  async deleteName(): Promise<User> {
+    const response = await api.delete<User>('/users/me/name')
+    return response.data
+  },
+
   async updatePassword(data: UserPasswordUpdateRequest): Promise<void> {
     await api.patch('/users/me/password', data)
   },

@@ -76,6 +76,13 @@ class UserRepository:
         self.db.commit()
         return self.get_by_id(user_id)
 
+    def delete_name(self, user_id: uuid.UUID) -> User:
+        """Remove the user's display name (set to null)."""
+        stmt = update(User).where(User.id == user_id).values(name=None)
+        self.db.execute(stmt)
+        self.db.commit()
+        return self.get_by_id(user_id)
+
     def set_verification_token(self, user_id: uuid.UUID, token_hash: str, expires_at: datetime) -> None:
         """Set email verification token for a user."""
         stmt = update(User).where(User.id == user_id).values(

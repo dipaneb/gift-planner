@@ -180,6 +180,8 @@
     "confirmNewPasswordPlaceholder": "Confirm new password",
     "updatePassword": "Update Password",
     "passwordUpdated": "Password updated successfully",
+    "deleteName": "Delete Name",
+    "deleteNameFailed": "Failed to delete name",
     "updateNameFailed": "Failed to update name",
     "updatePasswordFailed": "Failed to update password"
   },

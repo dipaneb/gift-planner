@@ -54,6 +54,15 @@ def update_name(
     return user_service.update_name(user_id, body.name)
 
 
+@router.delete("/me/name", response_model=UserRead)
+def delete_name(
+    user_service: Annotated[UserService, Depends()],
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+):
+    """Remove the user's display name (set to null)."""
+    return user_service.delete_name(user_id)
+
+
 @router.patch("/me/password", status_code=status.HTTP_204_NO_CONTENT)
 def update_password(
     body: UserPasswordUpdate,

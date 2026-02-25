@@ -18,9 +18,21 @@
             <span>{{ t('settings.nameLabel') }}</span>
             <span>{{ authStore.user?.name || t('common.notSet') }}</span>
           </div>
-          <UButton @click="editingName = true" color="neutral" variant="outline" class="self-start">
-            {{ t('settings.editName') }}
-          </UButton>
+          <div class="flex gap-2">
+            <UButton @click="editingName = true" color="neutral" variant="outline" class="self-start">
+              {{ t('settings.editName') }}
+            </UButton>
+            <UButton
+              v-if="authStore.user?.name"
+              @click="handleDeleteName"
+              color="error"
+              variant="soft"
+              :loading="isDeletingName"
+              class="self-start"
+            >
+              {{ t('settings.deleteName') }}
+            </UButton>
+          </div>
         </div>
 
         <UForm
@@ -132,6 +144,7 @@ type PasswordSchema = z.output<typeof passwordSchema.value>;
 
 const editingName = ref(false);
 const isUpdatingName = ref(false);
+const isDeletingName = ref(false);
 const isUpdatingPassword = ref(false);
 const nameError = ref("");
 const passwordError = ref("");
@@ -151,6 +164,20 @@ const cancelEditName = () => {
   editingName.value = false;
   nameForm.name = authStore.user?.name || "";
   nameError.value = "";
+};
+
+const handleDeleteName = async () => {
+  nameError.value = "";
+  isDeletingName.value = true;
+
+  try {
+    const updatedUser = await usersApi.deleteName();
+    authStore.user = updatedUser;
+  } catch (error) {
+    nameError.value = error instanceof Error ? error.message : t('settings.deleteNameFailed');
+  } finally {
+    isDeletingName.value = false;
+  }
 };
 
 const handleUpdateName = async (event: FormSubmitEvent<NameSchema>) => {

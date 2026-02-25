@@ -47,6 +47,11 @@ class UserService:
         self.user_repo.update_name(user_id, name)
         return self._build_user_read(user_id)
 
+    def delete_name(self, user_id: uuid.UUID) -> UserRead:
+        """Remove user's display name."""
+        self.user_repo.delete_name(user_id)
+        return self._build_user_read(user_id)
+
     def update_password(self, user_id: uuid.UUID, current_password: str, new_password: str) -> None:
         """Update user's password after verifying current password."""
         from src.domains.auth.password_handler import verify_password
