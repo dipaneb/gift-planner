@@ -43,7 +43,7 @@
           color="primary"
           variant="ghost"
         >
-          Details
+          {{ t('common.details') }}
         </UButton>
       </div>
     </div>
@@ -52,6 +52,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { type Gift, type GiftStatus, GIFT_STATUS_LABELS } from "@/api/gifts";
 import { useRecipientsStore } from "@/stores/recipients";
@@ -66,16 +67,10 @@ const emit = defineEmits<{
   "status-change": [id: string, status: GiftStatus];
 }>();
 
+const { t } = useI18n();
 const recipientsStore = useRecipientsStore();
 const confirm = useConfirmDialog();
 
-const formattedPrice = computed(() => {
-  if (!props.gift.price) return null;
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-  }).format(Number(props.gift.price));
-});
 
 const recipientNames = computed(() => {
   return props.gift.recipient_ids
@@ -87,8 +82,8 @@ const recipientNames = computed(() => {
 });
 
 const statusOptions = computed(() => {
-  return Object.entries(GIFT_STATUS_LABELS).map(([value, label]) => ({
-    label,
+  return Object.keys(GIFT_STATUS_LABELS).map((value) => ({
+    label: t(`gifts.status_labels.${value}`),
     value,
   }));
 });
@@ -100,8 +95,8 @@ function onStatusChange(status: GiftStatus) {
 
 async function onDelete() {
   const confirmed = await confirm({
-    title: `Delete "${props.gift.name}"?`,
-    description: "This action cannot be undone.",
+    title: t('gifts.deleteConfirmTitle', { name: props.gift.name }),
+    description: t('gifts.deleteConfirmDescription'),
   });
   
   if (!confirmed) return;

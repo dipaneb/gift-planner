@@ -2,18 +2,17 @@
   <div class="flex min-h-screen items-center justify-center p-4">
     <UCard class="max-w-2xl w-full">
       <div class="flex flex-col items-center text-center gap-6 py-8">
-        <div class="flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-red-50 to-red-100 border border-red-200">
+        <div class="flex items-center justify-center w-32 h-32 rounded-full bg-linear-to-br from-red-50 to-red-100 border border-red-200">
           <UIcon name="i-lucide-search-x" class="text-6xl text-red-600" />
         </div>
 
         <div class="flex flex-col gap-2">
           <h1 class="text-6xl font-bold text-gray-900">404</h1>
-          <h2 class="text-2xl font-semibold text-gray-700">Page Not Found</h2>
+          <h2 class="text-2xl font-semibold text-gray-700">{{ t('notFound.title') }}</h2>
         </div>
 
         <p class="text-gray-600 max-w-md">
-          The page you're looking for doesn't exist or has been moved. Let's get you back on
-          track.
+          {{ t('notFound.description') }}
         </p>
 
         <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mt-4">
@@ -24,7 +23,7 @@
             icon="i-lucide-home"
             class="justify-center"
           >
-            Go to Recipients
+            {{ t('notFound.goToRecipients') }}
           </UButton>
           <UButton
             @click="goBack"
@@ -34,7 +33,7 @@
             icon="i-lucide-arrow-left"
             class="justify-center"
           >
-            Go Back
+            {{ t('notFound.goBack') }}
           </UButton>
         </div>
 
@@ -42,7 +41,7 @@
 
         <div class="flex flex-col gap-3 w-full">
           <p class="text-sm font-semibold text-gray-600 uppercase tracking-wide">
-            Quick Links
+            {{ t('notFound.quickLinks') }}
           </p>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <UButton
@@ -52,7 +51,7 @@
               icon="i-lucide-person-standing"
               class="justify-start"
             >
-              Recipients
+              {{ t('nav.recipients') }}
             </UButton>
             <UButton
               :to="{ name: 'gifts' }"
@@ -61,7 +60,7 @@
               icon="i-lucide-gift"
               class="justify-start"
             >
-              Gifts
+              {{ t('nav.gifts') }}
             </UButton>
             <UButton
               :to="{ name: 'budget' }"
@@ -70,7 +69,7 @@
               icon="i-lucide-wallet"
               class="justify-start"
             >
-              Budget
+              {{ t('nav.budget') }}
             </UButton>
           </div>
         </div>

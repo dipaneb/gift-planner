@@ -31,6 +31,8 @@ A full-stack web application for organizing gifts, budgets, and Christmas lists 
 ### Frontend
 - **Framework**: Vue 3 + TypeScript
 - **Build Tool**: Vite
+- **UI Library**: Nuxt UI
+- **Internationalization**: vue-i18n + unhead
 - **State Management**: Pinia
 - **Routing**: Vue Router
 - **Validation**: Zod
@@ -69,6 +71,10 @@ gift-planner/
 │   │   ├── api/             # API client
 │   │   ├── assets/          # Static assets
 │   │   ├── components/      # Vue components
+│   │   ├── i18n/            # Internationalization
+│   │   │   ├── locales/    # Translation files (en.json, fr.json)
+│   │   │   └── index.ts    # i18n configuration
+│   │   ├── layouts/         # Layout components
 │   │   ├── router/          # Vue Router config
 │   │   ├── stores/          # Pinia stores
 │   │   └── views/           # Page components

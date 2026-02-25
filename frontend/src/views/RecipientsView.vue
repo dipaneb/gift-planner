@@ -2,8 +2,8 @@
   <div class="flex flex-col gap-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="tracking-tight">Recipients</h1>
-        <p>People you love and want to surprise.</p>
+        <h1 class="tracking-tight">{{ t('recipients.title') }}</h1>
+        <p>{{ t('recipients.subtitle') }}</p>
       </div>
       <AddRecipientModal v-model:open="isModalOpen" @submit="onRecipientCreated" />
     </div>
@@ -36,7 +36,7 @@
         v-else
         class="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-200"
       >
-        No recipients found. Add one to get started!
+        {{ t('recipients.noRecipientsFound') }}
       </div>
 
       <Paginator :meta="store.paginationMeta" @page-change="handlePageChange" />
@@ -46,6 +46,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
+
 import { useRecipients } from "@/composables/useRecipients";
 import { useRecipientsStore } from "@/stores/recipients";
 import { useGifts } from "@/composables/useGifts";
@@ -54,6 +56,7 @@ import RecipientCard from "@/components/RecipientCard.vue";
 import Paginator from "@/components/Paginator.vue";
 import AddRecipientModal from "@/components/AddRecipientModal.vue";
 
+const { t } = useI18n();
 const { fetchPaginated, createRecipient, deleteRecipient, loading, error } = useRecipients();
 const { fetchAll: fetchAllGifts } = useGifts();
 const store = useRecipientsStore();

@@ -6,7 +6,7 @@
       color="neutral"
       variant="ghost"
     >
-      Back to recipients
+      {{ t('recipients.backToRecipients') }}
     </UButton>
 
     <div v-if="loading" class="text-center py-12">
@@ -22,7 +22,7 @@
           <p v-if="recipient.notes" class="text-gray-600 whitespace-pre-wrap">
             {{ recipient.notes }}
           </p>
-          <p v-else class="text-gray-400 italic">No notes yet.</p>
+          <p v-else class="text-gray-400 italic">{{ t('recipients.noNotesYet') }}</p>
         </div>
 
         <div class="flex gap-2 shrink-0">
@@ -31,14 +31,14 @@
             :recipient="recipient"
             @submit="onUpdate"
           />
-          <UButton icon="i-lucide-trash" color="error" @click="onDelete"> Delete </UButton>
+          <UButton icon="i-lucide-trash" color="error" @click="onDelete"> {{ t('common.delete') }} </UButton>
         </div>
       </div>
       <USeparator />
       <div>
-        <h2 class="text-xl font-semibold mb-3">Gift ideas</h2>
+        <h2 class="text-xl font-semibold mb-3">{{ t('recipients.giftIdeas') }}</h2>
         <p v-if="recipient.gift_ids.length === 0" class="text-gray-400 italic">
-          No gifts assigned to this recipient.
+          {{ t('recipients.noGiftsAssigned') }}
         </p>
         <div v-else class="flex flex-wrap gap-2">
           <RouterLink
@@ -54,8 +54,8 @@
       </div>
       <USeparator />
       <div>
-        <h2 class="text-xl font-semibold mb-3">Groups</h2>
-        <p class="text-gray-400 italic">Group management is not available yet. Coming soon.</p>
+        <h2 class="text-xl font-semibold mb-3">{{ t('recipients.groups') }}</h2>
+        <p class="text-gray-400 italic">{{ t('recipients.groupsComingSoon') }}</p>
       </div>
     </template>
   </div>
@@ -64,6 +64,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
+
+
 import { useRecipients } from "@/composables/useRecipients";
 import { useRecipientsStore } from "@/stores/recipients";
 import { useGifts } from "@/composables/useGifts";
@@ -72,6 +75,7 @@ import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import type { RecipientUpdate } from "@/api/recipients";
 import EditRecipientModal from "@/components/EditRecipientModal.vue";
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const store = useRecipientsStore();

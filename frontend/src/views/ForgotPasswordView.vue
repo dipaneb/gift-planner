@@ -2,7 +2,7 @@
   <div class="flex h-screen">
     <div class="flex-1" />
     <div class="flex flex-1 flex-col items-center justify-center gap-10">
-      <h1>Forgot password.</h1>
+      <h1>{{ t('auth.forgotPasswordPage.title') }}</h1>
       <UCard class="min-w-100">
         <UForm
           :schema="forgotPasswordSchema"
@@ -10,7 +10,7 @@
           @submit="onSubmit"
           class="flex flex-col gap-6"
         >
-          <UFormField label="Email" name="email" required>
+          <UFormField :label="t('auth.email')" name="email" required>
             <UInput
               v-model="state.email"
               type="email"
@@ -38,15 +38,15 @@
             :loading="loading"
             :disabled="cooldown > 0"
           >
-            {{ loading ? "Sending..." : cooldown > 0 ? `Retry in ${cooldown}s` : "Send reset link" }}
+            {{ loading ? t('common.sending') : cooldown > 0 ? t('auth.forgotPasswordPage.retryIn', { seconds: cooldown }) : t('auth.forgotPasswordPage.submit') }}
           </UButton>
         </UForm>
 
         <template #footer>
           <p class="text-center text-sm text-muted">
-            Remember your password?
+            {{ t('auth.forgotPasswordPage.rememberPassword') }}
             <RouterLink :to="{ name: 'login' }" class="font-medium text-primary">
-              Sign in<UIcon class="inline align-middle" name="i-lucide-move-up-right" />
+              {{ t('auth.loginPage.submit') }}<UIcon class="inline align-middle" name="i-lucide-move-up-right" />
             </RouterLink>
           </p>
         </template>
@@ -57,11 +57,13 @@
 
 <script setup lang="ts">
 import { onUnmounted, reactive, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 
 import { useAuth } from "@/composables/useAuth";
 
+const { t } = useI18n();
 const { forgotPassword, loading, error } = useAuth();
 const toast = useToast();
 
@@ -99,8 +101,8 @@ const onSubmit = async (event: FormSubmitEvent<Schema>): Promise<void> => {
   const success = await forgotPassword({ email: event.data.email });
   if (success) {
     toast.add({
-      title: "Email sent",
-      description: "If this address is registered, a reset link has been sent.",
+      title: t('auth.forgotPasswordPage.toastTitle'),
+      description: t('auth.forgotPasswordPage.toastDescription'),
       color: "success",
       icon: "i-lucide-circle-check",
     });

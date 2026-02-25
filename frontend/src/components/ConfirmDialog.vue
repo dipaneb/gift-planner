@@ -7,14 +7,14 @@
   >
     <template #footer>
       <UButton
-        label="Cancel"
+        :label="t('common.cancel')"
         color="neutral"
         variant="outline"
         @click="emits('close', false)"
         class="cursor-pointer"
       />
       <UButton
-        label="Confirm"
+        :label="t('common.confirm')"
         color="error"
         @click="emits('close', true)"
         class="cursor-pointer"
@@ -24,6 +24,8 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
 interface ConfirmDialogProps {
   title?: string;
   description?: string;
@@ -34,4 +36,6 @@ defineProps<ConfirmDialogProps>();
 const emits = defineEmits<{
   close: [value: boolean];
 }>();
+
+const { t } = useI18n();
 </script>

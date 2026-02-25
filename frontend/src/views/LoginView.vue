@@ -2,10 +2,10 @@
   <div class="flex h-screen">
     <div class="flex-1" />
     <div class="flex flex-1 flex-col items-center justify-center gap-10">
-      <h1>Welcome back.</h1>
+      <h1>{{ t('auth.loginPage.title') }}</h1>
       <UCard class="min-w-100">
         <UForm :schema="loginSchema" :state="state" @submit="onSubmit" class="flex flex-col gap-6">
-          <UFormField label="Email" name="email" required>
+          <UFormField :label="t('auth.email')" name="email" required>
             <UInput
               v-model="state.email"
               type="email"
@@ -18,10 +18,10 @@
             />
           </UFormField>
 
-          <UFormField label="Password" name="password" required>
+          <UFormField :label="t('auth.password')" name="password" required>
             <template #hint>
               <RouterLink :to="{ name: 'forgotPassword' }" class="text-sm">
-                Forgot password?
+                {{ t('auth.forgotPassword') }}
               </RouterLink>
             </template>
             <UInput
@@ -52,15 +52,15 @@
           />
 
           <UButton type="submit" color="primary" block :loading="loading">
-            {{ loading ? "Submitting..." : "Sign in" }}
+            {{ loading ? t('common.submitting') : t('auth.loginPage.submit') }}
           </UButton>
         </UForm>
 
         <template #footer>
           <p class="text-center text-sm text-muted">
-            Don't have an account yet?
+            {{ t('auth.loginPage.noAccount') }}
             <RouterLink :to="{ name: 'register' }" class="font-medium text-primary">
-              Register<UIcon class="inline align-middle" name="i-lucide-move-up-right" />
+              {{ t('auth.loginPage.registerLink') }}<UIcon class="inline align-middle" name="i-lucide-move-up-right" />
             </RouterLink>
           </p>
         </template>
@@ -70,31 +70,33 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { computed, reactive, ref } from "vue";
 import { useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
 import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 
 import { useAuth } from "@/composables/useAuth";
 
 const route = useRoute();
+const { t } = useI18n();
 const { login, loading, error } = useAuth();
 
 const isPasswordVisible = ref(false);
 
-const loginSchema = z.object({
+const loginSchema = computed(() => z.object({
   email: z.email(),
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters.")
+    .min(8, t('auth.validation.passwordMin'))
     .max(255)
-    .regex(/[A-Z]/, "Password must include an uppercase letter.")
-    .regex(/[a-z]/, "Password must include a lowercase letter.")
-    .regex(/\d/, "Password must include a digit.")
-    .regex(/[^A-Za-z0-9\s]/, "Password must include a special character."),
-});
+    .regex(/[A-Z]/, t('auth.validation.passwordUppercase'))
+    .regex(/[a-z]/, t('auth.validation.passwordLowercase'))
+    .regex(/\d/, t('auth.validation.passwordDigit'))
+    .regex(/[^A-Za-z0-9\s]/, t('auth.validation.passwordSpecial')),
+}));
 
-type Schema = z.infer<typeof loginSchema>;
+type Schema = z.infer<typeof loginSchema.value>;
 
 const state = reactive<Partial<Schema>>({
   email: "",

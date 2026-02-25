@@ -1,11 +1,11 @@
 <template>
   <UModal
     v-model:open="openModel"
-    title="Edit gift"
-    description="Update gift information."
+    :title="t('gifts.editGift')"
+    :description="t('gifts.editGiftDescription')"
     :ui="{ footer: 'justify-end' }"
   >
-    <UButton icon="i-lucide-pencil">Edit gift</UButton>
+    <UButton icon="i-lucide-pencil">{{ t('gifts.editGift') }}</UButton>
 
     <template #body>
       <UForm
@@ -15,21 +15,21 @@
         class="flex flex-col gap-4"
         @submit="onSubmit"
       >
-        <UFormField label="Name" name="name" required>
+        <UFormField :label="t('auth.name')" name="name" required>
           <UInput
             v-model="formState.name"
-            placeholder="e.g. Book"
+            :placeholder="t('gifts.nameEditPlaceholder')"
             autocomplete="off"
             class="w-full"
           />
         </UFormField>
 
-        <UFormField label="URL" name="url">
+        <UFormField :label="t('gifts.url')" name="url">
           <UInput v-model="formState.url" type="url" placeholder="https://..." class="w-full" />
         </UFormField>
 
         <div class="grid grid-cols-2 gap-4">
-          <UFormField label="Price" name="price">
+          <UFormField :label="t('gifts.price')" name="price">
             <UInputNumber
               v-model="formState.price"
               :step="0.01"
@@ -44,22 +44,22 @@
             />
           </UFormField>
 
-          <UFormField label="Quantity" name="quantity" required>
+          <UFormField :label="t('gifts.quantity')" name="quantity" required>
             <UInputNumber v-model="formState.quantity" :min="1" class="w-full" />
           </UFormField>
         </div>
 
-        <UFormField label="Status" name="status" required>
+        <UFormField :label="t('gifts.status')" name="status" required>
           <USelect v-model="formState.status" :items="statusOptions" class="w-full" />
         </UFormField>
 
-        <UFormField label="Recipients" name="recipient_ids">
+        <UFormField :label="t('gifts.recipientsField')" name="recipient_ids">
           <USelectMenu
             v-model="formState.recipient_ids"
             :items="recipientOptions"
             value-key="value"
             multiple
-            placeholder="Select recipients..."
+            :placeholder="t('gifts.selectRecipients')"
             class="w-full"
           />
         </UFormField>
@@ -67,14 +67,15 @@
     </template>
 
     <template #footer="{ close }">
-      <UButton color="neutral" variant="outline" @click="close"> Cancel </UButton>
-      <UButton color="primary" type="submit" form="edit-gift-form"> Save changes </UButton>
+      <UButton color="neutral" variant="outline" @click="close"> {{ t('common.cancel') }} </UButton>
+      <UButton color="primary" type="submit" form="edit-gift-form"> {{ t('common.save') }} </UButton>
     </template>
   </UModal>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { z } from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 import { GIFT_STATUS_LABELS, type Gift, type GiftUpdate, type GiftStatus } from "@/api/gifts";
@@ -85,24 +86,25 @@ const props = defineProps<{
   gift: Gift | null;
 }>();
 
+const { t } = useI18n();
 const openModel = defineModel<boolean>("open", { required: true });
 
 const emit = defineEmits<{
   submit: [id: string, data: GiftUpdate];
 }>();
 
-const schema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(255, "Name is too long (max 255)"),
-  url: z.url("Please enter a valid URL").trim().optional().or(z.literal("")),
+const schema = computed(() => z.object({
+  name: z.string().trim().min(1, t('validation.nameRequired')).max(255, t('validation.nameTooLong')),
+  url: z.url(t('validation.invalidUrl')).trim().optional().or(z.literal("")),
   price: z
-    .union([z.number(), z.coerce.number().positive("Price must be greater than 0")])
+    .union([z.number(), z.coerce.number().positive(t('validation.pricePositive'))])
     .optional(),
-  quantity: z.coerce.number().int().min(1, "Quantity must be at least 1"),
+  quantity: z.coerce.number().int().min(1, t('validation.quantityMin')),
   status: z.string() as z.ZodType<GiftStatus>,
   recipient_ids: z.array(z.string()).optional(),
-});
+}));
 
-type Schema = z.output<typeof schema>;
+type Schema = z.output<typeof schema.value>;
 
 const recipientsStore = useRecipientsStore();
 const { fetchAll } = useRecipients();
@@ -120,8 +122,8 @@ const formState = reactive<Partial<Schema>>({
 });
 
 const statusOptions = computed(() => {
-  return Object.entries(GIFT_STATUS_LABELS).map(([value, label]) => ({
-    label,
+  return Object.keys(GIFT_STATUS_LABELS).map((value) => ({
+    label: t(`gifts.status_labels.${value}`),
     value,
   }));
 });

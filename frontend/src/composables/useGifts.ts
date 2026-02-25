@@ -1,4 +1,5 @@
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { type FetchParams } from "@/api";
 import { getErrorMessage } from "./utils";
@@ -15,6 +16,7 @@ import type { GiftCreate, GiftUpdate } from "@/api/gifts";
  * - Composable: Local UI state (loading, error)
  */
 export function useGifts() {
+  const { t } = useI18n();
   const giftsStore = useGiftsStore();
   const authStore = useAuthStore();
 
@@ -32,7 +34,7 @@ export function useGifts() {
       await giftsStore.fetchPaginated(params);
       return true;
     } catch (err) {
-      error.value = getErrorMessage(err, "Failed to fetch gifts");
+      error.value = getErrorMessage(err, t("errors.fetchGifts"));
       return false;
     } finally {
       loading.value = false;
@@ -51,7 +53,7 @@ export function useGifts() {
       await giftsStore.fetchAll();
       return true;
     } catch (err) {
-      error.value = getErrorMessage(err, "Failed to fetch all gifts");
+      error.value = getErrorMessage(err, t("errors.fetchAllGifts"));
       return false;
     } finally {
       loading.value = false;
@@ -69,7 +71,7 @@ export function useGifts() {
       await giftsStore.fetchById(giftId);
       return true;
     } catch (err) {
-      error.value = getErrorMessage(err, "Failed to fetch gift");
+      error.value = getErrorMessage(err, t("errors.fetchGift"));
       return false;
     } finally {
       loading.value = false;
@@ -88,7 +90,7 @@ export function useGifts() {
       await authStore.refreshUser();
       return true;
     } catch (err) {
-      error.value = getErrorMessage(err, "Failed to create gift");
+      error.value = getErrorMessage(err, t("errors.createGift"));
       return false;
     } finally {
       loading.value = false;
@@ -107,7 +109,7 @@ export function useGifts() {
       await authStore.refreshUser();
       return true;
     } catch (err) {
-      error.value = getErrorMessage(err, "Failed to update gift");
+      error.value = getErrorMessage(err, t("errors.updateGift"));
       return false;
     } finally {
       loading.value = false;
@@ -117,10 +119,7 @@ export function useGifts() {
   /**
    * Quick-update gift status only
    */
-  async function updateGiftStatus(
-    giftId: string,
-    status: GiftUpdate["status"],
-  ): Promise<boolean> {
+  async function updateGiftStatus(giftId: string, status: GiftUpdate["status"]): Promise<boolean> {
     return updateGift(giftId, { status });
   }
 
@@ -136,7 +135,7 @@ export function useGifts() {
       await authStore.refreshUser();
       return true;
     } catch (err) {
-      error.value = getErrorMessage(err, "Failed to delete gift");
+      error.value = getErrorMessage(err, t("errors.deleteGift"));
       return false;
     } finally {
       loading.value = false;

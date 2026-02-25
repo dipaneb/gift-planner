@@ -1,10 +1,10 @@
 <template>
   <div class="flex flex-col gap-6">
-    <h1>Budget</h1>
+    <h1>{{ t('budget.title') }}</h1>
 
     <UCard>
       <template #header>
-        <h2>Budget Overview</h2>
+        <h2>{{ t('budget.overview') }}</h2>
       </template>
 
       <div class="flex flex-col gap-6">
@@ -13,13 +13,13 @@
             class="bg-linear-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-6 text-center transition-transform hover:-translate-y-1 hover:shadow-lg"
           >
             <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
-              Total Budget
+              {{ t('budget.totalBudget') }}
             </div>
             <div
               class="text-3xl font-bold"
               :class="!authStore.user?.budget ? 'text-gray-400 italic' : 'text-gray-900'"
             >
-              {{ authStore.user?.budget ? `${authStore.user.budget} €` : "Not set" }}
+              {{ authStore.user?.budget ? `${authStore.user.budget} €` : t('common.notSet') }}
             </div>
           </div>
 
@@ -27,7 +27,7 @@
             class="bg-linear-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-6 text-center transition-transform hover:-translate-y-1 hover:shadow-lg"
           >
             <div class="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-2">
-              Spent
+              {{ t('budget.spent') }}
             </div>
             <div class="text-3xl font-bold text-orange-600">
               {{ authStore.user?.spent || "0.00" }} €
@@ -42,7 +42,7 @@
               class="text-xs font-semibold uppercase tracking-wide mb-2"
               :class="remainingLabelClass"
             >
-              Remaining
+              {{ t('budget.remaining') }}
             </div>
             <div class="text-3xl font-bold" :class="remainingValueClass">
               {{ remainingDisplay }}
@@ -73,7 +73,7 @@
           <UAlert v-if="error" :title="error" color="error" variant="subtle" />
           <UAlert v-if="successMessage" :title="successMessage" color="success" variant="subtle" />
 
-          <UFormField label="Budget" name="budget" required>
+          <UFormField :label="t('budget.budgetField')" name="budget" required>
             <UInputNumber
               v-model="budgetForm.budget"
               :min="0"
@@ -88,7 +88,7 @@
           </UFormField>
 
           <div class="flex gap-2">
-            <UButton type="submit" color="primary" :loading="loading"> Set budget </UButton>
+            <UButton type="submit" color="primary" :loading="loading"> {{ t('budget.setBudget') }} </UButton>
             <UButton
               type="button"
               color="error"
@@ -96,7 +96,7 @@
               :disabled="loading || !authStore.user?.budget"
               @click="handleDelete"
             >
-              Remove budget
+              {{ t('budget.removeBudget') }}
             </UButton>
           </div>
         </UForm>
@@ -107,20 +107,22 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive } from "vue";
+import { useI18n } from "vue-i18n";
 import { z } from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 import { DonutChart, type BulletLegendItemInterface, LegendPosition } from "vue-chrts";
 import { useAuthStore } from "@/stores/auth";
 import { useBudget } from "@/composables/useBudget";
 
+const { t } = useI18n();
 const authStore = useAuthStore();
 const { loading, error, updateBudget, deleteBudget } = useBudget();
 
-const budgetSchema = z.object({
-  budget: z.number().positive("Budget must be greater than 0."),
-});
+const budgetSchema = computed(() => z.object({
+  budget: z.number().positive(t('validation.budgetPositive')),
+}));
 
-type BudgetSchema = z.output<typeof budgetSchema>;
+type BudgetSchema = z.output<typeof budgetSchema.value>;
 
 const budgetForm = reactive<Partial<BudgetSchema>>({
   budget: authStore.user?.budget ? parseFloat(authStore.user.budget) : undefined,
@@ -129,8 +131,8 @@ const budgetForm = reactive<Partial<BudgetSchema>>({
 const successMessage = ref<string | null>(null);
 
 const remainingDisplay = computed(() => {
-  if (!authStore.user?.budget) return "N/A";
-  if (authStore.user.remaining === null) return "N/A";
+  if (!authStore.user?.budget) return t('common.na');
+  if (authStore.user.remaining === null) return t('common.na');
   return `${authStore.user.remaining} €`;
 });
 
@@ -187,14 +189,14 @@ const showChart = computed(() => {
 
 type DonutCategories = Record<string, BulletLegendItemInterface>;
 
-const labels = [
-  { name: "Spent", color: "#f97316" },
-  { name: "Remaining", color: "#22c55e" },
-];
+const labels = computed(() => [
+  { name: t('budget.chartSpent'), color: "#f97316" },
+  { name: t('budget.chartRemaining'), color: "#22c55e" },
+]);
 
-const categories: DonutCategories = Object.fromEntries(
-  labels.map((i) => [i.name, { name: i.name, color: i.color }]),
-);
+const categories = computed<DonutCategories>(() => Object.fromEntries(
+  labels.value.map((i) => [i.name, { name: i.name, color: i.color }]),
+));
 
 function clearMessages() {
   successMessage.value = null;
@@ -206,7 +208,7 @@ async function handleSubmit(event: FormSubmitEvent<BudgetSchema>) {
 
   const ok = await updateBudget(event.data.budget);
   if (ok) {
-    successMessage.value = "Budget updated successfully.";
+    successMessage.value = t('budget.budgetUpdated');
   }
 }
 
@@ -216,7 +218,7 @@ async function handleDelete() {
   const ok = await deleteBudget();
   if (ok) {
     budgetForm.budget = undefined;
-    successMessage.value = "Budget removed.";
+    successMessage.value = t('budget.budgetRemoved');
   }
 }
 </script>

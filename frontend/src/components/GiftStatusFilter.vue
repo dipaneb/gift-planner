@@ -7,7 +7,7 @@
       class="rounded-full cursor-pointer"
       @click="$emit('update:modelValue', null)"
     >
-      All
+      {{ t('common.all') }}
     </UBadge>
     <UBadge
       v-for="(label, key) in GIFT_STATUS_LABELS"
@@ -18,7 +18,7 @@
       class="rounded-full cursor-pointer"
       @click="$emit('update:modelValue', key)"
     >
-      {{ label }}
+      {{ t(`gifts.status_labels.${key}`) }}
     </UBadge>
   </ul>
 </template>
@@ -26,9 +26,9 @@
 <script setup lang="ts">
 import {
   GIFT_STATUS_LABELS,
-  GIFT_STATUS_COLORS,
   type GiftStatus,
 } from "@/api/gifts";
+import { useI18n } from "vue-i18n";
 
 defineProps<{
   modelValue: GiftStatus | null;
@@ -37,4 +37,6 @@ defineProps<{
 defineEmits<{
   "update:modelValue": [value: GiftStatus | null];
 }>();
+
+const { t } = useI18n();
 </script>

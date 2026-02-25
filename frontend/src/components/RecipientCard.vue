@@ -40,12 +40,14 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 
 import type { Recipient } from "@/api/recipients";
 import { useGiftsStore } from "@/stores/gifts";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 
 const props = defineProps<Recipient>();
+const { t } = useI18n();
 const giftsStore = useGiftsStore();
 const router = useRouter();
 const confirm = useConfirmDialog();
@@ -63,8 +65,8 @@ const emit = defineEmits<{
 
 async function onDelete() {
   const confirmed = await confirm({
-    title: `Delete "${props.name}"?`,
-    description: "This action cannot be undone.",
+    title: t('recipients.deleteConfirmTitle', { name: props.name }),
+    description: t('recipients.deleteConfirmDescription'),
   });
   
   if (!confirmed) return;

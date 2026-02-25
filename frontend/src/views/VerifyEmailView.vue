@@ -2,12 +2,12 @@
   <div class="flex h-screen">
     <div class="flex-1" />
     <div class="flex flex-1 flex-col items-center justify-center gap-10">
-      <h1>Email verification.</h1>
+      <h1>{{ t('verifyEmail.title') }}</h1>
       <UCard class="min-w-100">
         <div class="flex flex-col items-center gap-4">
           <template v-if="status === 'loading'">
             <UIcon name="i-lucide-loader-circle" class="size-10 animate-spin text-primary" />
-            <p class="text-sm text-muted">Verifying your email...</p>
+            <p class="text-sm text-muted">{{ t('verifyEmail.verifying') }}</p>
           </template>
 
           <template v-else-if="status === 'success'">
@@ -15,12 +15,12 @@
               color="success"
               variant="subtle"
               icon="i-lucide-circle-check"
-              title="Email verified!"
+              :title="t('verifyEmail.successTitle')"
               :description="message"
               class="w-full"
             />
             <UButton :to="{ name: 'login' }" color="primary" block>
-              Go to sign in
+              {{ t('verifyEmail.goToSignIn') }}
             </UButton>
           </template>
 
@@ -29,12 +29,12 @@
               color="error"
               variant="subtle"
               icon="i-lucide-circle-alert"
-              title="Verification failed"
+              :title="t('verifyEmail.failedTitle')"
               :description="errorMessage"
               class="w-full"
             />
             <UButton :to="{ name: 'login' }" color="primary" variant="outline" block>
-              Back to sign in
+              {{ t('verifyEmail.backToSignIn') }}
             </UButton>
           </template>
         </div>
@@ -46,10 +46,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
 
 import { useAuth } from "@/composables/useAuth";
 
 const route = useRoute();
+const { t } = useI18n();
 const { verifyEmail, error } = useAuth();
 
 const rawToken = route.query.token;
@@ -62,7 +64,7 @@ const errorMessage = ref("");
 
 onMounted(async () => {
   if (typeof token !== "string" || !token) {
-    errorMessage.value = "Verification token is missing.";
+    errorMessage.value = t('verifyEmail.tokenMissing');
     status.value = "error";
     return;
   }
@@ -70,10 +72,10 @@ onMounted(async () => {
   const response = await verifyEmail(token);
 
   if (response.success) {
-    message.value = response.message ?? "Your email has been verified.";
+    message.value = response.message ?? t('verifyEmail.successFallback');
     status.value = "success";
   } else {
-    errorMessage.value = error.value ?? "The verification link may be invalid or expired.";
+    errorMessage.value = error.value ?? t('verifyEmail.failedFallback');
     status.value = "error";
   }
 });

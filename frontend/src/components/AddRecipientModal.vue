@@ -1,33 +1,33 @@
 <template>
   <UModal
     v-model:open="openModel"
-    title="Add recipient"
-    description="Add a new person to your gift list."
+    :title="t('recipients.addRecipient')"
+    :description="t('recipients.addRecipientDescription')"
     :ui="{ footer: 'justify-end' }"
   >
-    <UButton icon="i-lucide-plus">Add recipient</UButton>
+    <UButton icon="i-lucide-plus">{{ t('recipients.addRecipient') }}</UButton>
 
     <template #body>
       <UForm :schema="schema" :state="formState" id="recipient-form" class="flex flex-col gap-4" @submit="onSubmit">
-        <UFormField label="Name" name="name" required>
-          <UInput v-model="formState.name" placeholder="e.g. Mom" autocomplete="off" class="w-full"/>
+        <UFormField :label="t('auth.name')" name="name" required>
+          <UInput v-model="formState.name" :placeholder="t('recipients.namePlaceholder')" autocomplete="off" class="w-full"/>
         </UFormField>
 
-        <UFormField label="Notes" name="notes">
+        <UFormField :label="t('recipients.notes')" name="notes">
           <UTextarea
             v-model="formState.notes"
-            placeholder="Likes, dislikes, ideas..."
+            :placeholder="t('recipients.notesPlaceholder')"
             class="w-full"
           />
         </UFormField>
 
-        <UFormField label="Gifts" name="gift_ids">
+        <UFormField :label="t('recipients.giftsField')" name="gift_ids">
           <USelectMenu
             v-model="formState.gift_ids"
             :items="giftOptions"
             value-key="value"
             multiple
-            placeholder="Select gifts..."
+            :placeholder="t('recipients.selectGifts')"
             :ui="{ content: 'min-w-fit' }"
             class="w-full"
           />
@@ -37,10 +37,10 @@
 
     <template #footer="{ close }">
       <UButton color="neutral" variant="outline" @click="close">
-        Cancel
+        {{ t('common.cancel') }}
       </UButton>
       <UButton color="primary" type="submit" form="recipient-form">
-        Add recipient
+        {{ t('recipients.addRecipient') }}
       </UButton>
     </template>
   </UModal>
@@ -48,25 +48,27 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { z } from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 import type { RecipientCreate } from "@/api/recipients";
 import { useGifts } from "@/composables/useGifts";
 import { useGiftsStore } from "@/stores/gifts";
 
+const { t } = useI18n();
 const openModel = defineModel<boolean>("open", { required: true });
 
 const emit = defineEmits<{
   submit: [data: RecipientCreate];
 }>();
 
-const schema = z.object({
-  name: z.string().min(1, "Name is required").trim(),
+const schema = computed(() => z.object({
+  name: z.string().min(1, t('validation.nameRequired')).trim(),
   notes: z.string().trim().optional(),
   gift_ids: z.array(z.string()).optional(),
-});
+}));
 
-type Schema = z.output<typeof schema>;
+type Schema = z.output<typeof schema.value>;
 
 const giftsStore = useGiftsStore();
 const { fetchAll } = useGifts();

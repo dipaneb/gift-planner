@@ -7,13 +7,15 @@
       @update:page="$emit('page-change', $event)"
     />
     <div class="text-sm text-gray-500">
-      Page {{ meta.page }} of {{ meta.totalPages }} ({{ meta.total }} total)
+      {{ t('paginator.pageInfo', { page: meta.page, totalPages: meta.totalPages, total: meta.total }) }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
 import type { PaginationMeta } from "@/api/index";
 
 const props = defineProps<{
@@ -23,6 +25,8 @@ const props = defineProps<{
 defineEmits<{
   "page-change": [page: number];
 }>();
+
+const { t } = useI18n();
 
 const limit = computed(() => {
   if (!props.meta) return 10;

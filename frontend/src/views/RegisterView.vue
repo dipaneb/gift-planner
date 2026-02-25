@@ -2,7 +2,7 @@
   <div class="flex h-screen">
     <div class="flex-1" />
     <div class="flex flex-1 flex-col items-center justify-center gap-10">
-      <h1>Create your account.</h1>
+      <h1>{{ t('auth.registerPage.title') }}</h1>
       <UCard class="min-w-100">
         <div v-if="successMessage" class="flex flex-col gap-4">
           <UAlert
@@ -20,7 +20,7 @@
           @submit="onSubmit"
           class="flex flex-col gap-6"
         >
-          <UFormField label="Name" name="name">
+          <UFormField :label="t('auth.name')" name="name">
             <UInput
               v-model="state.name"
               type="text"
@@ -32,7 +32,7 @@
             />
           </UFormField>
 
-          <UFormField label="Email" name="email" required>
+          <UFormField :label="t('auth.email')" name="email" required>
             <UInput
               v-model="state.email"
               type="email"
@@ -45,7 +45,7 @@
             />
           </UFormField>
 
-          <UFormField label="Password" name="password" required>
+          <UFormField :label="t('auth.password')" name="password" required>
             <UInput
               v-model="state.password"
               :type="isPasswordVisible ? 'text' : 'password'"
@@ -65,7 +65,7 @@
             </UInput>
           </UFormField>
 
-          <UFormField label="Confirm password" name="confirmed_password" required>
+          <UFormField :label="t('auth.confirmPassword')" name="confirmed_password" required>
             <UInput
               v-model="state.confirmed_password"
               :type="isPasswordVisible ? 'text' : 'password'"
@@ -94,15 +94,15 @@
           />
 
           <UButton type="submit" color="primary" block :loading="loading">
-            {{ loading ? "Submitting..." : "Create account" }}
+            {{ loading ? t('common.submitting') : t('auth.registerPage.submit') }}
           </UButton>
         </UForm>
 
         <template #footer>
           <p class="text-center text-sm text-muted">
-            Already have an account?
+            {{ t('auth.registerPage.hasAccount') }}
             <RouterLink :to="{ name: 'login' }" class="font-medium text-primary">
-              Sign in<UIcon class="inline align-middle" name="i-lucide-move-up-right" />
+              {{ t('auth.registerPage.signInLink') }}<UIcon class="inline align-middle" name="i-lucide-move-up-right" />
             </RouterLink>
           </p>
         </template>
@@ -112,37 +112,39 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { computed, reactive, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 
 import { useAuth } from "@/composables/useAuth";
 
+const { t } = useI18n();
 const { register, loading, error } = useAuth();
 
 const isPasswordVisible = ref(false);
 const successMessage = ref("");
 
-const registerSchema = z
+const registerSchema = computed(() => z
   .object({
     name: z.string().max(255),
     email: z.email(),
     password: z
       .string()
-      .min(8, "Password must be at least 8 characters.")
+      .min(8, t('auth.validation.passwordMin'))
       .max(255)
-      .regex(/[A-Z]/, "Password must include an uppercase letter.")
-      .regex(/[a-z]/, "Password must include a lowercase letter.")
-      .regex(/\d/, "Password must include a digit.")
-      .regex(/[^A-Za-z0-9\s]/, "Password must include a special character."),
-    confirmed_password: z.string().min(1, "Please confirm your password."),
+      .regex(/[A-Z]/, t('auth.validation.passwordUppercase'))
+      .regex(/[a-z]/, t('auth.validation.passwordLowercase'))
+      .regex(/\d/, t('auth.validation.passwordDigit'))
+      .regex(/[^A-Za-z0-9\s]/, t('auth.validation.passwordSpecial')),
+    confirmed_password: z.string().min(1, t('auth.validation.confirmPasswordRequired')),
   })
   .refine((data) => data.password === data.confirmed_password, {
-    message: "Passwords don't match.",
+    message: t('auth.validation.passwordsMismatch'),
     path: ["confirmed_password"],
-  });
+  }));
 
-type Schema = z.infer<typeof registerSchema>;
+type Schema = z.infer<typeof registerSchema.value>;
 
 const state = reactive<Partial<Schema>>({
   name: "",

@@ -1,25 +1,25 @@
 <template>
   <div class="flex flex-col gap-6">
-    <h1>Settings</h1>
+    <h1>{{ t('settings.title') }}</h1>
 
     <UCard>
       <template #header>
-        <h2>Profile Information</h2>
+        <h2>{{ t('settings.profileInfo') }}</h2>
       </template>
 
       <div class="flex flex-col gap-4">
         <div class="py-3">
-          <span>Email: </span>
+          <span>{{ t('settings.emailLabel') }}</span>
           <span>{{ authStore.user?.email }}</span>
         </div>
         <USeparator/>
         <div v-if="!editingName">
           <div class="py-3">
-            <span>Name: </span>
-            <span>{{ authStore.user?.name || "Not set" }}</span>
+            <span>{{ t('settings.nameLabel') }}</span>
+            <span>{{ authStore.user?.name || t('common.notSet') }}</span>
           </div>
           <UButton @click="editingName = true" color="neutral" variant="outline" class="self-start">
-            Edit Name
+            {{ t('settings.editName') }}
           </UButton>
         </div>
 
@@ -32,8 +32,8 @@
         >
           <UAlert v-if="nameError" :title="nameError" color="error" variant="subtle" />
 
-          <UFormField label="Name" name="name" required>
-            <UInput v-model="nameForm.name" placeholder="Enter your name" class="w-full" />
+          <UFormField :label="t('auth.name')" name="name" required>
+            <UInput v-model="nameForm.name" :placeholder="t('settings.namePlaceholder')" class="w-full" />
           </UFormField>
 
           <div class="flex gap-2">
@@ -44,9 +44,9 @@
               variant="outline"
               :disabled="isUpdatingName"
             >
-              Cancel
+              {{ t('common.cancel') }}
             </UButton>
-            <UButton type="submit" color="primary" :loading="isUpdatingName"> Save </UButton>
+            <UButton type="submit" color="primary" :loading="isUpdatingName"> {{ t('common.save') }} </UButton>
           </div>
         </UForm>
       </div>
@@ -54,7 +54,7 @@
 
     <UCard>
       <template #header>
-        <h2>Change Password</h2>
+        <h2>{{ t('settings.changePassword') }}</h2>
       </template>
 
       <UForm
@@ -66,35 +66,35 @@
         <UAlert v-if="passwordError" :title="passwordError" color="error" variant="subtle" />
         <UAlert v-if="passwordSuccess" :title="passwordSuccess" color="success" variant="subtle" />
 
-        <UFormField label="Current Password" name="current_password" required>
+        <UFormField :label="t('settings.currentPassword')" name="current_password" required>
           <UInput
             v-model="passwordForm.current_password"
             type="password"
-            placeholder="Enter current password"
+            :placeholder="t('settings.currentPasswordPlaceholder')"
             class="w-full"
           />
         </UFormField>
 
-        <UFormField label="New Password" name="new_password" required>
+        <UFormField :label="t('settings.newPasswordLabel')" name="new_password" required>
           <UInput
             v-model="passwordForm.new_password"
             type="password"
-            placeholder="Enter new password (min 8 characters)"
+            :placeholder="t('settings.newPasswordPlaceholder')"
             class="w-full"
           />
         </UFormField>
 
-        <UFormField label="Confirm New Password" name="confirmed_password" required>
+        <UFormField :label="t('settings.confirmNewPassword')" name="confirmed_password" required>
           <UInput
             v-model="passwordForm.confirmed_password"
             type="password"
-            placeholder="Confirm new password"
+            :placeholder="t('settings.confirmNewPasswordPlaceholder')"
             class="w-full"
           />
         </UFormField>
 
         <UButton type="submit" color="primary" :loading="isUpdatingPassword" class="self-start">
-          Update Password
+          {{ t('settings.updatePassword') }}
         </UButton>
       </UForm>
     </UCard>
@@ -102,31 +102,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { computed, ref, reactive } from "vue";
+import { useI18n } from "vue-i18n";
 import { z } from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 import { useAuthStore } from "@/stores/auth";
 import { usersApi } from "@/api/users";
 
+const { t } = useI18n();
 const authStore = useAuthStore();
 
-const nameSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(255, "Name is too long"),
-});
+const nameSchema = computed(() => z.object({
+  name: z.string().trim().min(1, t('validation.nameRequired')).max(255, t('validation.nameTooLong')),
+}));
 
-const passwordSchema = z
+const passwordSchema = computed(() => z
   .object({
-    current_password: z.string().min(1, "Current password is required"),
-    new_password: z.string().min(8, "New password must be at least 8 characters"),
-    confirmed_password: z.string().min(8, "Confirmation password must be at least 8 characters"),
+    current_password: z.string().min(1, t('auth.validation.confirmPasswordRequired')),
+    new_password: z.string().min(8, t('auth.validation.passwordMin')),
+    confirmed_password: z.string().min(8, t('auth.validation.passwordMin')),
   })
   .refine((data) => data.new_password === data.confirmed_password, {
-    message: "Passwords do not match",
+    message: t('auth.validation.passwordsMismatch'),
     path: ["confirmed_password"],
-  });
+  }));
 
-type NameSchema = z.output<typeof nameSchema>;
-type PasswordSchema = z.output<typeof passwordSchema>;
+type NameSchema = z.output<typeof nameSchema.value>;
+type PasswordSchema = z.output<typeof passwordSchema.value>;
 
 const editingName = ref(false);
 const isUpdatingName = ref(false);
@@ -162,7 +164,7 @@ const handleUpdateName = async (event: FormSubmitEvent<NameSchema>) => {
     authStore.user = updatedUser;
     editingName.value = false;
   } catch (error) {
-    nameError.value = error instanceof Error ? error.message : "Failed to update name";
+    nameError.value = error instanceof Error ? error.message : t('settings.updateNameFailed');
   } finally {
     isUpdatingName.value = false;
   }
@@ -179,12 +181,12 @@ const handleUpdatePassword = async (event: FormSubmitEvent<PasswordSchema>) => {
       new_password: event.data.new_password,
       confirmed_password: event.data.confirmed_password,
     });
-    passwordSuccess.value = "Password updated successfully";
+    passwordSuccess.value = t('settings.passwordUpdated');
     passwordForm.current_password = "";
     passwordForm.new_password = "";
     passwordForm.confirmed_password = "";
   } catch (error) {
-    passwordError.value = error instanceof Error ? error.message : "Failed to update password";
+    passwordError.value = error instanceof Error ? error.message : t('settings.updatePasswordFailed');
   } finally {
     isUpdatingPassword.value = false;
   }
