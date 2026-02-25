@@ -2,7 +2,7 @@
   <div class="flex min-h-screen flex-col">
     <UHeader >
       <template #left>
-        <RouterLink :to="{name: 'recipients'}">
+        <RouterLink :to="{name: 'recipients'}" class="font-decorative text-2xl">
           {{ t('common.appName') }}
         </RouterLink>
       </template>

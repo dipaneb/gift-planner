@@ -12,11 +12,11 @@
           <div
             class="bg-linear-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-6 text-center transition-transform hover:-translate-y-1 hover:shadow-lg"
           >
-            <div class="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+            <div class="text-xs text-gray-600 uppercase tracking-wide mb-2 font-decorative">
               {{ t('budget.totalBudget') }}
             </div>
             <div
-              class="text-3xl font-bold"
+              class="text-3xl font-decorative"
               :class="!authStore.user?.budget ? 'text-gray-400 italic' : 'text-gray-900'"
             >
               {{ authStore.user?.budget ? `${authStore.user.budget} €` : t('common.notSet') }}
@@ -26,10 +26,10 @@
           <div
             class="bg-linear-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-6 text-center transition-transform hover:-translate-y-1 hover:shadow-lg"
           >
-            <div class="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-2">
+            <div class="text-xs text-orange-700 uppercase tracking-wide mb-2 font-decorative">
               {{ t('budget.spent') }}
             </div>
-            <div class="text-3xl font-bold text-orange-600">
+            <div class="text-3xl text-orange-600 font-decorative">
               {{ authStore.user?.spent || "0.00" }} €
             </div>
           </div>
@@ -39,12 +39,12 @@
             :class="remainingColorClass"
           >
             <div
-              class="text-xs font-semibold uppercase tracking-wide mb-2"
+              class="text-xs uppercase tracking-wide mb-2 font-decorative"
               :class="remainingLabelClass"
             >
               {{ t('budget.remaining') }}
             </div>
-            <div class="text-3xl font-bold" :class="remainingValueClass">
+            <div class="text-3xl font-decorative" :class="remainingValueClass">
               {{ remainingDisplay }}
             </div>
           </div>

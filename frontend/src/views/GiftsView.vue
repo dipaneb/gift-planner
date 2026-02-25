@@ -35,7 +35,7 @@
     <!-- Empty state -->
     <div v-else-if="store.paginatedGifts.length === 0 && !statusFilter" class="text-center py-12 px-4 text-gray-500">
       <div class="text-5xl mb-3">🎁</div>
-      <h2 class="m-0 mb-2 text-gray-700 text-xl">{{ t('gifts.noGiftsYet') }}</h2>
+      <h2 class="m-0 mb-2 text-gray-700 text-xl font-decorative">{{ t('gifts.noGiftsYet') }}</h2>
       <p class="m-0 mb-5">{{ t('gifts.noGiftsDescription') }}</p>
       <UButton @click="isAddModalOpen = true">{{ t('gifts.addFirstGift') }}</UButton>
     </div>

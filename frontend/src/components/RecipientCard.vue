@@ -6,7 +6,7 @@
   >
     <template #header>
       <div class="flex items-center justify-between ">
-        <h2 class="text-base font-semibold m-0">{{ props.name }}</h2>
+        <h2 class="text-base m-0 font-decorative">{{ props.name }}</h2>
         <UButton
           icon="i-lucide-trash"
           size="sm"

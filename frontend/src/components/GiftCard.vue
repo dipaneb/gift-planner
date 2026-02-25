@@ -2,12 +2,12 @@
   <UCard as="li" class="hover:ring-1 hover:ring-primary-500 transition-all">
     <template #header>
       <div class="flex items-center justify-between gap-2">
-        <h3 v-if="gift.url && gift.url.length>0" class="m-0 text-base font-semibold truncate">
+        <h3 v-if="gift.url && gift.url.length>0" class="m-0 text-base truncate font-decorative">
           <UTooltip :text="t('gifts.goToProductWebsite')" :delay-duration="0">
             <a :href="gift.url" class="hover:underline" target="_blank">{{ gift.name }}</a>
           </UTooltip>
         </h3>
-        <h3 v-else class="m-0 text-base font-semibold truncate">{{ gift.name }}</h3>
+        <h3 v-else class="m-0 text-base truncate font-decorative">{{ gift.name }}</h3>
         
         <UButton
           icon="i-lucide-trash"
