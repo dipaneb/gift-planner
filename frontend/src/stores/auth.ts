@@ -37,7 +37,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = response.user
       
       return true
-    } catch (error) {
+    } catch {
       // Refresh failed - user is not authenticated
       accessToken.value = null
       user.value = null
@@ -72,9 +72,8 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout(): Promise<void> {
     try {
       await authApi.logout()
-    } catch (error) {
+    } catch {
       // Even if backend logout fails, clear local state
-      console.error('Logout error:', error)
     } finally {
       clearAuthData()
     }
@@ -106,8 +105,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const updatedUser = await usersApi.getCurrentUser()
       user.value = updatedUser
-    } catch (error) {
-      console.error('Failed to refresh user data:', error)
+    } catch {
+      // Silent fail - user data will be stale but app remains functional
     }
   }
 

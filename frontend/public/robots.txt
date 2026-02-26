@@ -1,0 +1,4 @@
+# Gift Planner
+# Allow search engine crawlers
+User-agent: *
+Allow: /
