@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     ALLOWED_HOSTS: str = ""
 
     # Security
-    SECRET_KEY: str = "default_secret_key_to_change_in_production"
+    SECRET_KEY: str
     REFRESH_TOKEN_TTL_DAYS: int = 30
     ACCESS_TOKEN_LIFESPAN_IN_MINUTES: int = 15
 

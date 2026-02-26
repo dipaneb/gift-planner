@@ -42,7 +42,10 @@ export function useAuth() {
       await router.push(redirectPath || "/recipients");
       return true;
     } catch (err) {
-      error.value = getErrorMessage(err, t("errors.loginFailed"));
+      error.value = getErrorMessage(err, t("errors.loginFailed"), {
+        401: t("errors.invalidCredentials"),
+        403: t("errors.emailNotVerified"),
+      });
       return false;
     } finally {
       loading.value = false;
@@ -61,7 +64,9 @@ export function useAuth() {
       const response = await authStore.register(data);
       return { success: true, message: response.message };
     } catch (err) {
-      error.value = getErrorMessage(err, t("errors.registrationFailed"));
+      error.value = getErrorMessage(err, t("errors.registrationFailed"), {
+        409: t("errors.emailAlreadyInUse"),
+      });
       return { success: false };
     } finally {
       loading.value = false;
@@ -117,7 +122,9 @@ export function useAuth() {
       await router.push("/login");
       return true;
     } catch (err) {
-      error.value = getErrorMessage(err, t("errors.resetPasswordFailed"));
+      error.value = getErrorMessage(err, t("errors.resetPasswordFailed"), {
+        400: t("errors.invalidOrExpiredToken"),
+      });
       return false;
     } finally {
       loading.value = false;

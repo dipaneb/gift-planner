@@ -40,7 +40,7 @@ app.add_middleware(
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["Authorization", "Content-Type"]
 )
 
 # 2. Trusted Host — reject requests with unexpected Host headers

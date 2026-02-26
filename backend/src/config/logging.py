@@ -47,11 +47,17 @@ class DevFormatter(logging.Formatter):
         request_id = getattr(record, "request_id", None)
         rid_part = f" [{request_id[:8]}]" if request_id else ""
         
-        return (
+        message = (
             f"{color}{record.levelname:<8}{self.RESET}"
             f"{rid_part} "
             f"{record.name} - {record.getMessage()}"
         )
+        
+        # Add exception traceback if present
+        if record.exc_info and record.exc_info[0] is not None:
+            message += "\n" + self.formatException(record.exc_info)
+        
+        return message
 
 
 def setup_logging(*, log_level: str = "INFO", env: str = "production") -> None:
@@ -73,7 +79,8 @@ def setup_logging(*, log_level: str = "INFO", env: str = "production") -> None:
     root.addHandler(handler)
 
     # Suppress noisy third-party loggers
-    logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+    # logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+    logging.getLogger("uvicorn.access").setLevel(logging.DEBUG)
     logging.getLogger("sqlalchemy.engine").setLevel(
         logging.INFO if level <= logging.DEBUG else logging.WARNING
     )

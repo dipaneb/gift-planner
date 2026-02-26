@@ -85,7 +85,7 @@ const { login, loading, error } = useAuth();
 const isPasswordVisible = ref(false);
 
 const loginSchema = computed(() => z.object({
-  email: z.email(),
+  email: z.email(t('auth.validation.emailFormat')),
   password: z
     .string()
     .min(8, t('auth.validation.passwordMin'))

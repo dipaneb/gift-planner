@@ -44,6 +44,13 @@ class User(Base):
         default=False,
     )
 
+    verification_token_fingerprint: Mapped[str | None] = mapped_column(
+        String(64),
+        nullable=True,
+        unique=True,
+        index=True,
+    )
+
     verification_token_hash: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,

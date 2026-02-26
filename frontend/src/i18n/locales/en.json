@@ -56,6 +56,7 @@
       "invalidLinkDescription": "This password reset link is invalid or has expired. Please request a new one."
     },
     "validation": {
+      "emailFormat": "Invalid email address.",
       "passwordMin": "Password must be at least 8 characters.",
       "passwordUppercase": "Password must include an uppercase letter.",
       "passwordLowercase": "Password must include a lowercase letter.",
@@ -195,7 +196,8 @@
     "deleteName": "Delete Name",
     "deleteNameFailed": "Failed to delete name",
     "updateNameFailed": "Failed to update name",
-    "updatePasswordFailed": "Failed to update password"
+    "updatePasswordFailed": "Failed to update password",
+    "incorrectCurrentPassword": "Current password is incorrect."
   },
   "paginator": {
     "pageInfo": "Page {page} of {totalPages} ({total} total)"
@@ -228,6 +230,10 @@
     "updateRecipient": "Failed to update recipient",
     "deleteRecipient": "Failed to delete recipient",
     "updateBudget": "Failed to update budget",
-    "deleteBudget": "Failed to delete budget"
+    "deleteBudget": "Failed to delete budget",
+    "invalidCredentials": "Invalid email or password.",
+    "emailNotVerified": "Please verify your email before logging in.",
+    "emailAlreadyInUse": "This email address is already in use.",
+    "invalidOrExpiredToken": "This link is invalid or has expired."
   }
 }

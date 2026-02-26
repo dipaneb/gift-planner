@@ -158,6 +158,7 @@ import { z } from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 import { useAuthStore } from "@/stores/auth";
 import { usersApi } from "@/api/users";
+import { getErrorMessage } from "@/composables/utils";
 
 const { t } = useI18n();
 const authStore = useAuthStore();
@@ -269,7 +270,7 @@ const handleDeleteName = async () => {
     const updatedUser = await usersApi.deleteName();
     authStore.user = updatedUser;
   } catch (error) {
-    nameError.value = error instanceof Error ? error.message : t("settings.deleteNameFailed");
+    nameError.value = getErrorMessage(error, t("settings.deleteNameFailed"));
   } finally {
     isDeletingName.value = false;
   }
@@ -286,7 +287,7 @@ const handleUpdateName = async (event: FormSubmitEvent<NameSchema>) => {
     authStore.user = updatedUser;
     editingName.value = false;
   } catch (error) {
-    nameError.value = error instanceof Error ? error.message : t("settings.updateNameFailed");
+    nameError.value = getErrorMessage(error, t("settings.updateNameFailed"));
   } finally {
     isUpdatingName.value = false;
   }
@@ -308,8 +309,9 @@ const handleUpdatePassword = async (event: FormSubmitEvent<PasswordSchema>) => {
     passwordForm.new_password = "";
     passwordForm.confirmed_password = "";
   } catch (error) {
-    passwordError.value =
-      error instanceof Error ? error.message : t("settings.updatePasswordFailed");
+    passwordError.value = getErrorMessage(error, t("settings.updatePasswordFailed"), {
+      400: t("settings.incorrectCurrentPassword"),
+    });
   } finally {
     isUpdatingPassword.value = false;
   }

@@ -56,7 +56,7 @@ def login(request: Request, response: Response, auth_service: Annotated[AuthServ
         secure=(settings.ENV == "production"),
         samesite="strict",
         path="/auth",  # limits cookie sending to the refresh endpoint
-        max_age=60 * 60 * 24 * 30,  # 30 days (should match refresh token TTL)
+        max_age=settings.REFRESH_TOKEN_TTL_DAYS * 86400,
     )
 
     user_response = auth_service._build_user_response(user.id)
@@ -64,6 +64,7 @@ def login(request: Request, response: Response, auth_service: Annotated[AuthServ
 
 
 @router.post("/refresh", response_model=LoginData)
+@limiter.limit("10/minute")
 def refresh(request: Request, response: Response, auth_service: Annotated[AuthService, Depends()]):
     old_raw_refresh_token = request.cookies.get("refresh_token")
     if not old_raw_refresh_token:
@@ -93,7 +94,7 @@ def refresh(request: Request, response: Response, auth_service: Annotated[AuthSe
         secure=(settings.ENV == "production"),
         samesite="strict",
         path="/auth",  # limits cookie sending to the refresh endpoint
-        max_age=60 * 60 * 24 * 30,  # 30 days (should match refresh token TTL)
+        max_age=settings.REFRESH_TOKEN_TTL_DAYS * 86400,
     )
 
     user_response = auth_service._build_user_response(user_id)
@@ -105,6 +106,7 @@ def refresh(request: Request, response: Response, auth_service: Annotated[AuthSe
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("10/minute")
 def logout(request: Request, response: Response, auth_service: Annotated[AuthService, Depends()]):
     raw_refresh_token = request.cookies.get("refresh_token")
     

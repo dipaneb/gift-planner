@@ -26,18 +26,18 @@ class UserRepository:
         return self.db.execute(stmt).scalar_one_or_none()
     
     def get_by_verification_token(self, raw_token: str) -> User | None:
-        """Get user by verifying the raw token against stored Argon2 hashes."""
-        from src.domains.auth.verification_token_handler import verify_verification_token
+        """Get user by fingerprint lookup, then verify the Argon2 hash."""
+        from src.domains.auth.verification_token_handler import get_verification_token_fingerprint, verify_verification_token
         
+        fingerprint = get_verification_token_fingerprint(raw_token)
         stmt = select(User).where(
-            User.verification_token_hash.is_not(None),
+            User.verification_token_fingerprint == fingerprint,
             User.is_verified == False
         )
-        users = self.db.execute(stmt).scalars().all()
+        user = self.db.execute(stmt).scalar_one_or_none()
         
-        for user in users:
-            if user.verification_token_hash and verify_verification_token(raw_token, user.verification_token_hash):
-                return user
+        if user and user.verification_token_hash and verify_verification_token(raw_token, user.verification_token_hash):
+            return user
         return None
     
     def create(self, user: User) -> User:
@@ -83,9 +83,10 @@ class UserRepository:
         self.db.commit()
         return self.get_by_id(user_id)
 
-    def set_verification_token(self, user_id: uuid.UUID, token_hash: str, expires_at: datetime) -> None:
+    def set_verification_token(self, user_id: uuid.UUID, token_fingerprint: str, token_hash: str, expires_at: datetime) -> None:
         """Set email verification token for a user."""
         stmt = update(User).where(User.id == user_id).values(
+            verification_token_fingerprint=token_fingerprint,
             verification_token_hash=token_hash,
             verification_token_expires_at=expires_at
         )
@@ -96,6 +97,7 @@ class UserRepository:
         """Mark user's email as verified."""
         stmt = update(User).where(User.id == user_id).values(
             is_verified=True,
+            verification_token_fingerprint=None,
             verification_token_hash=None,
             verification_token_expires_at=None
         )

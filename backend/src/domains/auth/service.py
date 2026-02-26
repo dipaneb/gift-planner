@@ -15,7 +15,7 @@ from .password_handler import get_password_hash, verify_password
 from .access_token_handler import create_access_token
 from .refresh_token_handler import hash_token, get_refresh_token_fingerprint, verify_refresh_token
 from .reset_password_token_handler import get_reset_password_token_fingerprint, hash_token as hash_reset_password_token, verify_reset_password_token
-from .verification_token_handler import hash_verification_token, verify_verification_token
+from .verification_token_handler import get_verification_token_fingerprint, hash_verification_token, verify_verification_token
 
 logger = logging.getLogger("api.auth")
 
@@ -74,10 +74,11 @@ class AuthService:
         created_user = self.user_repo.create(user)
 
         raw_token = uuid.uuid4().hex
+        token_fingerprint = get_verification_token_fingerprint(raw_token)
         token_hash = hash_verification_token(raw_token)
         expires_at = datetime.now(timezone.utc) + timedelta(hours=settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
         
-        self.user_repo.set_verification_token(created_user.id, token_hash, expires_at)
+        self.user_repo.set_verification_token(created_user.id, token_fingerprint, token_hash, expires_at)
 
         verification_link = f"{settings.FRONTEND_BASE_URL}/verify-email?token={raw_token}"
         
