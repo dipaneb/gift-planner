@@ -2,13 +2,7 @@ import { ref } from "vue";
 import { defineStore } from "pinia";
 
 import { type FetchParams } from "@/api";
-import {
-  giftsApi,
-  type Gift,
-  type GiftCreate,
-  type GiftUpdate,
-  type PaginatedGiftsResponse,
-} from "@/api/gifts";
+import { giftsApi, type Gift, type GiftCreate, type GiftUpdate } from "@/api/gifts";
 import type { PaginationMeta } from "@/api/index";
 
 export const useGiftsStore = defineStore("gifts", () => {
