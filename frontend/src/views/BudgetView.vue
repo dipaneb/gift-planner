@@ -1,10 +1,10 @@
 <template>
   <div class="flex flex-col gap-6">
-    <h1>{{ t('budget.title') }}</h1>
+    <h1>{{ t("budget.title") }}</h1>
 
     <UCard>
       <template #header>
-        <h2>{{ t('budget.overview') }}</h2>
+        <h2>{{ t("budget.overview") }}</h2>
       </template>
 
       <div class="flex flex-col gap-6">
@@ -13,13 +13,13 @@
             class="bg-linear-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-6 text-center transition-transform hover:-translate-y-1 hover:shadow-lg"
           >
             <div class="text-xs text-gray-600 uppercase tracking-wide mb-2 font-decorative">
-              {{ t('budget.totalBudget') }}
+              {{ t("budget.totalBudget") }}
             </div>
             <div
               class="text-3xl font-decorative"
               :class="!authStore.user?.budget ? 'text-gray-400 italic' : 'text-gray-900'"
             >
-              {{ authStore.user?.budget ? `${authStore.user.budget} €` : t('common.notSet') }}
+              {{ authStore.user?.budget ? `${authStore.user.budget} €` : t("common.notSet") }}
             </div>
           </div>
 
@@ -27,7 +27,7 @@
             class="bg-linear-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-xl p-6 text-center transition-transform hover:-translate-y-1 hover:shadow-lg"
           >
             <div class="text-xs text-orange-700 uppercase tracking-wide mb-2 font-decorative">
-              {{ t('budget.spent') }}
+              {{ t("budget.spent") }}
             </div>
             <div class="text-3xl text-orange-600 font-decorative">
               {{ authStore.user?.spent || "0.00" }} €
@@ -42,7 +42,7 @@
               class="text-xs uppercase tracking-wide mb-2 font-decorative"
               :class="remainingLabelClass"
             >
-              {{ t('budget.remaining') }}
+              {{ t("budget.remaining") }}
             </div>
             <div class="text-3xl font-decorative" :class="remainingValueClass">
               {{ remainingDisplay }}
@@ -88,7 +88,9 @@
           </UFormField>
 
           <div class="flex gap-2">
-            <UButton type="submit" color="primary" :loading="loading"> {{ t('budget.setBudget') }} </UButton>
+            <UButton type="submit" color="primary" :loading="loading">
+              {{ t("budget.setBudget") }}
+            </UButton>
             <UButton
               type="button"
               color="error"
@@ -96,7 +98,7 @@
               :disabled="loading || !authStore.user?.budget"
               @click="handleDelete"
             >
-              {{ t('budget.removeBudget') }}
+              {{ t("budget.removeBudget") }}
             </UButton>
           </div>
         </UForm>
@@ -118,9 +120,11 @@ const { t } = useI18n();
 const authStore = useAuthStore();
 const { loading, error, updateBudget, deleteBudget } = useBudget();
 
-const budgetSchema = computed(() => z.object({
-  budget: z.number().positive(t('validation.budgetPositive')),
-}));
+const budgetSchema = computed(() =>
+  z.object({
+    budget: z.number().positive(t("validation.budgetPositive")),
+  }),
+);
 
 type BudgetSchema = z.output<typeof budgetSchema.value>;
 
@@ -131,8 +135,8 @@ const budgetForm = reactive<Partial<BudgetSchema>>({
 const successMessage = ref<string | null>(null);
 
 const remainingDisplay = computed(() => {
-  if (!authStore.user?.budget) return t('common.na');
-  if (authStore.user.remaining === null) return t('common.na');
+  if (!authStore.user?.budget) return t("common.na");
+  if (authStore.user.remaining === null) return t("common.na");
   return `${authStore.user.remaining} €`;
 });
 
@@ -190,13 +194,13 @@ const showChart = computed(() => {
 type DonutCategories = Record<string, BulletLegendItemInterface>;
 
 const labels = computed(() => [
-  { name: t('budget.chartSpent'), color: "#f97316" },
-  { name: t('budget.chartRemaining'), color: "#22c55e" },
+  { name: t("budget.chartSpent"), color: "#f97316" },
+  { name: t("budget.chartRemaining"), color: "#22c55e" },
 ]);
 
-const categories = computed<DonutCategories>(() => Object.fromEntries(
-  labels.value.map((i) => [i.name, { name: i.name, color: i.color }]),
-));
+const categories = computed<DonutCategories>(() =>
+  Object.fromEntries(labels.value.map((i) => [i.name, { name: i.name, color: i.color }])),
+);
 
 function clearMessages() {
   successMessage.value = null;
@@ -208,7 +212,7 @@ async function handleSubmit(event: FormSubmitEvent<BudgetSchema>) {
 
   const ok = await updateBudget(event.data.budget);
   if (ok) {
-    successMessage.value = t('budget.budgetUpdated');
+    successMessage.value = t("budget.budgetUpdated");
   }
 }
 
@@ -218,7 +222,7 @@ async function handleDelete() {
   const ok = await deleteBudget();
   if (ok) {
     budgetForm.budget = undefined;
-    successMessage.value = t('budget.budgetRemoved');
+    successMessage.value = t("budget.budgetRemoved");
   }
 }
 </script>

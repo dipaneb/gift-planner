@@ -5,7 +5,7 @@
     :description="t('gifts.addGiftDescription')"
     :ui="{ footer: 'justify-end' }"
   >
-    <UButton icon="i-lucide-plus">{{ t('gifts.addGift') }}</UButton>
+    <UButton icon="i-lucide-plus">{{ t("gifts.addGift") }}</UButton>
 
     <template #body>
       <UForm
@@ -44,7 +44,7 @@
               :format-options="{
                 style: 'currency',
                 currency: 'EUR',
-                currencyDisplay: 'symbol'
+                currencyDisplay: 'symbol',
               }"
               class="w-full"
             />
@@ -73,8 +73,10 @@
     </template>
 
     <template #footer="{ close }">
-      <UButton color="neutral" variant="outline" @click="close"> {{ t('common.cancel') }} </UButton>
-      <UButton color="primary" type="submit" form="add-gift-form"> {{ t('gifts.addGift') }} </UButton>
+      <UButton color="neutral" variant="outline" @click="close"> {{ t("common.cancel") }} </UButton>
+      <UButton color="primary" type="submit" form="add-gift-form">
+        {{ t("gifts.addGift") }}
+      </UButton>
     </template>
   </UModal>
 </template>
@@ -95,16 +97,22 @@ const emit = defineEmits<{
   submit: [data: GiftCreate];
 }>();
 
-const giftSchema = computed(() => z.object({
-  name: z.string().trim().min(1, t('validation.nameRequired')).max(255, t('validation.nameTooLong')),
-  url: z.url(t('validation.invalidUrl')).trim().optional().or(z.literal("")),
-  price: z
-    .union([z.literal(""), z.coerce.number().positive(t('validation.pricePositive'))])
-    .optional(),
-  quantity: z.coerce.number().int().min(1, t('validation.quantityMin')),
-  status: z.string() as z.ZodType<GiftStatus>,
-  recipient_ids: z.array(z.string()).optional(),
-}));
+const giftSchema = computed(() =>
+  z.object({
+    name: z
+      .string()
+      .trim()
+      .min(1, t("validation.nameRequired"))
+      .max(255, t("validation.nameTooLong")),
+    url: z.url(t("validation.invalidUrl")).trim().optional().or(z.literal("")),
+    price: z
+      .union([z.literal(""), z.coerce.number().positive(t("validation.pricePositive"))])
+      .optional(),
+    quantity: z.coerce.number().int().min(1, t("validation.quantityMin")),
+    status: z.string() as z.ZodType<GiftStatus>,
+    recipient_ids: z.array(z.string()).optional(),
+  }),
+);
 
 type Schema = z.output<typeof giftSchema.value>;
 

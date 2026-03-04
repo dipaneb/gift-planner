@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios from "axios";
 
 /**
  * Extract a user-facing, translated error message.
@@ -16,8 +16,8 @@ export function getErrorMessage(
   statusMap?: Record<number, string>,
 ): string {
   if (axios.isAxiosError(err) && err.response && statusMap) {
-    const mapped = statusMap[err.response.status]
-    if (mapped) return mapped
+    const mapped = statusMap[err.response.status];
+    if (mapped) return mapped;
   }
-  return fallback
+  return fallback;
 }

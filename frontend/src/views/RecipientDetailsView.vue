@@ -6,7 +6,7 @@
       color="neutral"
       variant="ghost"
     >
-      {{ t('recipients.backToRecipients') }}
+      {{ t("recipients.backToRecipients") }}
     </UButton>
 
     <div v-if="loading" class="text-center py-12">
@@ -22,7 +22,7 @@
           <p v-if="recipient.notes" class="text-gray-600 whitespace-pre-wrap">
             {{ recipient.notes }}
           </p>
-          <p v-else class="text-gray-400 italic">{{ t('recipients.noNotesYet') }}</p>
+          <p v-else class="text-gray-400 italic">{{ t("recipients.noNotesYet") }}</p>
         </div>
 
         <div class="flex gap-2 shrink-0">
@@ -31,14 +31,16 @@
             :recipient="recipient"
             @submit="onUpdate"
           />
-          <UButton icon="i-lucide-trash" color="error" @click="onDelete"> {{ t('common.delete') }} </UButton>
+          <UButton icon="i-lucide-trash" color="error" @click="onDelete">
+            {{ t("common.delete") }}
+          </UButton>
         </div>
       </div>
       <USeparator />
       <div>
-        <h2 class="text-xl font-semibold mb-3">{{ t('recipients.giftIdeas') }}</h2>
+        <h2 class="text-xl font-semibold mb-3">{{ t("recipients.giftIdeas") }}</h2>
         <p v-if="recipient.gift_ids.length === 0" class="text-gray-400 italic">
-          {{ t('recipients.noGiftsAssigned') }}
+          {{ t("recipients.noGiftsAssigned") }}
         </p>
         <div v-else class="flex flex-wrap gap-2">
           <RouterLink
@@ -54,8 +56,8 @@
       </div>
       <USeparator />
       <div>
-        <h2 class="text-xl font-semibold mb-3">{{ t('recipients.groups') }}</h2>
-        <p class="text-gray-400 italic">{{ t('recipients.groupsComingSoon') }}</p>
+        <h2 class="text-xl font-semibold mb-3">{{ t("recipients.groups") }}</h2>
+        <p class="text-gray-400 italic">{{ t("recipients.groupsComingSoon") }}</p>
       </div>
     </template>
   </div>
@@ -65,7 +67,6 @@
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-
 
 import { useRecipients } from "@/composables/useRecipients";
 import { useRecipientsStore } from "@/stores/recipients";

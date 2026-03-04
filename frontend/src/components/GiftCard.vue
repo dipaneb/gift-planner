@@ -2,13 +2,13 @@
   <UCard as="li" class="hover:ring-1 hover:ring-primary-500 transition-all">
     <template #header>
       <div class="flex items-center justify-between gap-2">
-        <h3 v-if="gift.url && gift.url.length>0" class="m-0 text-base truncate font-decorative">
+        <h3 v-if="gift.url && gift.url.length > 0" class="m-0 text-base truncate font-decorative">
           <UTooltip :text="t('gifts.goToProductWebsite')" :delay-duration="0">
             <a :href="gift.url" class="hover:underline" target="_blank">{{ gift.name }}</a>
           </UTooltip>
         </h3>
         <h3 v-else class="m-0 text-base truncate font-decorative">{{ gift.name }}</h3>
-        
+
         <UButton
           icon="i-lucide-trash"
           size="sm"
@@ -22,12 +22,7 @@
 
     <div class="flex flex-col gap-4">
       <div v-if="recipientNames.length > 0" class="flex flex-wrap gap-1.5">
-        <UBadge
-          v-for="name in recipientNames"
-          :key="name"
-          color="neutral"
-          variant="soft"
-        >
+        <UBadge v-for="name in recipientNames" :key="name" color="neutral" variant="soft">
           {{ name }}
         </UBadge>
       </div>
@@ -45,7 +40,7 @@
           color="primary"
           variant="ghost"
         >
-          {{ t('common.details') }}
+          {{ t("common.details") }}
         </UButton>
       </div>
     </div>
@@ -73,7 +68,6 @@ const { t } = useI18n();
 const recipientsStore = useRecipientsStore();
 const confirm = useConfirmDialog();
 
-
 const recipientNames = computed(() => {
   return props.gift.recipient_ids
     .map((id) => {
@@ -97,10 +91,10 @@ function onStatusChange(status: GiftStatus) {
 
 async function onDelete() {
   const confirmed = await confirm({
-    title: t('gifts.deleteConfirmTitle', { name: props.gift.name }),
-    description: t('gifts.deleteConfirmDescription'),
+    title: t("gifts.deleteConfirmTitle", { name: props.gift.name }),
+    description: t("gifts.deleteConfirmDescription"),
   });
-  
+
   if (!confirmed) return;
   emit("delete", props.gift.id);
 }

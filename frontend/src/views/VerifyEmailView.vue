@@ -2,12 +2,12 @@
   <div class="flex h-screen">
     <div class="flex-1" />
     <div class="flex flex-1 flex-col items-center justify-center gap-10">
-      <h1>{{ t('verifyEmail.title') }}</h1>
+      <h1>{{ t("verifyEmail.title") }}</h1>
       <UCard class="min-w-100">
         <div class="flex flex-col items-center gap-4">
           <template v-if="status === 'loading'">
             <UIcon name="i-lucide-loader-circle" class="size-10 animate-spin text-primary" />
-            <p class="text-sm text-muted">{{ t('verifyEmail.verifying') }}</p>
+            <p class="text-sm text-muted">{{ t("verifyEmail.verifying") }}</p>
           </template>
 
           <template v-else-if="status === 'success'">
@@ -20,7 +20,7 @@
               class="w-full"
             />
             <UButton :to="{ name: 'login' }" color="primary" block>
-              {{ t('verifyEmail.goToSignIn') }}
+              {{ t("verifyEmail.goToSignIn") }}
             </UButton>
           </template>
 
@@ -34,7 +34,7 @@
               class="w-full"
             />
             <UButton :to="{ name: 'login' }" color="primary" variant="outline" block>
-              {{ t('verifyEmail.backToSignIn') }}
+              {{ t("verifyEmail.backToSignIn") }}
             </UButton>
           </template>
         </div>
@@ -64,7 +64,7 @@ const errorMessage = ref("");
 
 onMounted(async () => {
   if (typeof token !== "string" || !token) {
-    errorMessage.value = t('verifyEmail.tokenMissing');
+    errorMessage.value = t("verifyEmail.tokenMissing");
     status.value = "error";
     return;
   }
@@ -72,10 +72,10 @@ onMounted(async () => {
   const response = await verifyEmail(token);
 
   if (response.success) {
-    message.value = response.message ?? t('verifyEmail.successFallback');
+    message.value = response.message ?? t("verifyEmail.successFallback");
     status.value = "success";
   } else {
-    errorMessage.value = error.value ?? t('verifyEmail.failedFallback');
+    errorMessage.value = error.value ?? t("verifyEmail.failedFallback");
     status.value = "error";
   }
 });

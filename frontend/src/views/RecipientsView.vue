@@ -2,8 +2,8 @@
   <div class="flex flex-col gap-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="tracking-tight">{{ t('recipients.title') }}</h1>
-        <p>{{ t('recipients.subtitle') }}</p>
+        <h1 class="tracking-tight">{{ t("recipients.title") }}</h1>
+        <p>{{ t("recipients.subtitle") }}</p>
       </div>
       <AddRecipientModal v-model:open="isModalOpen" @submit="onRecipientCreated" />
     </div>
@@ -36,7 +36,7 @@
         v-else
         class="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-200"
       >
-        {{ t('recipients.noRecipientsFound') }}
+        {{ t("recipients.noRecipientsFound") }}
       </div>
 
       <Paginator :meta="store.paginationMeta" @page-change="handlePageChange" />

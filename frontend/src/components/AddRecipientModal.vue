@@ -5,12 +5,23 @@
     :description="t('recipients.addRecipientDescription')"
     :ui="{ footer: 'justify-end' }"
   >
-    <UButton icon="i-lucide-plus">{{ t('recipients.addRecipient') }}</UButton>
+    <UButton icon="i-lucide-plus">{{ t("recipients.addRecipient") }}</UButton>
 
     <template #body>
-      <UForm :schema="schema" :state="formState" id="recipient-form" class="flex flex-col gap-4" @submit="onSubmit">
+      <UForm
+        :schema="schema"
+        :state="formState"
+        id="recipient-form"
+        class="flex flex-col gap-4"
+        @submit="onSubmit"
+      >
         <UFormField :label="t('auth.name')" name="name" required>
-          <UInput v-model="formState.name" :placeholder="t('recipients.namePlaceholder')" autocomplete="off" class="w-full"/>
+          <UInput
+            v-model="formState.name"
+            :placeholder="t('recipients.namePlaceholder')"
+            autocomplete="off"
+            class="w-full"
+          />
         </UFormField>
 
         <UFormField :label="t('recipients.notes')" name="notes">
@@ -37,10 +48,10 @@
 
     <template #footer="{ close }">
       <UButton color="neutral" variant="outline" @click="close">
-        {{ t('common.cancel') }}
+        {{ t("common.cancel") }}
       </UButton>
       <UButton color="primary" type="submit" form="recipient-form">
-        {{ t('recipients.addRecipient') }}
+        {{ t("recipients.addRecipient") }}
       </UButton>
     </template>
   </UModal>
@@ -62,11 +73,13 @@ const emit = defineEmits<{
   submit: [data: RecipientCreate];
 }>();
 
-const schema = computed(() => z.object({
-  name: z.string().min(1, t('validation.nameRequired')).trim(),
-  notes: z.string().trim().optional(),
-  gift_ids: z.array(z.string()).optional(),
-}));
+const schema = computed(() =>
+  z.object({
+    name: z.string().min(1, t("validation.nameRequired")).trim(),
+    notes: z.string().trim().optional(),
+    gift_ids: z.array(z.string()).optional(),
+  }),
+);
 
 type Schema = z.output<typeof schema.value>;
 

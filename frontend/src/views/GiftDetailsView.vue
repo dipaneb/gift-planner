@@ -1,12 +1,7 @@
 <template>
-<div class="flex flex-col gap-6">
-    <UButton
-      :to="{ name: 'gifts' }"
-      icon="i-lucide-arrow-left"
-      color="neutral"
-      variant="ghost"
-    >
-      {{ t('gifts.backToGifts') }}
+  <div class="flex flex-col gap-6">
+    <UButton :to="{ name: 'gifts' }" icon="i-lucide-arrow-left" color="neutral" variant="ghost">
+      {{ t("gifts.backToGifts") }}
     </UButton>
 
     <div v-if="loading" class="text-center py-12">
@@ -27,7 +22,7 @@
               {{ formattedPrice }}
             </span>
             <UBadge v-if="gift.quantity > 1" color="neutral" variant="soft">
-              {{ t('gifts.quantity') }}: {{ gift.quantity }}
+              {{ t("gifts.quantity") }}: {{ gift.quantity }}
             </UBadge>
             <UButton
               v-if="gift.url"
@@ -38,25 +33,21 @@
               color="primary"
               variant="link"
             >
-              {{ t('gifts.visitLink') }}
+              {{ t("gifts.visitLink") }}
             </UButton>
           </div>
         </div>
 
         <div class="flex gap-2 shrink-0">
-          <EditGiftModal
-            v-model:open="isEditModalOpen"
-            :gift="gift"
-            @submit="onUpdate"
-          />
+          <EditGiftModal v-model:open="isEditModalOpen" :gift="gift" @submit="onUpdate" />
           <UButton icon="i-lucide-trash" color="error" @click="onDelete">
-            {{ t('common.delete') }}
+            {{ t("common.delete") }}
           </UButton>
         </div>
       </div>
       <USeparator />
       <div>
-        <h2>{{ t('gifts.updateStatus') }}</h2>
+        <h2>{{ t("gifts.updateStatus") }}</h2>
         <div class="flex flex-wrap gap-1 pt-4">
           <UButton
             v-for="(label, key) in GIFT_STATUS_LABELS"
@@ -73,9 +64,9 @@
       </div>
       <USeparator />
       <div>
-        <h2>{{ t('gifts.recipientsField') }}</h2>
+        <h2>{{ t("gifts.recipientsField") }}</h2>
         <p v-if="gift.recipient_ids.length === 0" class="text-gray-400 italic">
-          {{ t('gifts.noRecipientsAssigned') }}
+          {{ t("gifts.noRecipientsAssigned") }}
         </p>
         <div v-else class="flex flex-wrap gap-2">
           <RouterLink
@@ -102,11 +93,7 @@ import { useGiftsStore } from "@/stores/gifts";
 import { useRecipients } from "@/composables/useRecipients";
 import { useRecipientsStore } from "@/stores/recipients";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
-import {
-  GIFT_STATUS_LABELS,
-  type GiftStatus,
-  type GiftUpdate,
-} from "@/api/gifts";
+import { GIFT_STATUS_LABELS, type GiftStatus, type GiftUpdate } from "@/api/gifts";
 import EditGiftModal from "@/components/EditGiftModal.vue";
 
 const { t } = useI18n();
@@ -172,8 +159,8 @@ async function onQuickStatusUpdate(status: GiftStatus) {
 
 async function onDelete() {
   const confirmed = await confirm({
-    title: t('gifts.deleteConfirmTitle', { name: gift.value?.name }),
-    description: t('gifts.deleteConfirmDescription'),
+    title: t("gifts.deleteConfirmTitle", { name: gift.value?.name }),
+    description: t("gifts.deleteConfirmDescription"),
   });
 
   if (!confirmed) return;

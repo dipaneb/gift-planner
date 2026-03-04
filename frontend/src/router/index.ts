@@ -91,7 +91,7 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   const authStore = useAuthStore();
-  
+
   // Initialize auth state on first navigation
   if (!authStore.isInitialized && !authStore.isInitializing) {
     await authStore.initialize();
@@ -108,7 +108,7 @@ router.beforeEach(async (to) => {
       query: { redirect: to.fullPath },
     };
   }
-  
+
   if (guestOnly && isAuthenticated) {
     // Redirect authenticated users away from guest pages
     return { name: "recipients" };

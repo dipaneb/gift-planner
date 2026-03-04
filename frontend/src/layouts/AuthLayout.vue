@@ -1,18 +1,18 @@
 <template>
   <div class="flex min-h-screen flex-col">
-    <UHeader >
+    <UHeader>
       <template #left>
-        <RouterLink :to="{name: 'recipients'}" class="font-decorative text-2xl">
-          {{ t('common.appName') }}
+        <RouterLink :to="{ name: 'recipients' }" class="font-decorative text-2xl">
+          {{ t("common.appName") }}
         </RouterLink>
       </template>
 
       <UNavigationMenu :items="navItems" variant="link" />
 
       <template #right>
-        <USelect 
-          v-model="currentLocale" 
-          :items="localeOptions" 
+        <USelect
+          v-model="currentLocale"
+          :items="localeOptions"
           @update:model-value="changeLocale"
           size="sm"
         />
@@ -60,17 +60,17 @@ watch(locale, (newLocale) => {
 
 const navItems = computed<NavigationMenuItem[]>(() => [
   {
-    label: t('nav.recipients'),
+    label: t("nav.recipients"),
     icon: "i-lucide-person-standing",
     to: { name: "recipients" },
   },
   {
-    label: t('nav.gifts'),
+    label: t("nav.gifts"),
     icon: "i-lucide-gift",
     to: { name: "gifts" },
   },
   {
-    label: t('nav.budget'),
+    label: t("nav.budget"),
     icon: "i-lucide-wallet",
     to: { name: "budget" },
   },
@@ -85,14 +85,14 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
   ],
   [
     {
-      label: t('nav.settings'),
+      label: t("nav.settings"),
       icon: "i-lucide-settings",
       to: { name: "settings" },
     },
   ],
   [
     {
-      label: t('nav.logout'),
+      label: t("nav.logout"),
       icon: "i-lucide-log-out",
       color: "error",
       onSelect: () => logout(),

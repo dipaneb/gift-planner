@@ -1,18 +1,18 @@
-import api from '.'
-import type { User } from './auth'
+import api from ".";
+import type { User } from "./auth";
 
 export interface BudgetUpdateRequest {
-  budget: number
+  budget: number;
 }
 
 export interface UserNameUpdateRequest {
-  name: string
+  name: string;
 }
 
 export interface UserPasswordUpdateRequest {
-  current_password: string
-  new_password: string
-  confirmed_password: string
+  current_password: string;
+  new_password: string;
+  confirmed_password: string;
 }
 
 export const usersApi = {
@@ -21,31 +21,31 @@ export const usersApi = {
    * @returns Promise with user data
    */
   async getCurrentUser(): Promise<User> {
-    const response = await api.get<User>('/users/me')
-    return response.data
+    const response = await api.get<User>("/users/me");
+    return response.data;
   },
 
   async updateBudget(data: BudgetUpdateRequest): Promise<User> {
-    const response = await api.patch<User>('/users/me/budget', data)
-    return response.data
+    const response = await api.patch<User>("/users/me/budget", data);
+    return response.data;
   },
 
   async deleteBudget(): Promise<User> {
-    const response = await api.delete<User>('/users/me/budget')
-    return response.data
+    const response = await api.delete<User>("/users/me/budget");
+    return response.data;
   },
 
   async updateName(data: UserNameUpdateRequest): Promise<User> {
-    const response = await api.patch<User>('/users/me', data)
-    return response.data
+    const response = await api.patch<User>("/users/me", data);
+    return response.data;
   },
 
   async deleteName(): Promise<User> {
-    const response = await api.delete<User>('/users/me/name')
-    return response.data
+    const response = await api.delete<User>("/users/me/name");
+    return response.data;
   },
 
   async updatePassword(data: UserPasswordUpdateRequest): Promise<void> {
-    await api.patch('/users/me/password', data)
+    await api.patch("/users/me/password", data);
   },
-}
+};

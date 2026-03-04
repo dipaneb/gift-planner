@@ -1,22 +1,28 @@
-import { ref, computed } from 'vue'
-import { defineStore } from 'pinia'
+import { ref, computed } from "vue";
+import { defineStore } from "pinia";
 
-import { authApi, type AuthResponse, type User, type LoginRequest, type RegisterRequest, type RegisterResponse } from '@/api/auth'
-import { usersApi } from '@/api/users'
+import {
+  authApi,
+  type AuthResponse,
+  type User,
+  type LoginRequest,
+  type RegisterRequest,
+  type RegisterResponse,
+} from "@/api/auth";
+import { usersApi } from "@/api/users";
 
-
-export const useAuthStore = defineStore('auth', () => {
+export const useAuthStore = defineStore("auth", () => {
   // State
-  const accessToken = ref<string | null>(null)
-  const user = ref<User | null>(null)
-  const isInitialized = ref(false)
-  const isInitializing = ref(false)
+  const accessToken = ref<string | null>(null);
+  const user = ref<User | null>(null);
+  const isInitialized = ref(false);
+  const isInitializing = ref(false);
 
   // Getters
-  const isAuthenticated = computed(() => !!accessToken.value)
+  const isAuthenticated = computed(() => !!accessToken.value);
 
   // Actions
-  
+
   /**
    * Initialize authentication state on app load
    * Attempts to refresh the access token using the httpOnly cookie
@@ -26,25 +32,25 @@ export const useAuthStore = defineStore('auth', () => {
   async function initialize(): Promise<boolean> {
     // Prevent multiple simultaneous initialization attempts
     if (isInitialized.value || isInitializing.value) {
-      return isAuthenticated.value
+      return isAuthenticated.value;
     }
 
-    isInitializing.value = true
+    isInitializing.value = true;
 
     try {
-      const response = await authApi.refresh()
-      accessToken.value = response.access_token
-      user.value = response.user
-      
-      return true
+      const response = await authApi.refresh();
+      accessToken.value = response.access_token;
+      user.value = response.user;
+
+      return true;
     } catch {
       // Refresh failed - user is not authenticated
-      accessToken.value = null
-      user.value = null
-      return false
+      accessToken.value = null;
+      user.value = null;
+      return false;
     } finally {
-      isInitialized.value = true
-      isInitializing.value = false
+      isInitialized.value = true;
+      isInitializing.value = false;
     }
   }
 
@@ -52,8 +58,8 @@ export const useAuthStore = defineStore('auth', () => {
    * Login with email and password
    */
   async function login(credentials: LoginRequest): Promise<void> {
-    const response = await authApi.login(credentials)
-    setAuthData(response)
+    const response = await authApi.login(credentials);
+    setAuthData(response);
   }
 
   /**
@@ -61,8 +67,8 @@ export const useAuthStore = defineStore('auth', () => {
    * Returns success message for email verification
    */
   async function register(data: RegisterRequest): Promise<RegisterResponse> {
-    const response = await authApi.register(data)
-    return response
+    const response = await authApi.register(data);
+    return response;
   }
 
   /**
@@ -71,11 +77,11 @@ export const useAuthStore = defineStore('auth', () => {
    */
   async function logout(): Promise<void> {
     try {
-      await authApi.logout()
+      await authApi.logout();
     } catch {
       // Even if backend logout fails, clear local state
     } finally {
-      clearAuthData()
+      clearAuthData();
     }
   }
 
@@ -83,16 +89,16 @@ export const useAuthStore = defineStore('auth', () => {
    * Set authentication data from login/register response
    */
   function setAuthData(response: AuthResponse): void {
-    accessToken.value = response.access_token
-    user.value = response.user
+    accessToken.value = response.access_token;
+    user.value = response.user;
   }
 
   /**
    * Clear all authentication data
    */
   function clearAuthData(): void {
-    accessToken.value = null
-    user.value = null
+    accessToken.value = null;
+    user.value = null;
   }
 
   /**
@@ -100,11 +106,11 @@ export const useAuthStore = defineStore('auth', () => {
    * Useful after operations that affect computed fields (e.g., budget spent/remaining)
    */
   async function refreshUser(): Promise<void> {
-    if (!accessToken.value) return
-    
+    if (!accessToken.value) return;
+
     try {
-      const updatedUser = await usersApi.getCurrentUser()
-      user.value = updatedUser
+      const updatedUser = await usersApi.getCurrentUser();
+      user.value = updatedUser;
     } catch {
       // Silent fail - user data will be stale but app remains functional
     }
@@ -116,15 +122,15 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     isInitialized,
     isInitializing,
-    
+
     // Getters
     isAuthenticated,
-    
+
     // Actions
     initialize,
     login,
     register,
     logout,
     refreshUser,
-  }
-})
+  };
+});

@@ -1,7 +1,7 @@
 import { ref, computed } from "vue";
 import { defineStore } from "pinia";
 
-import { type FetchParams, type PaginationMeta, } from "@/api";
+import { type FetchParams, type PaginationMeta } from "@/api";
 import {
   recipientsApi,
   type Recipient,
@@ -14,7 +14,6 @@ export const useRecipientsStore = defineStore("recipients", () => {
   const paginatedRecipients = ref<Recipient[]>([]);
   const allRecipients = ref<Recipient[]>([]);
   const paginationMeta = ref<PaginationMeta | null>(null);
-
 
   // Actions
 
@@ -75,10 +74,7 @@ export const useRecipientsStore = defineStore("recipients", () => {
   /**
    * Update an existing recipient
    */
-  async function update(
-    recipientId: string,
-    data: RecipientUpdate,
-  ): Promise<Recipient> {
+  async function update(recipientId: string, data: RecipientUpdate): Promise<Recipient> {
     const updatedRecipient = await recipientsApi.update(recipientId, data);
 
     const index = paginatedRecipients.value.findIndex((r) => r.id === recipientId);

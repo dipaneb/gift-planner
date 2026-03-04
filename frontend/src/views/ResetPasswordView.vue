@@ -2,7 +2,7 @@
   <div class="flex h-screen">
     <div class="flex-1" />
     <div class="flex flex-1 flex-col items-center justify-center gap-10">
-      <h1>{{ t('auth.resetPassword.title') }}</h1>
+      <h1>{{ t("auth.resetPassword.title") }}</h1>
       <UCard class="min-w-100">
         <UAlert
           v-if="!isValidToken"
@@ -69,14 +69,15 @@
           />
 
           <UButton type="submit" color="primary" block :loading="loading">
-            {{ loading ? t('common.updating') : t('auth.resetPassword.submit') }}
+            {{ loading ? t("common.updating") : t("auth.resetPassword.submit") }}
           </UButton>
         </UForm>
 
         <template #footer>
           <p class="text-center text-sm text-muted">
             <RouterLink :to="{ name: 'login' }" class="font-medium text-primary">
-              {{ t('auth.resetPassword.backToSignIn') }}<UIcon class="inline align-middle" name="i-lucide-move-up-right" />
+              {{ t("auth.resetPassword.backToSignIn")
+              }}<UIcon class="inline align-middle" name="i-lucide-move-up-right" />
             </RouterLink>
           </p>
         </template>
@@ -104,22 +105,24 @@ const isValidToken = typeof resetPasswordToken === "string" && resetPasswordToke
 
 const isPasswordVisible = ref(false);
 
-const resetPasswordSchema = computed(() => z
-  .object({
-    password: z
-      .string()
-      .min(8, t('auth.validation.passwordMin'))
-      .max(255)
-      .regex(/[A-Z]/, t('auth.validation.passwordUppercase'))
-      .regex(/[a-z]/, t('auth.validation.passwordLowercase'))
-      .regex(/\d/, t('auth.validation.passwordDigit'))
-      .regex(/[^A-Za-z0-9\s]/, t('auth.validation.passwordSpecial')),
-    confirmed_password: z.string().min(1, t('auth.validation.confirmPasswordRequired')),
-  })
-  .refine((data) => data.password === data.confirmed_password, {
-    message: t('auth.validation.passwordsMismatch'),
-    path: ["confirmed_password"],
-  }));
+const resetPasswordSchema = computed(() =>
+  z
+    .object({
+      password: z
+        .string()
+        .min(8, t("auth.validation.passwordMin"))
+        .max(255)
+        .regex(/[A-Z]/, t("auth.validation.passwordUppercase"))
+        .regex(/[a-z]/, t("auth.validation.passwordLowercase"))
+        .regex(/\d/, t("auth.validation.passwordDigit"))
+        .regex(/[^A-Za-z0-9\s]/, t("auth.validation.passwordSpecial")),
+      confirmed_password: z.string().min(1, t("auth.validation.confirmPasswordRequired")),
+    })
+    .refine((data) => data.password === data.confirmed_password, {
+      message: t("auth.validation.passwordsMismatch"),
+      path: ["confirmed_password"],
+    }),
+);
 
 type Schema = z.infer<typeof resetPasswordSchema.value>;
 

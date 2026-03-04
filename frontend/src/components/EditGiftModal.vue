@@ -5,7 +5,7 @@
     :description="t('gifts.editGiftDescription')"
     :ui="{ footer: 'justify-end' }"
   >
-    <UButton icon="i-lucide-pencil">{{ t('gifts.editGift') }}</UButton>
+    <UButton icon="i-lucide-pencil">{{ t("gifts.editGift") }}</UButton>
 
     <template #body>
       <UForm
@@ -67,8 +67,10 @@
     </template>
 
     <template #footer="{ close }">
-      <UButton color="neutral" variant="outline" @click="close"> {{ t('common.cancel') }} </UButton>
-      <UButton color="primary" type="submit" form="edit-gift-form"> {{ t('common.save') }} </UButton>
+      <UButton color="neutral" variant="outline" @click="close"> {{ t("common.cancel") }} </UButton>
+      <UButton color="primary" type="submit" form="edit-gift-form">
+        {{ t("common.save") }}
+      </UButton>
     </template>
   </UModal>
 </template>
@@ -93,16 +95,22 @@ const emit = defineEmits<{
   submit: [id: string, data: GiftUpdate];
 }>();
 
-const schema = computed(() => z.object({
-  name: z.string().trim().min(1, t('validation.nameRequired')).max(255, t('validation.nameTooLong')),
-  url: z.url(t('validation.invalidUrl')).trim().optional().or(z.literal("")),
-  price: z
-    .union([z.number(), z.coerce.number().positive(t('validation.pricePositive'))])
-    .optional(),
-  quantity: z.coerce.number().int().min(1, t('validation.quantityMin')),
-  status: z.string() as z.ZodType<GiftStatus>,
-  recipient_ids: z.array(z.string()).optional(),
-}));
+const schema = computed(() =>
+  z.object({
+    name: z
+      .string()
+      .trim()
+      .min(1, t("validation.nameRequired"))
+      .max(255, t("validation.nameTooLong")),
+    url: z.url(t("validation.invalidUrl")).trim().optional().or(z.literal("")),
+    price: z
+      .union([z.number(), z.coerce.number().positive(t("validation.pricePositive"))])
+      .optional(),
+    quantity: z.coerce.number().int().min(1, t("validation.quantityMin")),
+    status: z.string() as z.ZodType<GiftStatus>,
+    recipient_ids: z.array(z.string()).optional(),
+  }),
+);
 
 type Schema = z.output<typeof schema.value>;
 

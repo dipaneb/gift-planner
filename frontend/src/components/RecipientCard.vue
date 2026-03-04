@@ -1,11 +1,11 @@
 <template>
-  <UCard 
-    as="li" 
+  <UCard
+    as="li"
     class="flex flex-col h-full cursor-pointer hover:ring-1 hover:ring-primary-500 transition-all"
     @click="goToDetails"
   >
     <template #header>
-      <div class="flex items-center justify-between ">
+      <div class="flex items-center justify-between">
         <h2 class="text-base m-0 font-decorative">{{ props.name }}</h2>
         <UButton
           icon="i-lucide-trash"
@@ -65,15 +65,15 @@ const emit = defineEmits<{
 
 async function onDelete() {
   const confirmed = await confirm({
-    title: t('recipients.deleteConfirmTitle', { name: props.name }),
-    description: t('recipients.deleteConfirmDescription'),
+    title: t("recipients.deleteConfirmTitle", { name: props.name }),
+    description: t("recipients.deleteConfirmDescription"),
   });
-  
+
   if (!confirmed) return;
   emit("delete", props.id);
 }
 
 function goToDetails() {
-  router.push({ name: 'recipientDetails', params: { recipient_id: props.id } });
+  router.push({ name: "recipientDetails", params: { recipient_id: props.id } });
 }
 </script>

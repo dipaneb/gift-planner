@@ -7,7 +7,9 @@
       @update:page="$emit('page-change', $event)"
     />
     <div class="text-sm text-gray-500">
-      {{ t('paginator.pageInfo', { page: meta.page, totalPages: meta.totalPages, total: meta.total }) }}
+      {{
+        t("paginator.pageInfo", { page: meta.page, totalPages: meta.totalPages, total: meta.total })
+      }}
     </div>
   </div>
 </template>
