@@ -1,12 +1,15 @@
+packages:
+  - "."
+
 allowBuilds:
   cypress: true
   esbuild: true
   maplibre-gl: true
   vue-demi: true
 minimumReleaseAgeExclude:
-  - '@vue/devtools-core@8.1.3'
-  - '@vue/devtools-kit@8.1.3'
-  - '@vue/devtools-shared@8.1.3'
+  - "@vue/devtools-core@8.1.3"
+  - "@vue/devtools-kit@8.1.3"
+  - "@vue/devtools-shared@8.1.3"
   - vite-plugin-vue-devtools@8.1.3
 onlyBuiltDependencies:
   - cypress
