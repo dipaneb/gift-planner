@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         # In a docker-compose environment, the environment variables are not read from the .env file.
         # This is because the .env file is not mounted in the container (see dockerignore file).
-        # Instead, the environment variables are added to the environment with the line "env_file=../.env.dev" in the docker-compose file.
+        # Instead, the environment variables are added to the environment with the line "env_file=../.env" in the docker-compose file.
         # They are then read from the environment by the Settings class.
         # So there is no need for env_file=".env" here.
     )

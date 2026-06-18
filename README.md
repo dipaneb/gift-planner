@@ -2,7 +2,6 @@
 
 A full-stack web application for organizing gifts, budgets, and Christmas lists with friends and family.
 
-
 ## 📋 Table of Contents
 
 - [Tech Stack](#-tech-stack)
@@ -14,11 +13,10 @@ A full-stack web application for organizing gifts, budgets, and Christmas lists 
 - [Contributing](#-contributing)
 - [Additional Doc](#-additional-documentation)
 
-
-
 ## 🛠️ Tech Stack
 
 ### Backend
+
 - **Framework**: FastAPI (Python)
 - **Database**: PostgreSQL 16
 - **ORM**: SQLAlchemy with Alembic migrations
@@ -29,6 +27,7 @@ A full-stack web application for organizing gifts, budgets, and Christmas lists 
 - **Code Quality**: Ruff + Black
 
 ### Frontend
+
 - **Framework**: Vue 3 + TypeScript
 - **Build Tool**: Vite
 - **UI Library**: Nuxt UI
@@ -40,11 +39,10 @@ A full-stack web application for organizing gifts, budgets, and Christmas lists 
 - **Code Quality**: ESLint + Prettier
 
 ### Development Tools
+
 - **Version Management**: Mise (Node.js & pnpm)
 - **Task Runner**: Make (Makefiles for both frontend & backend)
 - **Container Management**: Docker Desktop
-
-
 
 ## 📁 Project Structure
 
@@ -86,22 +84,20 @@ gift-planner/
 └── README.md                # This file
 ```
 
-
-
 ## ✅ Prerequisites
 
 Before you begin, ensure you have the following installed:
 
 ### Required
+
 - **Docker Desktop**: [Download here](https://www.docker.com/products/docker-desktop)
 - **Make**: Pre-installed on macOS/Linux. For Windows, install via [Chocolatey](https://chocolatey.org/) for example.
 - **Mise**: Install via `curl https://mise.run | sh` or [see docs](https://mise.jdx.dev/installing-mise.html)
 
 ### Optional but Recommended
+
 - **Git**: For version control
 - A code editor (VS Code, WebStorm, etc.)
-
-
 
 ## 🚀 Installation & Setup
 
@@ -118,10 +114,10 @@ cd gift-planner
 
 ```bash
 cd backend
-cp .env.example .env.dev
+cp .env.example .env
 ```
 
-Edit `backend/.env.dev` and configure the following **required** variables:
+Edit `backend/.env` and configure the following **required** variables:
 
 ```env
 # Database Configuration
@@ -159,11 +155,13 @@ make start
 ```
 
 This will:
+
 - Build the Docker images (API + PostgreSQL + Adminer)
 - Start all containers in detached mode
 - Create the development database
 
 **View logs** (optional):
+
 ```bash
 make logs
 ```
@@ -171,6 +169,7 @@ make logs
 Press `Ctrl+C` to exit logs (containers keep running).
 
 **Verify backend is running**:
+
 - API: http://localhost:8000
 - API Docs (Swagger): http://localhost:8000/docs
 - Adminer (Database UI): http://localhost:8080
@@ -207,8 +206,6 @@ make dev
 
 The frontend will be available at: **http://localhost:5173**
 
-
-
 ## 💻 Development Workflow
 
 ### Recommended Terminal Setup
@@ -216,6 +213,7 @@ The frontend will be available at: **http://localhost:5173**
 For efficient development, keep **3 terminal windows** open:
 
 #### Terminal 1: Backend
+
 ```bash
 cd backend
 make start    # Start containers
@@ -223,12 +221,14 @@ make logs     # Watch logs (optional)
 ```
 
 #### Terminal 2: Frontend
+
 ```bash
 cd frontend
 make dev      # Start Vite dev server
 ```
 
 #### Terminal 3: Git Operations
+
 ```bash
 cd gift-planner  # Project root
 git status
@@ -242,8 +242,6 @@ git push
 - **Backend**: Code changes in `backend/src/` automatically restart the FastAPI server
 - **Frontend**: Code changes trigger instant hot-reload in the browser
 
-
-
 ## 📚 Available Commands
 
 ### Backend Commands
@@ -255,7 +253,7 @@ make help              # Show all available commands
 
 # Development
 make start             # Start development environment
-make stop              # Stop development environment  
+make stop              # Stop development environment
 make logs              # View real-time logs
 make rebuild           # Rebuild containers from scratch
 
@@ -310,18 +308,18 @@ make test-e2e          # Run Cypress E2E (production build)
 make lint              # Lint with ESLint
 ```
 
-
-
 ## 🤝 Contributing
 
 ### Git Workflow
 
 1. Create a feature branch:
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
 
 2. Make your changes and commit:
+
    ```bash
    git add .
    git commit -m "feat: add your feature description"
@@ -341,7 +339,7 @@ make lint              # Lint with ESLint
 cd backend
 make check             # Format check + lint
 
-# Frontend  
+# Frontend
 cd frontend
 make lint              # ESLint check
 ```
@@ -349,6 +347,7 @@ make lint              # ESLint check
 ### Commit Message Convention
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
 - `feat:` New feature
 - `fix:` Bug fix
 - `docs:` Documentation changes
@@ -356,9 +355,6 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 - `refactor:` Code refactoring
 - `test:` Test changes
 - `chore:` Build/tooling changes
-
-
-
 
 ## 📖 Additional Documentation
 

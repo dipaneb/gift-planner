@@ -17,26 +17,26 @@ backend/
 │   └── settings.py              # Environment settings management
 ├── requirements-dev.txt         # Development dependencies
 ├── requirements-prod.txt        # Production dependencies
-├── .env.dev                     # Development environment variables
-├── .env.prod                    # Production environment variables
+├── .env                         # Environment variables
 └── .env.example                 # Template for environment variables
 ```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Docker and Docker Compose installed
 - Make (optional, for using Makefile commands)
 
 ### Setup
 
-1. **Copy environment files** (if not already done):
+1. **Copy environment file** (if not already done):
+
    ```bash
-   cp .env.example .env.dev
-   cp .env.example .env.prod
+   cp .env.example .env
    ```
 
-2. **Configure your environment variables** in `.env.dev` and `.env.prod`
+2. **Configure your environment variables** in `.env`
 
 3. **Start the development environment**:
    ```bash
@@ -51,6 +51,7 @@ The API will be available at `http://localhost:8000`
 All commands should be run from the **project root** directory.
 
 ### Development Commands
+
 ```bash
 make dev-start    # Start development environment
 make dev-stop     # Stop development environment
@@ -59,6 +60,7 @@ make dev-rebuild  # Rebuild and restart development environment
 ```
 
 ### Production Commands
+
 ```bash
 make prod-start    # Start production environment
 make prod-stop     # Stop production environment
@@ -71,6 +73,7 @@ make prod-rebuild  # Rebuild and restart production environment
 ### Development Environment
 
 **Features:**
+
 - ✅ Hot-reload enabled (code changes auto-restart server)
 - ✅ Volume mounting (local `src/` folder synced with container)
 - ✅ Development tools (pytest, black, ruff, ipython)
@@ -78,6 +81,7 @@ make prod-rebuild  # Rebuild and restart production environment
 - ✅ Separate database (`app_dev`)
 
 **Use for:**
+
 - Daily development work
 - Testing new features
 - Debugging
@@ -85,6 +89,7 @@ make prod-rebuild  # Rebuild and restart production environment
 ### Production Environment
 
 **Features:**
+
 - ✅ Optimized for performance
 - ✅ No hot-reload (stable, immutable)
 - ✅ Minimal dependencies
@@ -92,6 +97,7 @@ make prod-rebuild  # Rebuild and restart production environment
 - ✅ Separate database (`app_prod`)
 
 **Use for:**
+
 - Staging/production deployments
 - Performance testing
 - Final testing before release
@@ -99,6 +105,7 @@ make prod-rebuild  # Rebuild and restart production environment
 ## 📦 Dependencies
 
 ### Production Dependencies (`requirements-prod.txt`)
+
 - FastAPI with all extras
 - SQLAlchemy + PostgreSQL drivers (psycopg2, asyncpg)
 - Pydantic Settings
@@ -106,6 +113,7 @@ make prod-rebuild  # Rebuild and restart production environment
 - Security libraries (pwdlib, pyjwt, cryptography)
 
 ### Development Dependencies (`requirements-dev.txt`)
+
 - All production dependencies (via `-r requirements-prod.txt`)
 - Testing tools (pytest, pytest-asyncio)
 - Code quality (black, ruff)
@@ -122,16 +130,18 @@ Key environment variables (see `.env.example` for full list):
 - `DEBUG` - Debug mode (True for dev, False for prod)
 - `SECRET_KEY` - Secret key for JWT/encryption
 
-**Important:** Never commit `.env`, `.env.dev`, or `.env.prod` files to version control!
+**Important:** Never commit `.env` file to version control!
 
 ## 🗄️ Database
 
 ### Development Database
+
 - Name: `app_dev`
 - User: `dev_user`
 - Volume: `docker_postgres_data_dev`
 
 ### Production Database
+
 - Name: `app_prod`
 - User: `prod_user`
 - Volume: `docker_postgres_data_prod`
@@ -143,6 +153,7 @@ Key environment variables (see `.env.example` for full list):
 Adminer is a lightweight, single-file database management tool (similar to phpMyAdmin but better). It's included in the development environment for easy database inspection and management.
 
 **Key advantages over pgAdmin:**
+
 - ✅ Extremely lightweight (~500KB vs pgAdmin's ~100MB+)
 - ✅ Zero configuration required
 - ✅ Simple, clean interface
@@ -157,11 +168,12 @@ Adminer is a lightweight, single-file database management tool (similar to phpMy
 3. Login with your development database credentials:
    - **System:** PostgreSQL
    - **Server:** `db`
-   - **Username:** `dev_user` (from `.env.dev`)
-   - **Password:** `dev_password_123` (from `.env.dev`)
-   - **Database:** `app_dev` (from `.env.dev`)
+   - **Username:** `dev_user` (from `.env`)
+   - **Password:** `dev_password_123` (from `.env`)
+   - **Database:** `app_dev` (from `.env`)
 
 **What you can do with Adminer:**
+
 - Browse tables and data
 - Run SQL queries
 - Create/modify tables and schemas
@@ -198,12 +210,14 @@ pytest
 ## 📝 API Documentation
 
 Once the server is running, access:
+
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 
 ## 🛠️ Troubleshooting
 
 ### Containers won't start
+
 ```bash
 # Check logs
 make dev-logs  # or make prod-logs
@@ -213,11 +227,13 @@ make dev-rebuild  # or make prod-rebuild
 ```
 
 ### Database connection errors
-- Ensure environment variables are correctly set in `.env.dev` or `.env.prod`
+
+- Ensure environment variables are correctly set in `.env`
 - Check that database credentials match between the env file and docker-compose file
 - Try resetting the database (see "Resetting the Database" above)
 
 ### Port already in use
+
 ```bash
 # Stop all containers
 make dev-stop
