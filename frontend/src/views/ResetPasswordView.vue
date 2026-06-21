@@ -1,7 +1,10 @@
 <template>
   <div class="flex h-screen">
     <div class="flex-1" />
-    <div class="flex flex-1 flex-col items-center justify-center gap-10">
+    <div class="flex flex-1 flex-col items-center justify-center gap-10 relative">
+      <div class="absolute top-4 right-4">
+        <LanguageSelector />
+      </div>
       <h1>{{ t("auth.resetPassword.title") }}</h1>
       <UCard class="min-w-100">
         <UAlert
@@ -87,17 +90,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 
 import { useAuth } from "@/composables/useAuth";
+import LanguageSelector from "@/components/LanguageSelector.vue";
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const { resetPassword, loading, error } = useAuth();
 const route = useRoute();
+
+// Handle locale parameter from URL (from email link)
+onMounted(() => {
+  const urlLocale = route.query.locale as string;
+  if (urlLocale && ["en", "fr"].includes(urlLocale) && locale.value !== urlLocale) {
+    locale.value = urlLocale;
+    localStorage.setItem("locale", urlLocale);
+  }
+});
 
 const rawToken = route.query.token;
 const resetPasswordToken = Array.isArray(rawToken) ? rawToken[0] : rawToken;

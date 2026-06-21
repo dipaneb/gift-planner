@@ -16,6 +16,7 @@ from .access_token_handler import create_access_token
 from .refresh_token_handler import hash_token, get_refresh_token_fingerprint, verify_refresh_token
 from .reset_password_token_handler import get_reset_password_token_fingerprint, hash_token as hash_reset_password_token, verify_reset_password_token
 from .verification_token_handler import get_verification_token_fingerprint, hash_verification_token, verify_verification_token
+from src.infrastructure.external_services.email_templates import get_email_template
 
 logger = logging.getLogger("api.auth")
 
@@ -54,7 +55,7 @@ class AuthService:
     # ===================
     # Register/Login
     # ===================
-    def register_user(self, user_create: UserCreate) -> dict:
+    def register_user(self, user_create: UserCreate, locale: str | None = None) -> dict:
         """
         Create user account and return email information for sending verification email.
         Returns dict with email details for BackgroundTasks.
@@ -80,15 +81,17 @@ class AuthService:
         
         self.user_repo.set_verification_token(created_user.id, token_fingerprint, token_hash, expires_at)
 
-        verification_link = f"{settings.FRONTEND_BASE_URL}/verify-email?token={raw_token}"
+        # Build verification link with locale parameter
+        locale_param = f"&locale={locale}" if locale else ""
+        verification_link = f"{settings.FRONTEND_BASE_URL}/verify-email?token={raw_token}{locale_param}"
         
-        subject = "Verify your email address"
-        html = f"""
-            <p>Welcome! Please verify your email address by clicking the link below:</p>
-            <p><a href="{verification_link}">Verify Email</a></p>
-            <p>This link expires in {settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS} {"hour" if settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS == 1 else "hours"}.</p>
-        """
-        text = f"Verify your email: {verification_link}"
+        # Get email template based on locale
+        email_locale = locale if locale in ["en", "fr"] else "en"
+        template = get_email_template("register", email_locale)
+        
+        subject = template["subject"]
+        html = template["html"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
+        text = template["text"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
 
         logger.info("New user registered (unverified): %s", created_user.id)
         
@@ -222,11 +225,12 @@ class AuthService:
     # ===================
     # Reset password part
     # ===================
-    def __build_reset_link(self, raw_token: str) -> str:
-        return f"{settings.FRONTEND_BASE_URL}/reset-password?token={raw_token}"
+    def __build_reset_link(self, raw_token: str, locale: str | None = None) -> str:
+        locale_param = f"&locale={locale}" if locale else ""
+        return f"{settings.FRONTEND_BASE_URL}/reset-password?token={raw_token}{locale_param}"
 
 
-    def request_reset(self, email: str) -> dict | None:
+    def request_reset(self, email: str, locale: str | None = None) -> dict | None:
         """
         Create and store the reset password token (if user exists),
         and return the information needed to send emails (for BackgroundTasks).
@@ -253,15 +257,17 @@ class AuthService:
             )
         )
 
-        link = self.__build_reset_link(raw_token)
+        # Build reset link with locale parameter
+        locale_param = f"&locale={locale}" if locale else ""
+        link = f"{settings.FRONTEND_BASE_URL}/reset-password?token={raw_token}{locale_param}"
 
-        subject = "Reset your password"
-        html = f"""
-            <p>Click the link to reset your password:</p>
-            <p><a href="{link}">Reset password</a></p>
-            <p>This link expires in {settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES} minutes.</p>
-        """
-        text = f"Reset your password: {link}"
+        # Get email template based on locale
+        email_locale = locale if locale in ["en", "fr"] else "en"
+        template = get_email_template("reset_password", email_locale)
+        
+        subject = template["subject"]
+        html = template["html"](link, settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES)
+        text = template["text"](link, settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES)
 
         return {
             "to_email": user.email,

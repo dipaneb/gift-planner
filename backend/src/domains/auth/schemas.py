@@ -12,6 +12,7 @@ class UserCreate(BaseModel):
     password: str = Field(min_length=8, max_length=255, description="Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.")
     confirmed_password: str = Field(min_length=8, max_length=255)
     name: str | None = Field(default=None, max_length=255, description="Optional display name")
+    locale: str | None = Field(default=None, max_length=2, description="Preferred language locale (en or fr)")
 
     @field_validator("email", mode="after")
     @classmethod
@@ -59,6 +60,12 @@ class UserCreate(BaseModel):
             raise ValueError("Password and confirm password do not match.")
         return self
     
+
+class ForgotPasswordRequest(BaseModel):
+    """Model for forgot password request."""
+    email: EmailStr
+    locale: str | None = Field(default=None, max_length=2, description="Preferred language locale (en or fr)")
+
 
 class UserUpdatePartial(BaseModel):
     password: str = Field(min_length=8, max_length=255, description="Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.")

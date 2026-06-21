@@ -1,7 +1,10 @@
 <template>
   <div class="flex h-screen">
     <div class="flex-1" />
-    <div class="flex flex-1 flex-col items-center justify-center gap-10">
+    <div class="flex flex-1 flex-col items-center justify-center gap-10 relative">
+      <div class="absolute top-4 right-4">
+        <LanguageSelector />
+      </div>
       <h1>{{ t("auth.loginPage.title") }}</h1>
       <UCard class="min-w-100">
         <UForm :schema="loginSchema" :state="state" @submit="onSubmit" class="flex flex-col gap-6">
@@ -78,6 +81,7 @@ import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 
 import { useAuth } from "@/composables/useAuth";
+import LanguageSelector from "@/components/LanguageSelector.vue";
 
 const route = useRoute();
 const { t } = useI18n();

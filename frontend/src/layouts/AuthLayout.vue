@@ -7,19 +7,18 @@
         </RouterLink>
       </template>
 
-      <UNavigationMenu :items="navItems" variant="link" />
+      <UNavigationMenu :items="navItems" variant="link" class="hidden lg:flex" />
 
       <template #right>
-        <USelect
-          v-model="currentLocale"
-          :items="localeOptions"
-          @update:model-value="changeLocale"
-          size="sm"
-        />
+        <LanguageSelector />
 
         <UDropdownMenu :items="userMenuItems">
           <UButton icon="i-lucide-circle-user" color="neutral" variant="ghost" />
         </UDropdownMenu>
+      </template>
+
+      <template #body>
+        <UNavigationMenu :items="navItems" variant="link" class="flex lg:hidden" />
       </template>
     </UHeader>
 
@@ -30,33 +29,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import type { DropdownMenuItem, NavigationMenuItem } from "@nuxt/ui";
 
 import { useAuthStore } from "@/stores/auth";
 import { useAuth } from "@/composables/useAuth";
+import LanguageSelector from "@/components/LanguageSelector.vue";
 
-const { t, locale } = useI18n();
+const { t } = useI18n();
 const authStore = useAuthStore();
 const { logout } = useAuth();
-
-const currentLocale = ref(locale.value);
-
-const localeOptions = [
-  { label: "English", value: "en" },
-  { label: "Français", value: "fr" },
-];
-
-function changeLocale(newLocale: string) {
-  locale.value = newLocale;
-  currentLocale.value = newLocale;
-  localStorage.setItem("locale", newLocale);
-}
-
-watch(locale, (newLocale) => {
-  currentLocale.value = newLocale;
-});
 
 const navItems = computed<NavigationMenuItem[]>(() => [
   {

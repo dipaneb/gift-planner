@@ -7,7 +7,7 @@ from pydantic import EmailStr
 from src.config.settings import get_settings
 from src.core.rate_limit import limiter
 from .service import AuthService
-from .schemas import LoginData, UserCreate, UserUpdatePartial
+from .schemas import LoginData, UserCreate, UserUpdatePartial, ForgotPasswordRequest
 from .router_examples import REGISTER_EXAMPLES, RESET_PASSWORD_EXAMPLE
 from .access_token_handler import create_access_token
 from src.infrastructure.external_services.email_service import MailJetClient
@@ -19,8 +19,13 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 @limiter.limit("3/minute")
-def signup_user(request: Request, service: Annotated[AuthService, Depends()], user_create: Annotated[UserCreate, Body(openapi_examples=REGISTER_EXAMPLES)], background_tasks: BackgroundTasks):
-    email_job = service.register_user(user_create)
+def signup_user(
+  request: Request, 
+  service: Annotated[AuthService, Depends()], 
+  user_create: Annotated[UserCreate, Body(openapi_examples=REGISTER_EXAMPLES)],
+  background_tasks: BackgroundTasks
+):
+    email_job = service.register_user(user_create, getattr(user_create, 'locale', None))
     
     mailjet_client = MailJetClient(settings.MAILJET_API_KEY, settings.MAILJET_API_SECRET_KEY)
     background_tasks.add_task(
@@ -122,8 +127,13 @@ def logout(request: Request, response: Response, auth_service: Annotated[AuthSer
 
 @router.post("/forgot-password")
 @limiter.limit("3/minute")
-def send_email_for_forgot_password(request: Request, email: Annotated[EmailStr, Body(embed=True)], auth_service: Annotated[AuthService, Depends()], background_tasks: BackgroundTasks):
-    email_job = auth_service.request_reset(email)
+def send_email_for_forgot_password(
+  request: Request, 
+  forgot_password_request: Annotated[ForgotPasswordRequest, Body()],
+  auth_service: Annotated[AuthService, Depends()], 
+  background_tasks: BackgroundTasks
+):
+    email_job = auth_service.request_reset(forgot_password_request.email, getattr(forgot_password_request, 'locale', None))
 
     if email_job:
         mailjet_client = MailJetClient(settings.MAILJET_API_KEY, settings.MAILJET_API_SECRET_KEY)

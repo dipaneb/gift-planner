@@ -38,7 +38,8 @@
       "title": "Create your account.",
       "submit": "Create account",
       "hasAccount": "Already have an account?",
-      "signInLink": "Sign in"
+      "signInLink": "Sign in",
+      "successMessage": "A verification email has been sent to your email address. Please check your inbox to activate your account."
     },
     "forgotPasswordPage": {
       "title": "Forgot password.",
@@ -170,6 +171,7 @@
     "title": "Email verification.",
     "verifying": "Verifying your email...",
     "successTitle": "Email verified!",
+    "successDescription": "Your email has been successfully verified. You can now sign in.",
     "successFallback": "Your email has been verified.",
     "goToSignIn": "Go to sign in",
     "failedTitle": "Verification failed",

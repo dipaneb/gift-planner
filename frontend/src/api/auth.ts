@@ -6,6 +6,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   confirmed_password: string;
+  locale?: string;
 }
 
 export interface LoginRequest {
@@ -45,6 +46,7 @@ export interface RefreshResponse {
 
 export interface ForgotPasswordRequest {
   email: string;
+  locale?: string;
 }
 
 export interface ResetPasswordRequest {
@@ -78,7 +80,14 @@ export const authApi = {
    * @returns Promise with success message
    */
   async register(data: RegisterRequest): Promise<RegisterResponse> {
-    const response = await api.post<RegisterResponse>("/auth/register", data);
+    const locale = localStorage.getItem("locale") || "fr";
+    const response = await api.post<RegisterResponse>(
+      "/auth/register",
+      { ...data, locale },
+      {
+        headers: { "Accept-Language": locale },
+      },
+    );
     return response.data;
   },
 
@@ -121,7 +130,14 @@ export const authApi = {
    * @param data - Email address for password reset
    */
   async forgotPassword(data: ForgotPasswordRequest): Promise<void> {
-    await api.post("/auth/forgot-password", data);
+    const locale = localStorage.getItem("locale") || "fr";
+    await api.post(
+      "/auth/forgot-password",
+      { ...data, locale },
+      {
+        headers: { "Accept-Language": locale },
+      },
+    );
   },
 
   /**

@@ -38,7 +38,8 @@
       "title": "Créez votre compte.",
       "submit": "Créer un compte",
       "hasAccount": "Vous avez déjà un compte ?",
-      "signInLink": "Se connecter"
+      "signInLink": "Se connecter",
+      "successMessage": "Un e-mail de vérification a été envoyé à votre adresse e-mail. Veuillez vérifier votre boîte de réception pour activer votre compte."
     },
     "forgotPasswordPage": {
       "title": "Mot de passe oublié.",
@@ -170,6 +171,7 @@
     "title": "Vérification de l'e-mail.",
     "verifying": "Vérification de votre e-mail en cours...",
     "successTitle": "E-mail vérifié !",
+    "successDescription": "Votre e-mail a été vérifié avec succès. Vous pouvez maintenant vous connecter.",
     "successFallback": "Votre e-mail a été vérifié.",
     "goToSignIn": "Aller à la connexion",
     "failedTitle": "Échec de la vérification",
