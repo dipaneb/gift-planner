@@ -27,21 +27,23 @@ def signup_user(
 ):
     email_job = service.register_user(user_create, getattr(user_create, 'locale', None))
     
-    mailjet_client = MailJetClient(settings.MAILJET_API_KEY, settings.MAILJET_API_SECRET_KEY)
-    background_tasks.add_task(
-        mailjet_client.send_email,
-        from_email=settings.MAIL_FROM_EMAIL,
-        from_name=settings.MAIL_FROM_NAME,
-        to_email=email_job["to_email"],
-        to_name=email_job["to_name"],
-        subject=email_job["subject"],
-        html=email_job["html"],
-        text=email_job["text"],
-    )
+    if email_job:
+        mailjet_client = MailJetClient(settings.MAILJET_API_KEY, settings.MAILJET_API_SECRET_KEY)
+        background_tasks.add_task(
+            mailjet_client.send_email,
+            from_email=settings.MAIL_FROM_EMAIL,
+            from_name=settings.MAIL_FROM_NAME,
+            to_email=email_job["to_email"],
+            to_name=email_job["to_name"],
+            subject=email_job["subject"],
+            html=email_job["html"],
+            text=email_job["text"],
+        )
     
+    # Always send the same response to avoid email enumeration.
     return {
         "success": True,
-        "message": "Registration successful. Please check your email to verify your account."
+        "message": "If the email is not already in use, a verification link was sent."
     }
 
 

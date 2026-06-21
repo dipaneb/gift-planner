@@ -22,6 +22,9 @@ logger = logging.getLogger("api.auth")
 
 settings = get_settings()
 
+# Cooldown period in seconds before resending verification email (5 minutes)
+VERIFICATION_EMAIL_COOLDOWN_SECONDS = 300
+
 
 class AuthService:
     def __init__(
@@ -55,15 +58,78 @@ class AuthService:
     # ===================
     # Register/Login
     # ===================
-    def register_user(self, user_create: UserCreate, locale: str | None = None) -> dict:
+    def register_user(self, user_create: UserCreate, locale: str | None = None) -> dict | None:
         """
         Create user account and return email information for sending verification email.
-        Returns dict with email details for BackgroundTasks.
+        Returns dict with email details for BackgroundTasks, or None if email already exists and is verified.
+        If email exists but is unverified, resends verification email with cooldown to prevent email bombing.
+        To prevent email enumeration, always returns success from the endpoint.
         """
         existing = self.user_repo.get_by_email(user_create.email)
         if existing:
-            logger.warning("Registration attempt with existing email: %s", user_create.email)
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already in use.")
+            if existing.is_verified:
+                # Email already exists and is verified - don't send email to prevent enumeration
+                logger.warning("Registration attempt with existing verified email: %s", user_create.email)
+                return None
+            else:
+                # Email exists but is not verified - check cooldown before resending
+                now = datetime.now(timezone.utc)
+                # Use verification_token_expires_at to calculate cooldown
+                # Allow resend if token is expired or less than cooldown time remaining
+                if existing.verification_token_expires_at:
+                    # Ensure token_expires_at is timezone-aware
+                    token_expires_at = existing.verification_token_expires_at
+                    if token_expires_at.tzinfo is None:
+                        token_expires_at = token_expires_at.replace(tzinfo=timezone.utc)
+                    
+                    token_created_at = existing.verification_token_expires_at - timedelta(hours=settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
+                    
+                    if token_created_at.tzinfo is None:
+                        token_created_at = token_created_at.replace(tzinfo=timezone.utc)
+                    
+                    cooldown_ends_at = token_created_at + timedelta(seconds=VERIFICATION_EMAIL_COOLDOWN_SECONDS)
+
+                    # Allow resend if current time is after cooldown ends.
+                    can_resend = now > cooldown_ends_at
+                else:
+                    # No expiration time set, allow resend
+                    can_resend = True
+                
+                if not can_resend:
+                    # Cooldown period not over - don't send email to prevent bombing
+                    remaining_seconds = int((cooldown_ends_at - now).total_seconds())
+                    logger.info("Verification email cooldown for %s. %d seconds remaining.", user_create.email, remaining_seconds)
+                    return None
+                
+                # Cooldown over - generate new verification token and invalidate old one
+                logger.info("Resending verification email for unverified account: %s", user_create.email)
+                
+                raw_token = uuid.uuid4().hex
+                token_fingerprint = get_verification_token_fingerprint(raw_token)
+                token_hash = hash_verification_token(raw_token)
+                expires_at = now + timedelta(hours=settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
+                
+                self.user_repo.set_verification_token(existing.id, token_fingerprint, token_hash, expires_at)
+
+                # Build verification link with locale parameter
+                locale_param = f"&locale={locale}" if locale else ""
+                verification_link = f"{settings.FRONTEND_BASE_URL}/verify-email?token={raw_token}{locale_param}"
+                
+                # Get email template based on locale
+                email_locale = locale if locale in ["en", "fr"] else "en"
+                template = get_email_template("register", email_locale)
+                
+                subject = template["subject"]
+                html = template["html"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
+                text = template["text"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
+                
+                return {
+                    "to_email": existing.email,
+                    "to_name": existing.name or "User",
+                    "subject": subject,
+                    "html": html,
+                    "text": text,
+                }
 
         hashed_password = get_password_hash(user_create.password)  
         user = User(

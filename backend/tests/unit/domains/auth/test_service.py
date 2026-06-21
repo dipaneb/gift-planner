@@ -66,21 +66,23 @@ class TestAuthServiceRegisterUser:
         created_user = user_repo.get_by_email(valid_user_data["email"])
         assert verify_password(valid_user_data["password"], created_user.password_hash)
     
-    def test_register_user_duplicate_email_raises_409(self, db_session, sample_user, valid_user_data):
+    def test_register_user_duplicate_verified_email_returns_none(self, db_session, sample_user, valid_user_data):
         user_repo = UserRepository(db_session)
         refresh_repo = RefreshTokenRepository(db_session)
         reset_password_repo = ResetPasswordRepository(db_session)
         service = AuthService(user_repo, refresh_repo, reset_password_repo)
         
+        # Ensure sample_user is verified
+        sample_user.is_verified = True
+        db_session.commit()
+        
         duplicate_data = valid_user_data.copy()
         duplicate_data["email"] = sample_user.email
         user_create = UserCreate(**duplicate_data)
         
-        with pytest.raises(HTTPException) as exc_info:
-            service.register_user(user_create)
+        result = service.register_user(user_create)
         
-        assert exc_info.value.status_code == 409
-        assert "already in use" in exc_info.value.detail.lower()
+        assert result is None
     
     def test_register_user_duplicate_detection_case_insensitive(self, db_session, sample_user, valid_user_data):
         user_repo = UserRepository(db_session)
@@ -88,15 +90,17 @@ class TestAuthServiceRegisterUser:
         reset_password_repo = ResetPasswordRepository(db_session)
         service = AuthService(user_repo, refresh_repo, reset_password_repo)
         
+        # Ensure sample_user is verified
+        sample_user.is_verified = True
+        db_session.commit()
+        
         duplicate_data = valid_user_data.copy()
         duplicate_data["email"] = sample_user.email.upper()
         user_create = UserCreate(**duplicate_data)
         
-        with pytest.raises(HTTPException) as exc_info:
-            service.register_user(user_create)
+        result = service.register_user(user_create)
         
-        assert exc_info.value.status_code == 409
-        assert "already in use" in exc_info.value.detail.lower()
+        assert result is None
     
     def test_register_user_normalizes_email_to_lowercase(self, db_session):
         user_repo = UserRepository(db_session)
@@ -115,6 +119,82 @@ class TestAuthServiceRegisterUser:
         created_user = user_repo.get_by_email("newuser@example.com")
         assert created_user is not None
         assert created_user.email == "newuser@example.com"
+    
+    def test_register_user_unverified_resends_email_after_cooldown(self, db_session):
+        from datetime import datetime, timezone, timedelta
+        from src.domains.auth.service import VERIFICATION_EMAIL_COOLDOWN_SECONDS
+        
+        user_repo = UserRepository(db_session)
+        refresh_repo = RefreshTokenRepository(db_session)
+        reset_password_repo = ResetPasswordRepository(db_session)
+        service = AuthService(user_repo, refresh_repo, reset_password_repo)
+        
+        # Create an unverified user with token exactly at cooldown threshold
+        user = User(
+            email="unverified@example.com",
+            password_hash="hashed_password",
+            name="Unverified User",
+            is_verified=False,
+            verification_token_expires_at=datetime.now(timezone.utc) + timedelta(seconds=VERIFICATION_EMAIL_COOLDOWN_SECONDS)
+        )
+        created_user = user_repo.create(user)
+        old_token = created_user.verification_token_hash
+        
+        # Try to register again with same email
+        user_create = UserCreate(
+            email="unverified@example.com",
+            password="NewPassword123!",
+            confirmed_password="NewPassword123!",
+            name="New Name"
+        )
+        
+        result = service.register_user(user_create)
+        
+        # Should return email job (cooldown threshold reached)
+        assert result is not None
+        assert result["to_email"] == "unverified@example.com"
+        assert "verify" in result["html"].lower()
+        
+        # Token should be updated
+        updated_user = user_repo.get_by_email("unverified@example.com")
+        assert updated_user.verification_token_hash != old_token
+    
+    def test_register_user_unverified_respects_cooldown(self, db_session):
+        from datetime import datetime, timezone, timedelta
+        from src.domains.auth.service import VERIFICATION_EMAIL_COOLDOWN_SECONDS
+        
+        user_repo = UserRepository(db_session)
+        refresh_repo = RefreshTokenRepository(db_session)
+        reset_password_repo = ResetPasswordRepository(db_session)
+        service = AuthService(user_repo, refresh_repo, reset_password_repo)
+        
+        # Create an unverified user with token far from expiration (cooldown active)
+        user = User(
+            email="unverified@example.com",
+            password_hash="hashed_password",
+            name="Unverified User",
+            is_verified=False,
+            verification_token_expires_at=datetime.now(timezone.utc) + timedelta(seconds=VERIFICATION_EMAIL_COOLDOWN_SECONDS + 1)
+        )
+        created_user = user_repo.create(user)
+        old_token = created_user.verification_token_hash
+        
+        # Try to register again with same email
+        user_create = UserCreate(
+            email="unverified@example.com",
+            password="NewPassword123!",
+            confirmed_password="NewPassword123!",
+            name="New Name"
+        )
+        
+        result = service.register_user(user_create)
+        
+        # Should return None (cooldown active - token still valid for more than cooldown time)
+        assert result is None
+        
+        # Token should NOT be updated
+        updated_user = user_repo.get_by_email("unverified@example.com")
+        assert updated_user.verification_token_hash == old_token
     
     def test_register_user_calls_repository_methods(self, valid_user_data):
         mock_user_repo = Mock()
@@ -170,7 +250,8 @@ class TestAuthServiceRegisterUser:
         existing_user = User(
             email=valid_user_data["email"],
             password_hash="existing_hash",
-            name="Existing"
+            name="Existing",
+            is_verified=True
         )
         mock_user_repo.get_by_email.return_value = existing_user
         
@@ -179,9 +260,9 @@ class TestAuthServiceRegisterUser:
         service = AuthService(mock_user_repo, mock_refresh_repo, mock_reset_password_repo)
         user_create = UserCreate(**valid_user_data)
         
-        with pytest.raises(HTTPException):
-            service.register_user(user_create)
+        result = service.register_user(user_create)
         
+        assert result is None
         mock_user_repo.get_by_email.assert_called_once()
         mock_user_repo.create.assert_not_called()
 

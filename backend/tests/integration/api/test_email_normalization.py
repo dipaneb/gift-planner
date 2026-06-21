@@ -24,7 +24,9 @@ class TestEmailNormalizationIntegration:
         assert created_user is not None
         assert created_user.email == "mixedcase@example.com"
     
-    def test_register_duplicate_email_case_insensitive(self, client):
+    def test_register_duplicate_email_case_insensitive(self, client, db_session):
+        from src.domains.users.repository import UserRepository
+        
         user_data = {
             "email": "duplicate@example.com",
             "password": "SecurePass123!",
@@ -35,6 +37,12 @@ class TestEmailNormalizationIntegration:
         response1 = client.post("/auth/register", json=user_data)
         assert response1.status_code == 201
         
+        # Verify the first user
+        user_repo = UserRepository(db_session)
+        user = user_repo.get_by_email("duplicate@example.com")
+        user.is_verified = True
+        db_session.commit()
+        
         duplicate_data = {
             "email": "DUPLICATE@EXAMPLE.COM",
             "password": "DifferentPass123!",
@@ -43,10 +51,14 @@ class TestEmailNormalizationIntegration:
         }
         
         response2 = client.post("/auth/register", json=duplicate_data)
-        assert response2.status_code == 409
-        assert "already in use" in response2.json()["detail"].lower()
+        assert response2.status_code == 201
+        data = response2.json()
+        assert data["success"] is True
+        assert "message" in data
     
-    def test_register_prevents_duplicate_with_mixed_case_variations(self, client):
+    def test_register_prevents_duplicate_with_mixed_case_variations(self, client, db_session):
+        from src.domains.users.repository import UserRepository
+        
         variations = [
             "test@example.com",
             "Test@example.com",
@@ -63,6 +75,12 @@ class TestEmailNormalizationIntegration:
         response = client.post("/auth/register", json=first_data)
         assert response.status_code == 201
         
+        # Verify the first user
+        user_repo = UserRepository(db_session)
+        user = user_repo.get_by_email("test@example.com")
+        user.is_verified = True
+        db_session.commit()
+        
         for email in variations[1:]:
             duplicate_data = {
                 "email": email,
@@ -71,4 +89,7 @@ class TestEmailNormalizationIntegration:
                 "name": "Duplicate Attempt"
             }
             response = client.post("/auth/register", json=duplicate_data)
-            assert response.status_code == 409, f"Failed to reject duplicate email: {email}"
+            assert response.status_code == 201, f"Failed to handle duplicate email: {email}"
+            data = response.json()
+            assert data["success"] is True
+            assert "message" in data

@@ -64,9 +64,7 @@ export function useAuth() {
       const response = await authStore.register(data);
       return { success: true, message: response.message };
     } catch (err) {
-      error.value = getErrorMessage(err, t("errors.registrationFailed"), {
-        409: t("errors.emailAlreadyInUse"),
-      });
+      error.value = getErrorMessage(err, t("errors.registrationFailed"));
       return { success: false };
     } finally {
       loading.value = false;

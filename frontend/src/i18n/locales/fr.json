@@ -39,7 +39,7 @@
       "submit": "Créer un compte",
       "hasAccount": "Vous avez déjà un compte ?",
       "signInLink": "Se connecter",
-      "successMessage": "Un e-mail de vérification a été envoyé à votre adresse e-mail. Veuillez vérifier votre boîte de réception pour activer votre compte."
+      "successMessage": "Si l'adresse e-mail n'est pas déjà utilisée, un lien de vérification a été envoyé."
     },
     "forgotPasswordPage": {
       "title": "Mot de passe oublié.",
@@ -235,7 +235,6 @@
     "deleteBudget": "Échec de la suppression du budget",
     "invalidCredentials": "Adresse e-mail ou mot de passe invalide.",
     "emailNotVerified": "Veuillez vérifier votre e-mail avant de vous connecter.",
-    "emailAlreadyInUse": "Cette adresse e-mail est déjà utilisée.",
     "invalidOrExpiredToken": "Ce lien est invalide ou a expiré."
   }
 }

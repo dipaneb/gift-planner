@@ -11,7 +11,6 @@ class TestRegisterEndpoint:
         data = response.json()
         assert data["success"] is True
         assert "message" in data
-        assert "verify" in data["message"].lower()
     
     def test_register_success_without_name(self, client, valid_user_data_no_name):
         response = client.post("/auth/register", json=valid_user_data_no_name)
@@ -21,15 +20,32 @@ class TestRegisterEndpoint:
         assert data["success"] is True
         assert "message" in data
     
-    def test_register_duplicate_email_returns_409(self, client, valid_user_data):
+    def test_register_duplicate_email_returns_success(self, client, valid_user_data, db_session):
+        from src.domains.users.repository import UserRepository
+        
         response1 = client.post("/auth/register", json=valid_user_data)
         assert response1.status_code == 201
         
+        # Verify the first user
+        user_repo = UserRepository(db_session)
+        user = user_repo.get_by_email(valid_user_data["email"])
+        user.is_verified = True
+        db_session.commit()
+        
         response2 = client.post("/auth/register", json=valid_user_data)
-        assert response2.status_code == 409
-        assert "already in use" in response2.json()["detail"].lower()
+        assert response2.status_code == 201
+        data = response2.json()
+        assert data["success"] is True
+        assert "message" in data
     
-    def test_register_duplicate_email_with_existing_user(self, client, sample_user):
+    def test_register_duplicate_email_with_existing_user(self, client, sample_user, db_session):
+        from src.domains.users.repository import UserRepository
+        
+        # Ensure sample_user is verified
+        user_repo = UserRepository(db_session)
+        sample_user.is_verified = True
+        db_session.commit()
+        
         user_data = {
             "email": sample_user.email,
             "password": "NewPassword123!",
@@ -38,7 +54,10 @@ class TestRegisterEndpoint:
         }
         
         response = client.post("/auth/register", json=user_data)
-        assert response.status_code == 409
+        assert response.status_code == 201
+        data = response.json()
+        assert data["success"] is True
+        assert "message" in data
     
     def test_register_invalid_email_returns_422(self, client):
         user_data = {
@@ -210,3 +229,41 @@ class TestRegisterEndpoint:
         created_user = repo.get_by_email("longpass@example.com")
         assert created_user is not None
         assert verify_password(long_password, created_user.password_hash)
+    
+    def test_register_resends_verification_for_unverified_after_cooldown(self, client, db_session):
+        from datetime import datetime, timezone, timedelta
+        from src.domains.users.repository import UserRepository
+        from src.domains.auth.service import VERIFICATION_EMAIL_COOLDOWN_SECONDS
+        
+        user_data = {
+            "email": "resend@example.com",
+            "password": "SecurePass123!",
+            "confirmed_password": "SecurePass123!",
+            "name": "Test User"
+        }
+        
+        # First registration
+        response1 = client.post("/auth/register", json=user_data)
+        assert response1.status_code == 201
+        
+        repo = UserRepository(db_session)
+        user = repo.get_by_email("resend@example.com")
+        assert user is not None
+        assert user.is_verified is False
+        
+        old_token = user.verification_token_hash
+        
+        # Manually set verification_token_expires_at to simulate cooldown threshold
+        user.verification_token_expires_at = datetime.now(timezone.utc) + timedelta(seconds=VERIFICATION_EMAIL_COOLDOWN_SECONDS)
+        db_session.commit()
+        
+        # Try to register again
+        response2 = client.post("/auth/register", json=user_data)
+        assert response2.status_code == 201
+        data = response2.json()
+        assert data["success"] is True
+        assert "message" in data
+        
+        # Token should be updated
+        db_session.refresh(user)
+        assert user.verification_token_hash != old_token

@@ -39,7 +39,7 @@
       "submit": "Create account",
       "hasAccount": "Already have an account?",
       "signInLink": "Sign in",
-      "successMessage": "A verification email has been sent to your email address. Please check your inbox to activate your account."
+      "successMessage": "If the email is not already in use, a verification link was sent."
     },
     "forgotPasswordPage": {
       "title": "Forgot password.",
@@ -235,7 +235,6 @@
     "deleteBudget": "Failed to delete budget",
     "invalidCredentials": "Invalid email or password.",
     "emailNotVerified": "Please verify your email before logging in.",
-    "emailAlreadyInUse": "This email address is already in use.",
     "invalidOrExpiredToken": "This link is invalid or has expired."
   }
 }
