@@ -43,6 +43,8 @@
             </UInput>
           </UFormField>
 
+          <PasswordStrength :password="state.password" />
+
           <UFormField :label="t('auth.confirmPassword')" name="confirmed_password" required>
             <UInput
               v-model="state.confirmed_password"
@@ -98,6 +100,7 @@ import type { FormSubmitEvent } from "@nuxt/ui";
 
 import { useAuth } from "@/composables/useAuth";
 import LanguageSelector from "@/components/LanguageSelector.vue";
+import PasswordStrength from "@/components/PasswordStrengthIndicator.vue";
 
 const { t, locale } = useI18n();
 const { resetPassword, loading, error } = useAuth();

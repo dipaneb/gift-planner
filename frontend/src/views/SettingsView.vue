@@ -107,32 +107,7 @@
           />
         </UFormField>
 
-        <div v-if="passwordForm.new_password" :style="{ '--pw-color': newPasswordColorValue }">
-          <UProgress
-            :model-value="newPasswordScore"
-            :max="5"
-            :indicator="newPasswordText"
-            size="sm"
-            :ui="{ indicator: 'bg-[var(--pw-color)] transition-[background-color] duration-300' }"
-          />
-          <p class="text-xs pb-0.5 pt-2">
-            {{ newPasswordText }}. {{ t("auth.passwordStrength.mustContain") }}
-          </p>
-          <ul class="space-y-1">
-            <li
-              v-for="(req, index) in newPasswordRequirements"
-              :key="index"
-              class="flex items-center gap-0.5"
-              :class="req.met ? 'text-success' : 'text-muted'"
-            >
-              <UIcon
-                :name="req.met ? 'i-lucide-circle-check' : 'i-lucide-circle-x'"
-                class="size-4 shrink-0"
-              />
-              <span class="text-xs">&nbsp;{{ req.text }}</span>
-            </li>
-          </ul>
-        </div>
+        <PasswordStrength :password="passwordForm.new_password" />
 
         <UFormField :label="t('settings.confirmNewPassword')" name="confirmed_password" required>
           <UInput
@@ -159,6 +134,7 @@ import type { FormSubmitEvent } from "@nuxt/ui";
 import { useAuthStore } from "@/stores/auth";
 import { usersApi } from "@/api/users";
 import { getErrorMessage } from "@/composables/utils";
+import PasswordStrength from "@/components/PasswordStrengthIndicator.vue";
 
 const { t } = useI18n();
 const authStore = useAuthStore();
@@ -205,55 +181,6 @@ const passwordForm = reactive<Partial<PasswordSchema>>({
   current_password: "",
   new_password: "",
   confirmed_password: "",
-});
-
-const newPasswordRequirements = computed(() => {
-  const password = passwordForm.new_password || "";
-  return [
-    {
-      regex: /.{8,}/,
-      text: t("auth.passwordStrength.requirement8Chars"),
-      met: /.{8,}/.test(password),
-    },
-    { regex: /\d/, text: t("auth.passwordStrength.requirement1Number"), met: /\d/.test(password) },
-    {
-      regex: /[a-z]/,
-      text: t("auth.passwordStrength.requirement1Lowercase"),
-      met: /[a-z]/.test(password),
-    },
-    {
-      regex: /[A-Z]/,
-      text: t("auth.passwordStrength.requirement1Uppercase"),
-      met: /[A-Z]/.test(password),
-    },
-    {
-      regex: /[^A-Za-z0-9\s]/,
-      text: t("auth.passwordStrength.requirement1Special"),
-      met: /[^A-Za-z0-9\s]/.test(password),
-    },
-  ];
-});
-
-const newPasswordScore = computed(() => {
-  return newPasswordRequirements.value.filter((req) => req.met).length;
-});
-
-const newPasswordColorValue = computed(() => {
-  const score = newPasswordScore.value;
-  if (score === 0) return "oklch(55% 0 0)";
-  if (score === 1) return "oklch(55% 0.2 25)";
-  if (score === 2) return "oklch(65% 0.18 50)";
-  if (score === 3) return "oklch(75% 0.15 85)";
-  if (score === 4) return "oklch(75% 0.16 110)";
-  return "oklch(75% 0.19 145)";
-});
-
-const newPasswordText = computed(() => {
-  const score = newPasswordScore.value;
-  if (score === 0) return t("auth.passwordStrength.enterPassword");
-  if (score <= 2) return t("auth.passwordStrength.weakPassword");
-  if (score <= 3) return t("auth.passwordStrength.mediumPassword");
-  return t("auth.passwordStrength.strongPassword");
 });
 
 const cancelEditName = () => {
