@@ -18,7 +18,7 @@
       </template>
 
       <template #body>
-        <UNavigationMenu :items="navItems" variant="link" class="flex lg:hidden" />
+        <UNavigationMenu :items="navItems" orientation="vertical" class="lg:hidden" />
       </template>
     </UHeader>
 

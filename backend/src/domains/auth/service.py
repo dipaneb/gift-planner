@@ -120,8 +120,8 @@ class AuthService:
                 template = get_email_template("register", email_locale)
                 
                 subject = template["subject"]
-                html = template["html"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
-                text = template["text"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
+                html = template["html"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS, existing.name or "")
+                text = template["text"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS, existing.name or "")
                 
                 return {
                     "to_email": existing.email,
@@ -156,8 +156,8 @@ class AuthService:
         template = get_email_template("register", email_locale)
         
         subject = template["subject"]
-        html = template["html"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
-        text = template["text"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
+        html = template["html"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS, created_user.name or "")
+        text = template["text"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS, created_user.name or "")
 
         logger.info("New user registered (unverified): %s", created_user.id)
         
@@ -332,8 +332,8 @@ class AuthService:
         template = get_email_template("reset_password", email_locale)
         
         subject = template["subject"]
-        html = template["html"](link, settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES)
-        text = template["text"](link, settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES)
+        html = template["html"](link, settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES, user.name or "")
+        text = template["text"](link, settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES, user.name or "")
 
         return {
             "to_email": user.email,

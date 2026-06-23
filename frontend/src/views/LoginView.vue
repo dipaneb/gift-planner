@@ -1,7 +1,17 @@
 <template>
-  <div class="flex h-screen">
-    <div class="flex-1" />
-    <div class="flex flex-1 flex-col items-center justify-center gap-10 relative">
+  <div class="h-screen relative">
+    <!-- <div class="flex h-screen"> -->
+    <!-- <div class="flex-1" /> -->
+    <AuroraBackground
+      :color-stops="['#f4fff8', '#ccffe0', '#f4fff8']"
+      :blend="0.18"
+      :amplitude="0.5"
+      :speed="0.5"
+      height="8rem"
+      class="absolute top-0 left-0 right-0 -z-10"
+    />
+    <!-- <div class="flex flex-1 flex-col items-center justify-center gap-10 relative"> -->
+    <div class="flex flex-col items-center justify-center gap-10 relative h-full">
       <div class="absolute top-4 right-4">
         <LanguageSelector />
       </div>
@@ -82,6 +92,7 @@ import type { FormSubmitEvent } from "@nuxt/ui";
 
 import { useAuth } from "@/composables/useAuth";
 import LanguageSelector from "@/components/LanguageSelector.vue";
+import AuroraBackground from "@/components/AuroraBackground.vue";
 
 const route = useRoute();
 const { t } = useI18n();
