@@ -2,6 +2,7 @@
   <div class="h-screen relative">
     <AuroraBackground
       :color-stops="['#f4fff8', '#ccffe0', '#f4fff8']"
+      :color-stops-dark="['#0a1f12', '#0d3d1f', '#0a1f12']"
       :blend="0.18"
       :amplitude="0.5"
       :speed="0.5"

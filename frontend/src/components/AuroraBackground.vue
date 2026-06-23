@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import { Color, Mesh, Program, Renderer, Triangle } from "ogl";
-import { onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 
 const VERT = `#version 300 es
 in vec2 position;
@@ -114,6 +114,7 @@ void main() {
 
 interface AuroraProps {
   colorStops?: string[];
+  colorStopsDark?: string[];
   amplitude?: number;
   blend?: number;
   time?: number;
@@ -123,6 +124,7 @@ interface AuroraProps {
 
 const props = withDefaults(defineProps<AuroraProps>(), {
   colorStops: () => ["#171D22", "#7cff67", "#171D22"],
+  colorStopsDark: () => ["#0f1a15", "#1a4d30", "#0f1a15"],
   amplitude: 1.0,
   blend: 0.5,
   speed: 1.0,
@@ -131,12 +133,31 @@ const props = withDefaults(defineProps<AuroraProps>(), {
 
 const ctnDom = ref<HTMLDivElement | null>(null);
 
+const isDark = ref(false);
+
+const checkDarkMode = () => {
+  isDark.value = document.documentElement.classList.contains("dark");
+};
+
+const currentColorStops = computed(() => (isDark.value ? props.colorStopsDark : props.colorStops));
+
 let animateId = 0;
 let renderer: InstanceType<typeof Renderer> | null = null;
 let program: InstanceType<typeof Program> | null = null;
 let resizeHandler: (() => void) | null = null;
+let mutationObserver: MutationObserver | null = null;
 
 onMounted(() => {
+  checkDarkMode();
+
+  // Watch for class changes on html element to detect dark mode toggle
+  mutationObserver = new MutationObserver(() => {
+    checkDarkMode();
+  });
+  mutationObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
   const ctn = ctnDom.value;
   if (!ctn) return;
 
@@ -169,7 +190,7 @@ onMounted(() => {
     delete geometry.attributes.uv;
   }
 
-  const colorStopsArray = props.colorStops.map((hex: string) => {
+  const colorStopsArray = currentColorStops.value.map((hex: string) => {
     const c = new Color(hex);
     return [c.r, c.g, c.b];
   });
@@ -198,9 +219,7 @@ onMounted(() => {
       program.uniforms.uTime.value = time * speed * 0.1;
       program.uniforms.uAmplitude.value = props.amplitude ?? 1.0;
       program.uniforms.uBlend.value = props.blend ?? 0.5;
-      program.uniforms.uColorStops.value = (
-        props.colorStops ?? ["#171D22", "#7cff67", "#171D22"]
-      ).map((hex: string) => {
+      program.uniforms.uColorStops.value = currentColorStops.value.map((hex: string) => {
         const c = new Color(hex);
         return [c.r, c.g, c.b];
       });
@@ -210,12 +229,24 @@ onMounted(() => {
 
   animateId = requestAnimationFrame(update);
   resizeHandler();
+
+  watch(isDark, () => {
+    if (program) {
+      program.uniforms.uColorStops.value = currentColorStops.value.map((hex: string) => {
+        const c = new Color(hex);
+        return [c.r, c.g, c.b];
+      });
+    }
+  });
 });
 
 onUnmounted(() => {
   cancelAnimationFrame(animateId);
   if (resizeHandler) {
     window.removeEventListener("resize", resizeHandler);
+  }
+  if (mutationObserver) {
+    mutationObserver.disconnect();
   }
   if (renderer) {
     const ctn = ctnDom.value;
