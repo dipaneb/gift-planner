@@ -123,19 +123,27 @@ class TestAuthServiceRegisterUser:
     def test_register_user_unverified_resends_email_after_cooldown(self, db_session):
         from datetime import datetime, timezone, timedelta
         from src.domains.auth.service import VERIFICATION_EMAIL_COOLDOWN_SECONDS
+        from src.config.settings import get_settings
         
+        settings = get_settings()
         user_repo = UserRepository(db_session)
         refresh_repo = RefreshTokenRepository(db_session)
         reset_password_repo = ResetPasswordRepository(db_session)
         service = AuthService(user_repo, refresh_repo, reset_password_repo)
         
-        # Create an unverified user with token exactly at cooldown threshold
+        # Create an unverified user with token created exactly at cooldown threshold
+        # Token created 5 minutes ago, so cooldown just ended
+        token_created_at = datetime.now(timezone.utc) - timedelta(seconds=VERIFICATION_EMAIL_COOLDOWN_SECONDS)
+        token_expires_at = token_created_at + timedelta(hours=settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
+        
         user = User(
             email="unverified@example.com",
             password_hash="hashed_password",
             name="Unverified User",
             is_verified=False,
-            verification_token_expires_at=datetime.now(timezone.utc) + timedelta(seconds=VERIFICATION_EMAIL_COOLDOWN_SECONDS)
+            verification_token_hash="old_token_hash",
+            verification_token_fingerprint="old_fingerprint",
+            verification_token_expires_at=token_expires_at
         )
         created_user = user_repo.create(user)
         old_token = created_user.verification_token_hash
@@ -162,19 +170,27 @@ class TestAuthServiceRegisterUser:
     def test_register_user_unverified_respects_cooldown(self, db_session):
         from datetime import datetime, timezone, timedelta
         from src.domains.auth.service import VERIFICATION_EMAIL_COOLDOWN_SECONDS
+        from src.config.settings import get_settings
         
+        settings = get_settings()
         user_repo = UserRepository(db_session)
         refresh_repo = RefreshTokenRepository(db_session)
         reset_password_repo = ResetPasswordRepository(db_session)
         service = AuthService(user_repo, refresh_repo, reset_password_repo)
         
-        # Create an unverified user with token far from expiration (cooldown active)
+        # Create an unverified user with token created recently (cooldown active)
+        # Token created 1 minute ago, so cooldown ends in 4 minutes
+        token_created_at = datetime.now(timezone.utc) - timedelta(minutes=1)
+        token_expires_at = token_created_at + timedelta(hours=settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
+        
         user = User(
             email="unverified@example.com",
             password_hash="hashed_password",
             name="Unverified User",
             is_verified=False,
-            verification_token_expires_at=datetime.now(timezone.utc) + timedelta(seconds=VERIFICATION_EMAIL_COOLDOWN_SECONDS + 1)
+            verification_token_hash="old_token_hash",
+            verification_token_fingerprint="old_fingerprint",
+            verification_token_expires_at=token_expires_at
         )
         created_user = user_repo.create(user)
         old_token = created_user.verification_token_hash

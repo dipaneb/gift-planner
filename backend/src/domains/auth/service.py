@@ -54,6 +54,14 @@ class AuthService:
             spent=spent,
             remaining=remaining,
         )
+
+    def _generate_dummy_token_for_timing(self) -> None:
+        """
+        Generate and hash a dummy token to prevent timing attacks.
+        This ensures constant timing across different code paths.
+        """
+        dummy_token = uuid.uuid4().hex
+        hash_verification_token(dummy_token)
         
     # ===================
     # Register/Login
@@ -64,11 +72,14 @@ class AuthService:
         Returns dict with email details for BackgroundTasks, or None if email already exists and is verified.
         If email exists but is unverified, resends verification email with cooldown to prevent email bombing.
         To prevent email enumeration, always returns success from the endpoint.
+        To prevent timing attacks, always generates a token hash to maintain constant timing.
         """
         existing = self.user_repo.get_by_email(user_create.email)
         if existing:
             if existing.is_verified:
                 # Email already exists and is verified - don't send email to prevent enumeration
+                # Generate dummy token hash to prevent timing attacks
+                self._generate_dummy_token_for_timing()
                 logger.warning("Registration attempt with existing verified email: %s", user_create.email)
                 return None
             else:
@@ -97,6 +108,8 @@ class AuthService:
                 
                 if not can_resend:
                     # Cooldown period not over - don't send email to prevent bombing
+                    # Generate dummy token hash to prevent timing attacks
+                    self._generate_dummy_token_for_timing()
                     remaining_seconds = int((cooldown_ends_at - now).total_seconds())
                     logger.info("Verification email cooldown for %s. %d seconds remaining.", user_create.email, remaining_seconds)
                     return None
@@ -178,7 +191,19 @@ class AuthService:
         user = self.user_repo.get_by_email(normalized_email)
 
         # Prevent enumeration by raising the same error if user is absent or password is false.
-        if not user or not verify_password(password, user.password_hash):
+        # To prevent timing attacks, always verify password (even with dummy hash if user doesn't exist)
+        if not user:
+            # Use a dummy hash to maintain constant timing
+            dummy_hash = get_password_hash("dummy_password_for_timing_attack_prevention")
+            verify_password(password, dummy_hash)
+            logger.warning("Failed login attempt for email: %s", normalized_email)
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid email or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        if not verify_password(password, user.password_hash):
             logger.warning("Failed login attempt for email: %s", normalized_email)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -302,9 +327,12 @@ class AuthService:
         and return the information needed to send emails (for BackgroundTasks).
     
         Return None if user doesn't exist.
+        To prevent timing attacks, always generates a token hash to maintain constant timing.
         """
         user = self.user_repo.get_by_email(email)
         if not user:
+            # Generate dummy token hash to prevent timing attacks
+            self._generate_dummy_token_for_timing()
             return None
 
         raw_token = uuid.uuid4().hex
