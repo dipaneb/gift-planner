@@ -2,7 +2,9 @@
   <UCard
     as="li"
     class="flex flex-col h-full cursor-pointer hover:ring-1 hover:ring-primary-500 transition-all"
+    tabindex="0"
     @click="goToDetails"
+    @keydown.enter="goToDetails"
   >
     <template #header>
       <div class="flex items-center justify-between">

@@ -98,7 +98,7 @@
           />
         </UFormField>
 
-        <UFormField :label="t('settings.newPasswordLabel')" required>
+        <UFormField :label="t('settings.newPasswordLabel')" name="new_password" required>
           <UInput
             v-model="passwordForm.new_password"
             type="password"

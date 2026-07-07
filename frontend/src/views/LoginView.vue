@@ -48,9 +48,12 @@
               :disabled="loading"
             >
               <template #trailing>
-                <UIcon
-                  :name="isPasswordVisible ? 'i-lucide-eye' : 'i-lucide-eye-closed'"
-                  class="cursor-pointer"
+                <UButton
+                  :icon="isPasswordVisible ? 'i-lucide-eye' : 'i-lucide-eye-closed'"
+                  variant="ghost"
+                  color="neutral"
+                  size="sm"
+                  :aria-label="isPasswordVisible ? t('auth.hidePassword') : t('auth.showPassword')"
                   @click="toggleVisibility"
                 />
               </template>

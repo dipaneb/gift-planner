@@ -77,7 +77,9 @@
       "requirement1Lowercase": "At least 1 lowercase letter",
       "requirement1Uppercase": "At least 1 uppercase letter",
       "requirement1Special": "At least 1 special character"
-    }
+    },
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "gifts": {
     "title": "Gifts",
@@ -105,6 +107,7 @@
     "noRecipientsAssigned": "No recipients assigned to this gift.",
     "deleteConfirmTitle": "Delete \"{name}\"?",
     "deleteConfirmDescription": "This action cannot be undone.",
+    "icon": "Gift icon",
     "namePlaceholder": "e.g. Canon EOS R50",
     "nameEditPlaceholder": "e.g. Book",
     "sort": {

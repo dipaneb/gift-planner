@@ -1,5 +1,5 @@
 <template>
-  <div ref="ctnDom" class="aurora-container" :style="{ height: props.height }" />
+  <div ref="ctnDom" class="aurora-container" :style="{ height: props.height }" aria-hidden="true" />
 </template>
 
 <script setup lang="ts">

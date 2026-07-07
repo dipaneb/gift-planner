@@ -29,6 +29,7 @@
               :to="gift.url"
               external
               target="_blank"
+              rel="noopener noreferrer"
               icon="i-lucide-external-link"
               color="primary"
               variant="link"

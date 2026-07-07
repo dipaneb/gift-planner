@@ -5,7 +5,11 @@
       :variant="modelValue === null ? 'subtle' : 'soft'"
       size="lg"
       class="rounded-full cursor-pointer"
+      role="button"
+      tabindex="0"
+      :aria-pressed="modelValue === null"
       @click="$emit('update:modelValue', null)"
+      @keydown.enter="$emit('update:modelValue', null)"
     >
       {{ t("common.all") }}
     </UBadge>
@@ -16,7 +20,11 @@
       :variant="modelValue === key ? 'subtle' : 'soft'"
       size="lg"
       class="rounded-full cursor-pointer"
+      role="button"
+      tabindex="0"
+      :aria-pressed="modelValue === key"
       @click="$emit('update:modelValue', key)"
+      @keydown.enter="$emit('update:modelValue', key)"
     >
       {{ t(`gifts.status_labels.${key}`) }}
     </UBadge>
