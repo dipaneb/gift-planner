@@ -54,13 +54,13 @@
         </template>
       </UCard>
 
-      <footer>
-        <nav class="flex justify-center-safe">
+      <footer class="fixed bottom-0 left-0 w-full flex flex-col items-center justify-center gap-2 py-4 text-center">
+        <nav class="flex items-center gap-2">
           <RouterLink to="/legal-notice">
             {{ t("footer.legalNotice") }}
           </RouterLink>
 
-          •
+          <span aria-hidden="true">•</span>
 
           <RouterLink to="/privacy-policy">
             {{ t("footer.privacyPolicy") }}
