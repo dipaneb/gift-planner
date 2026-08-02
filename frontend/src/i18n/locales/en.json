@@ -239,5 +239,133 @@
     "invalidCredentials": "Invalid email or password.",
     "emailNotVerified": "Please verify your email before logging in.",
     "invalidOrExpiredToken": "This link is invalid or has expired."
+  },
+  "footer": {
+    "legalNotice": "Legal notice",
+    "privacyPolicy": "Privacy policy"
+  },
+  "legalNotice": {
+    "title": "Legal Notice",
+
+    "editor": {
+      "title": "Publisher",
+      "intro": "The Gift Planner website and application are published by:",
+      "name": "Name / Company name",
+      "legalForm": "Legal form",
+      "address": "Address",
+      "siret": "SIRET number",
+      "email": "Email address"
+    },
+
+    "publicationDirector": {
+      "title": "Publication Director"
+    },
+
+    "hosting": {
+      "title": "Hosting",
+      "name": "Hosting provider",
+      "address": "Address",
+      "phone": "Phone number"
+    },
+
+    "intellectualProperty": {
+      "title": "Intellectual Property",
+      "p1": "All elements available on Gift Planner, including texts, graphics, logos, icons, images, illustrations, interfaces, and their organization, are protected by intellectual property laws.",
+      "p2": "Unless otherwise stated, these elements are the exclusive property of the publisher or are used in accordance with the rights granted to them.",
+      "p3": "Any reproduction, representation, modification, publication, adaptation, or exploitation, whether total or partial, of the website or its content, by any means whatsoever, without the prior written authorization of the publisher, is prohibited, except where permitted by applicable law."
+    },
+
+    "liability": {
+      "title": "Liability",
+      "p1": "The publisher makes every effort to ensure the accuracy and regular update of the information published on Gift Planner. However, the publisher cannot guarantee that this information is complete, error-free, or permanently up to date.",
+      "p2": "The service is provided 'as is' and within the limits of applicable law. The publisher shall not be held liable for any direct or indirect damages resulting from the use or inability to use the service, including in the event of temporary interruption, technical malfunction, or data loss caused by an event beyond its control.",
+      "p3": "Users remain responsible for their use of the service and for the information they choose to store within it."
+    },
+
+    "externalLinks": {
+      "title": "External Links",
+      "p1": "The website may contain links to third-party websites. The publisher has no control over their content and shall not be held responsible for the information, products, or services they provide."
+    },
+
+    "applicableLaw": {
+      "title": "Applicable Law",
+      "p1": "These legal notices are governed by French law. In the event of a dispute, and in the absence of an amicable resolution, French courts shall have exclusive jurisdiction, subject to applicable legal provisions."
+    },
+
+    "lastUpdated": "Last updated: {date}"
+  },
+
+  "privacyPolicy": {
+    "title": "Privacy Policy",
+
+    "introduction": {
+      "title": "Introduction",
+      "p1": "This privacy policy explains how Gift Planner collects, uses, and protects users' personal data.",
+      "p2": "Gift Planner is committed to complying with applicable data protection regulations, including the General Data Protection Regulation (GDPR)."
+    },
+
+    "dataController": {
+      "title": "Data Controller",
+      "p1": "The data controller responsible for personal data collected through Gift Planner is:",
+      "email": "Contact for personal data-related requests"
+    },
+
+    "dataCollected": {
+      "title": "Data Collected",
+      "p1": "When using Gift Planner, the following data may be collected:",
+      "account": "Information required to create and manage an account, including email address and authentication information.",
+      "giftLists": "Information related to gifts, lists, and content created by the user within the application.",
+      "technical": "Technical information required for service operation, such as technical logs or connection information."
+    },
+
+    "purposes": {
+      "title": "Purposes of Processing",
+      "p1": "Collected data is used for the following purposes:",
+      "accountManagement": "Create, manage, and secure user accounts.",
+      "serviceProvision": "Provide Gift Planner features and store user data.",
+      "security": "Prevent fraudulent use and ensure service security.",
+      "improvement": "Improve application functionality and reliability."
+    },
+
+    "authentication": {
+      "title": "Authentication",
+      "p1": "Gift Planner uses an authentication system designed to secure access to user accounts.",
+      "p2": "Access tokens are used to authenticate requests. Refresh tokens may be stored in a secure cookie to maintain user sessions."
+    },
+
+    "cookies": {
+      "title": "Cookies",
+      "p1": "Gift Planner only uses cookies required for service operation, including maintaining user authentication.",
+      "p2": "These cookies are not used for advertising or commercial tracking purposes."
+    },
+
+    "storage": {
+      "title": "Data Storage and Security",
+      "p1": "Personal data is stored on secure servers provided by our hosting provider.",
+      "p2": "Gift Planner implements technical and organizational measures designed to protect data against unauthorized access, loss, or alteration."
+    },
+
+    "retention": {
+      "title": "Data Retention",
+      "p1": "Data is retained for as long as necessary to provide the service and comply with applicable legal obligations.",
+      "period": "Retention period"
+    },
+
+    "rights": {
+      "title": "Your Rights",
+      "p1": "Under the GDPR, users have the following rights:",
+      "access": "Right to access their personal data.",
+      "rectification": "Right to correct inaccurate data.",
+      "deletion": "Right to request deletion of personal data.",
+      "restriction": "Right to request restriction of processing.",
+      "portability": "Right to data portability where applicable."
+    },
+
+    "contact": {
+      "title": "Contact",
+      "p1": "For any questions regarding this privacy policy or to exercise your rights, you can contact:"
+    },
+
+    "lastUpdated": "Last updated: {date}"
   }
 }
