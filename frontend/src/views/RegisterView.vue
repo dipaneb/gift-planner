@@ -128,6 +128,22 @@
         </template>
       </UCard>
     </div>
+
+    <footer>
+      <nav>
+        <RouterLink to="/legal-notice">
+          {{ t("footer.legalNotice") }}
+        </RouterLink>
+
+        <RouterLink to="/privacy-policy">
+          {{ t("footer.privacyPolicy") }}
+        </RouterLink>
+      </nav>
+
+      <p>
+        © {{ new Date().getFullYear() }} Gift Planner
+      </p>
+  </footer>
   </div>
 </template>
 

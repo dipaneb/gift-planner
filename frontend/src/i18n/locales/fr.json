@@ -239,5 +239,135 @@
     "invalidCredentials": "Adresse e-mail ou mot de passe invalide.",
     "emailNotVerified": "Veuillez vérifier votre e-mail avant de vous connecter.",
     "invalidOrExpiredToken": "Ce lien est invalide ou a expiré."
+  },
+
+  "footer": {
+    "legalNotice": "Mentions légales",
+    "privacyPolicy": "Politique de confidentialité"
+  },
+
+  "legalNotice": {
+    "title": "Mentions légales",
+
+    "editor": {
+      "title": "Éditeur",
+      "intro": "Le site et l'application Gift Planner sont édités par :",
+      "name": "Nom / Raison sociale",
+      "legalForm": "Forme juridique",
+      "address": "Adresse",
+      "siret": "SIRET",
+      "email": "Adresse électronique"
+    },
+
+    "publicationDirector": {
+      "title": "Directeur de la publication"
+    },
+
+    "hosting": {
+      "title": "Hébergement",
+      "name": "Hébergeur",
+      "address": "Adresse",
+      "phone": "Téléphone"
+    },
+
+    "intellectualProperty": {
+      "title": "Propriété intellectuelle",
+      "p1": "L'ensemble des éléments présents sur Gift Planner, notamment les textes, graphismes, logos, icônes, images, illustrations, interfaces ainsi que leur organisation, sont protégés par les lois relatives à la propriété intellectuelle.",
+      "p2": "Sauf mention contraire, ces éléments sont la propriété exclusive de l'éditeur ou sont utilisés conformément aux droits qui lui ont été concédés.",
+      "p3": "Toute reproduction, représentation, modification, publication, adaptation ou exploitation, totale ou partielle, de tout ou partie du site ou de son contenu, par quelque procédé que ce soit, sans autorisation écrite préalable de l'éditeur, est interdite, sauf dans les cas prévus par la législation en vigueur."
+    },
+
+    "liability": {
+      "title": "Responsabilité",
+      "p1": "L'éditeur met tout en œuvre afin d'assurer l'exactitude et la mise à jour des informations publiées sur Gift Planner. Toutefois, il ne peut garantir que celles-ci soient complètes, exemptes d'erreurs ou constamment à jour.",
+      "p2": "Le service est fourni « en l'état » et dans la limite des dispositions légales applicables. L'éditeur ne saurait être tenu responsable des dommages directs ou indirects résultant de l'utilisation ou de l'impossibilité d'utiliser le service, notamment en cas d'interruption temporaire, de dysfonctionnement technique ou de perte de données imputable à un événement indépendant de sa volonté.",
+      "p3": "L'utilisateur demeure responsable de l'utilisation qu'il fait du service ainsi que des informations qu'il choisit d'y enregistrer."
+    },
+
+    "externalLinks": {
+      "title": "Liens externes",
+      "p1": "Le site peut contenir des liens vers des sites internet tiers. L'éditeur n'exerce aucun contrôle sur leur contenu et ne saurait être tenu responsable des informations, produits ou services qu'ils proposent."
+    },
+
+    "applicableLaw": {
+      "title": "Droit applicable",
+      "p1": "Les présentes mentions légales sont régies par le droit français. En cas de litige, et à défaut de résolution amiable, les juridictions françaises seront seules compétentes, sous réserve des dispositions légales applicables."
+    },
+
+    "lastUpdated": "Dernière mise à jour : {date}"
+  },
+
+  "privacyPolicy": {
+    "title": "Politique de confidentialité",
+
+    "introduction": {
+      "title": "Introduction",
+      "p1": "La présente politique de confidentialité décrit la manière dont Gift Planner collecte, utilise et protège les données personnelles de ses utilisateurs.",
+      "p2": "Gift Planner s'engage à respecter la réglementation applicable en matière de protection des données personnelles, notamment le Règlement Général sur la Protection des Données (RGPD)."
+    },
+
+    "dataController": {
+      "title": "Responsable du traitement",
+      "p1": "Le responsable du traitement des données personnelles collectées via Gift Planner est :",
+      "email": "Contact pour les questions relatives aux données personnelles"
+    },
+
+    "dataCollected": {
+      "title": "Données collectées",
+      "p1": "Dans le cadre de l'utilisation de Gift Planner, les données suivantes peuvent être collectées :",
+      "account": "Informations nécessaires à la création et à la gestion du compte, notamment l'adresse email et les informations d'authentification.",
+      "giftLists": "Informations relatives aux cadeaux, listes et contenus créés par l'utilisateur dans l'application.",
+      "technical": "Informations techniques nécessaires au fonctionnement du service, telles que les journaux techniques ou les informations liées aux connexions."
+    },
+
+    "purposes": {
+      "title": "Finalités du traitement",
+      "p1": "Les données collectées sont utilisées pour les finalités suivantes :",
+      "accountManagement": "Créer, gérer et sécuriser les comptes utilisateurs.",
+      "serviceProvision": "Fournir les fonctionnalités de Gift Planner et permettre la sauvegarde des données utilisateur.",
+      "security": "Prévenir les utilisations frauduleuses et assurer la sécurité du service.",
+      "improvement": "Améliorer le fonctionnement et la fiabilité de l'application."
+    },
+
+    "authentication": {
+      "title": "Authentification",
+      "p1": "Gift Planner utilise un système d'authentification permettant de sécuriser l'accès aux comptes utilisateurs.",
+      "p2": "Les jetons d'accès sont utilisés pour authentifier les requêtes auprès du service. Les jetons de renouvellement peuvent être stockés dans un cookie sécurisé afin de permettre le maintien de la session utilisateur."
+    },
+
+    "cookies": {
+      "title": "Cookies",
+      "p1": "Gift Planner utilise uniquement les cookies nécessaires au fonctionnement du service, notamment pour maintenir l'authentification des utilisateurs.",
+      "p2": "Ces cookies ne sont pas utilisés à des fins publicitaires ou de suivi commercial."
+    },
+
+    "storage": {
+      "title": "Stockage et sécurité des données",
+      "p1": "Les données personnelles sont stockées sur des serveurs sécurisés mis à disposition par notre hébergeur.",
+      "p2": "Gift Planner met en œuvre des mesures techniques et organisationnelles destinées à protéger les données contre l'accès non autorisé, la perte ou la modification."
+    },
+
+    "retention": {
+      "title": "Durée de conservation",
+      "p1": "Les données sont conservées pendant la durée nécessaire à la fourniture du service et conformément aux obligations légales applicables.",
+      "period": "Durée de conservation"
+    },
+
+    "rights": {
+      "title": "Vos droits",
+      "p1": "Conformément au RGPD, les utilisateurs disposent notamment des droits suivants :",
+      "access": "Droit d'accès aux données personnelles les concernant.",
+      "rectification": "Droit de rectification des données inexactes.",
+      "deletion": "Droit à l'effacement des données personnelles.",
+      "restriction": "Droit à la limitation du traitement.",
+      "portability": "Droit à la portabilité des données lorsque les conditions applicables sont remplies."
+    },
+
+    "contact": {
+      "title": "Contact",
+      "p1": "Pour toute question concernant cette politique de confidentialité ou l'exercice de vos droits, vous pouvez contacter :"
+    },
+
+    "lastUpdated": "Dernière mise à jour : {date}"
   }
 }
