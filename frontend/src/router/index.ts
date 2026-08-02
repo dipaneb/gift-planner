@@ -40,6 +40,18 @@ const routes: RouteRecordRaw[] = [
     meta: { guestOnly: true },
   },
   {
+    path: "/legal-notice",
+    name: "legalNotice",
+    component: () => import("@/views/LegalNoticeView.vue"),
+    meta: { guestOnly: false },
+  },
+  {
+    path: "/privacy-policy",
+    name: "privacyPolicy",
+    component: () => import("@/views/PrivacyPolicyView.vue"),
+    meta: { guestOnly: false },
+  },
+  {
     path: "",
     component: () => import("@/layouts/AuthLayout.vue"),
     meta: { requiresAuth: true },
