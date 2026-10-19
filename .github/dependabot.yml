@@ -13,6 +13,11 @@ updates:
     # version has time to be reported and pulled. Does not delay security updates.
     cooldown:
       default-days: 3
+    ignore:
+      # @types/node must match the Node version we run (24, see mise.toml),
+      # not the latest one: bump its major by hand when upgrading Node
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       # One PR for all minor/patch updates; each major update gets its own PR
       frontend-minor-and-patch:
