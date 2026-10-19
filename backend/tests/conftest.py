@@ -1,5 +1,6 @@
 import pytest
 from typing import Generator
+from unittest.mock import patch
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
@@ -10,6 +11,14 @@ import src.infrastructure.database.models
 from src.infrastructure.database.session import get_db
 from src.core.rate_limit import limiter
 from src.main import app
+
+
+@pytest.fixture(autouse=True)
+def mock_mailjet():
+    """Never call the real Mailjet API from tests. Tests that need to assert on
+    emails can still apply their own @patch, which takes precedence."""
+    with patch("src.domains.auth.router.MailJetClient") as mock_mailjet_class:
+        yield mock_mailjet_class
 
 
 @pytest.fixture(scope="function")
