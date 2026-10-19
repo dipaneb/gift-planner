@@ -1,0 +1,38 @@
+# Dependabot version updates: weekly PRs to keep dependencies current.
+# Security updates (PRs for vulnerable dependencies) are enabled separately in
+# Settings > Code security, and also follow the settings below.
+version: 2
+
+updates:
+  - package-ecosystem: npm # also handles pnpm (pnpm-lock.yaml)
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+    # Wait a few days before proposing a new release, so a broken or compromised
+    # version has time to be reported and pulled. Does not delay security updates.
+    cooldown:
+      default-days: 3
+    groups:
+      # One PR for all minor/patch updates; each major update gets its own PR
+      frontend-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: pip # reads the pip-compile lockfiles (requirements-*.in -> .txt)
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 3
+    groups:
+      backend-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions # actions used in .github/workflows
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns: ["*"]
