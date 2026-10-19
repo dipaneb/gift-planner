@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      # E2E tests are not run in CI, no need to download the Cypress binary
+      CYPRESS_INSTALL_BINARY: 0
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      # --frozen-lockfile: fail instead of silently changing versions if
+      # package.json and pnpm-lock.yaml disagree
+      - run: pnpm install --frozen-lockfile
+
+      - name: Security audit
+        run: pnpm audit --audit-level high
+
+      # Build first: it generates the auto-import type declarations type-check needs
+      - name: Build
+        run: pnpm build-only
+
+      - name: Type check
+        run: pnpm type-check
+
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      # Dummy values: tests use an in-memory SQLite database and mock Mailjet
+      DATABASE_URL: "sqlite:///:memory:"
+      SECRET_KEY: ci-test-secret-key-not-used-in-production
+      MAILJET_API_KEY: ci
+      MAILJET_API_SECRET_KEY: ci
+      FRONTEND_BASE_URL: http://localhost:5173
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: backend/requirements-dev.txt
+
+      - run: pip install -r requirements-dev.txt
+
+      - name: Security audit
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements-prod.txt --no-deps --disable-pip
+
+      - name: Tests
+        run: pytest tests -q
