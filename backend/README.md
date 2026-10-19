@@ -15,8 +15,10 @@ backend/
 │   ├── __init__.py
 │   ├── main.py                  # FastAPI application entry point
 │   └── settings.py              # Environment settings management
-├── requirements-dev.txt         # Development dependencies
-├── requirements-prod.txt        # Production dependencies
+├── requirements-dev.in          # Development dependencies (edit this)
+├── requirements-dev.txt         # Pinned dev dependencies (generated, do not edit)
+├── requirements-prod.in         # Production dependencies (edit this)
+├── requirements-prod.txt        # Pinned prod dependencies (generated, do not edit)
 ├── .env                         # Environment variables
 └── .env.example                 # Template for environment variables
 ```
@@ -104,7 +106,21 @@ make prod-rebuild  # Rebuild and restart production environment
 
 ## 📦 Dependencies
 
-### Production Dependencies (`requirements-prod.txt`)
+Dependencies are managed with [pip-tools](https://pip-tools.readthedocs.io/):
+
+- `requirements-*.in` list the packages we need, with loose constraints (`fastapi>=0.128.0`). **Edit these.**
+- `requirements-*.txt` are lockfiles generated from the `.in` files: every package, including transitive
+  ones, pinned to an exact version (`fastapi==0.149.0`). **Never edit them by hand.** Docker installs these,
+  so every build installs exactly the same versions.
+
+```bash
+make lock           # Regenerate the .txt lockfiles after editing a .in file (keeps current versions)
+make lock-upgrade   # Upgrade every package to its latest allowed version
+```
+
+Commit the `.in` and `.txt` files together, then rebuild the containers (`make rebuild`).
+
+### Production Dependencies (`requirements-prod.in`)
 
 - FastAPI with all extras
 - SQLAlchemy + PostgreSQL drivers (psycopg2, asyncpg)
@@ -112,9 +128,9 @@ make prod-rebuild  # Rebuild and restart production environment
 - Alembic (migrations)
 - Security libraries (pwdlib, pyjwt, cryptography)
 
-### Development Dependencies (`requirements-dev.txt`)
+### Development Dependencies (`requirements-dev.in`)
 
-- All production dependencies (via `-r requirements-prod.txt`)
+- All production dependencies, at the same versions (via `-r requirements-prod.in` and `-c requirements-prod.txt`)
 - Testing tools (pytest, pytest-asyncio)
 - Code quality (black, ruff)
 - Development utilities (ipython, watchfiles)

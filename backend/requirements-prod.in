@@ -1,0 +1,21 @@
+# Production dependencies: edit THIS file, then regenerate requirements-prod.txt
+# with `make lock` (see README). Keep loose constraints here.
+
+# FastAPI (uvicorn, dotenv, email, etc.)
+fastapi[standard]>=0.128.0
+
+# Database
+sqlalchemy>=2.0.45
+psycopg[binary]>=3.3.2
+
+# Migrations
+alembic>=1.18.0
+
+# Modern security
+pwdlib[argon2]>=0.3.0
+
+# JWT
+pyjwt>=2.10.1
+
+# Rate limiting
+slowapi>=0.1.9

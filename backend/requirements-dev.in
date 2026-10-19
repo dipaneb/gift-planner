@@ -1,0 +1,18 @@
+# Development dependencies: edit THIS file, then regenerate requirements-dev.txt
+# with `make lock` (see README). Keep loose constraints here.
+
+# Include all production dependencies, pinned to the same versions as production
+-r requirements-prod.in
+-c requirements-prod.txt
+
+# Development and testing tools
+pytest>=9.0.2
+pytest-asyncio>=1.3.0
+
+# Code quality and formatting
+black>=25.12.0
+ruff>=0.14.11
+
+# Development utilities
+ipython>=9.9.0
+watchfiles>=1.1.1

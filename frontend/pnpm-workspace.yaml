@@ -14,3 +14,13 @@ minimumReleaseAgeExclude:
 onlyBuiltDependencies:
   - cypress
   - esbuild
+overrides:
+  # Security: transitive versions pinned by parents that lag behind the fixes
+  brace-expansion@>=4.0.0 <5.0.12: ^5.0.12
+auditConfig:
+  # Reviewed advisories that do not affect this app (re-check when a fix ships)
+  ignoreGhsas:
+    # braces: no patched version yet; only reached through ESLint with our own glob patterns
+    - GHSA-vfj7-8cjw-p6xm
+    # esbuild: dev server file read on Windows only; pinned to 0.27 by fontless (@nuxt/ui)
+    - GHSA-g7r4-m6w7-qqqr

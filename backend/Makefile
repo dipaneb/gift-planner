@@ -1,5 +1,5 @@
 # Declare phony targets (targets that don't represent actual files)
-.PHONY: help start stop logs rebuild prod-start prod-stop prod-logs prod-rebuild alembic-init alembic-rev alembic-up alembic-down alembic-history alembic-current alembic-prod-up alembic-prod-current alembic-prod-history shell test test-unit test-integration test-e2e test-path format lint lint-fix check
+.PHONY: help lock lock-upgrade start stop logs rebuild prod-start prod-stop prod-logs prod-rebuild alembic-init alembic-rev alembic-up alembic-down alembic-history alembic-current alembic-prod-up alembic-prod-current alembic-prod-history shell test test-unit test-integration test-e2e test-path format lint lint-fix check
 
 # ============================================================================
 # HELP COMMAND
@@ -42,6 +42,11 @@ help:
 	@echo ""
 	@echo "🐳 CONTAINER MANAGEMENT:"
 	@echo "   shell                Access container shell for debugging"
+	@echo ""
+	@echo ""
+	@echo "📌 DEPENDENCIES:"
+	@echo "   lock                 Regenerate pinned requirements-*.txt from requirements-*.in"
+	@echo "   lock-upgrade         Same as lock, but upgrade every package to its latest allowed version"
 	@echo ""
 	@echo ""
 	@echo "🧪 TESTING:"
@@ -171,6 +176,27 @@ alembic-prod-history:
 # Use 'exit' to leave the container shell
 shell:
 	docker exec -it docker-api-1 bash
+
+
+# ============================================================================
+# DEPENDENCIES (pip-tools)
+# ============================================================================
+
+# Regenerate the pinned lockfiles (requirements-*.txt) from requirements-*.in
+# Runs in the same Python image as production so the pins match its Python version
+# prod is compiled first because requirements-dev.in is constrained by requirements-prod.txt
+PIP_COMPILE = docker run --rm -v "$(CURDIR)":/app -w /app python:3.14-slim-bookworm sh -c \
+	"pip install --quiet --root-user-action=ignore pip-tools && \
+	pip-compile --quiet --strip-extras --no-emit-index-url $(1) -o requirements-prod.txt requirements-prod.in && \
+	pip-compile --quiet --strip-extras --no-emit-index-url $(1) -o requirements-dev.txt requirements-dev.in"
+
+# Use after editing a requirements-*.in file (keeps already pinned versions when possible)
+lock:
+	$(call PIP_COMPILE,)
+
+# Upgrade every package to its latest version allowed by requirements-*.in
+lock-upgrade:
+	$(call PIP_COMPILE,--upgrade)
 
 
 # ============================================================================
