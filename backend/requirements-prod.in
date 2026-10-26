@@ -2,14 +2,14 @@
 # with `make lock` (see README). Keep loose constraints here.
 
 # FastAPI (uvicorn, dotenv, email, etc.)
-fastapi[standard]>=0.128.0
+fastapi[standard]>=0.161.1
 
 # Database
-sqlalchemy>=2.0.45
+sqlalchemy>=2.1.6
 psycopg[binary]>=3.3.2
 
 # Migrations
-alembic>=1.18.0
+alembic>=1.20.1
 
 # Modern security
 pwdlib[argon2]>=0.3.0
