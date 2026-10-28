@@ -158,13 +158,13 @@ alembic-current:
 # ============================================================================
 
 alembic-prod-up:
-	docker compose -f docker/docker-compose.yml exec api alembic upgrade head
+	docker compose -f docker/docker-compose.prod.yml exec api alembic upgrade head
 
 alembic-prod-current:
-	docker compose -f docker/docker-compose.yml exec api alembic current
+	docker compose -f docker/docker-compose.prod.yml exec api alembic current
 
 alembic-prod-history:
-	docker compose -f docker/docker-compose.yml exec api alembic history
+	docker compose -f docker/docker-compose.prod.yml exec api alembic history
 
 
 # ============================================================================

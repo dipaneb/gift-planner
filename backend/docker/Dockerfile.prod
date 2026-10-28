@@ -14,5 +14,7 @@ COPY . .
 # Expose port
 EXPOSE 8000
 
-# Command to run the app
-CMD ["fastapi", "run", "src/main.py"]
+# Apply pending database migrations, then run the app.
+# If a migration fails, the app doesn't start instead of running on an outdated schema.
+# exec: fastapi replaces the shell, so it receives the stop signals directly.
+CMD ["sh", "-c", "alembic upgrade head && exec fastapi run src/main.py"]
