@@ -4,3 +4,4 @@ from src.domains.auth.models import RefreshToken, PasswordResetToken
 from src.domains.groups.models import Group
 from src.domains.recipients.models import Recipient
 from src.domains.gifts.models import Gift
+from src.domains.analytics.models import Visit, WeeklyReport
