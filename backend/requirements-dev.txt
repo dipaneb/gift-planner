@@ -40,7 +40,7 @@ asttokens==3.0.2
     # via stack-data
 black==26.10.1
     # via -r requirements-dev.in
-certifi==2026.10.18
+certifi==2026.10.19
     # via
     #   -c requirements-prod.txt
     #   httpcore
