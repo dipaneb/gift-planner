@@ -1,3 +1,6 @@
+import asyncio
+from contextlib import asynccontextmanager, suppress
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -13,14 +16,29 @@ from src.domains.auth.router import router as auth_router
 from src.domains.users.router import router as users_router
 from src.domains.recipients.router import router as recipients_router
 from src.domains.gifts.router import router as gifts_router
+from src.domains.analytics.router import router as analytics_router
+from src.domains.analytics.scheduler import run_weekly_report_loop
 
 settings = get_settings()
 
 # ── Logging ──────────────────────────────────────────────
 setup_logging(log_level=settings.LOG_LEVEL, env=settings.ENV)
 
+# ── Lifespan ─────────────────────────────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    report_task = None
+    if settings.ANALYTICS_REPORT_EMAIL:
+        report_task = asyncio.create_task(run_weekly_report_loop(settings.ANALYTICS_REPORT_EMAIL))
+    yield
+    if report_task:
+        report_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await report_task
+
 # ── App ──────────────────────────────────────────────────
 app = FastAPI(
+    lifespan=lifespan,
     debug=settings.DEBUG,
     docs_url=settings.SWAGGER_URL,
     redoc_url=settings.REDOC_URL,
@@ -59,3 +77,4 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(recipients_router)
 app.include_router(gifts_router)
+app.include_router(analytics_router)

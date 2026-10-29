@@ -11,6 +11,7 @@ from src.domains.auth import models as auth_models
 from src.domains.gifts import models as gifts_models
 from src.domains.groups import models as groups_models
 from src.domains.recipients import models as recipients_models
+from src.domains.analytics import models as analytics_models
 
 settings = get_settings()
 # this is the Alembic Config object, which provides

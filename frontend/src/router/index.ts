@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
+import { captureLandingRef } from "@/composables/useVisitTracking";
 import { useAuthStore } from "@/stores/auth";
 
 declare module "vue-router" {
@@ -95,6 +96,8 @@ const routes: RouteRecordRaw[] = [
     component: () => import("@/views/NotFoundView.vue"),
   },
 ];
+
+captureLandingRef();
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

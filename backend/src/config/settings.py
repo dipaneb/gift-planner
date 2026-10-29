@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import EmailStr, computed_field
+from pydantic import EmailStr, computed_field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -56,6 +56,14 @@ class Settings(BaseSettings):
     MAIL_FROM_EMAIL: EmailStr = "noreply@your-domain.com"
     MAIL_FROM_NAME: str = "Your app name"
     FRONTEND_BASE_URL: str
+
+    # Weekly visits report (Friday 20:00 Paris time). Empty = report disabled.
+    ANALYTICS_REPORT_EMAIL: EmailStr | None = None
+
+    @field_validator("ANALYTICS_REPORT_EMAIL", mode="before")
+    @classmethod
+    def empty_report_email_is_none(cls, value: str | None) -> str | None:
+        return value or None
 
 
 @lru_cache
