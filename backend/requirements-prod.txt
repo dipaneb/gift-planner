@@ -6,7 +6,7 @@
 #
 agent-detector==2.0.0
     # via fastapi-cloud-cli
-alembic==1.20.0
+alembic==1.20.1
     # via -r requirements-prod.in
 annotated-doc==0.0.5
     # via
@@ -48,7 +48,7 @@ email-validator==2.3.0
     # via
     #   fastapi
     #   pydantic
-fastapi==0.149.0
+fastapi==0.161.1
     # via -r requirements-prod.in
 fastapi-cli==0.0.32
     # via fastapi
@@ -182,7 +182,7 @@ shellingham==1.5.4
     # via typer
 slowapi==0.1.10
     # via -r requirements-prod.in
-sqlalchemy==2.1.5
+sqlalchemy==2.1.6
     # via
     #   -r requirements-prod.in
     #   alembic
