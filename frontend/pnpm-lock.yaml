@@ -13,7 +13,7 @@ importers:
     dependencies:
       '@nuxt/ui':
         specifier: ^4.12.0
-        version: 4.12.0(e8144a7459f63cfe2191feefb387cde3)
+        version: 4.12.0(727e5027e9b8c1fdf555e942f58c9794)
       '@unhead/vue':
         specifier: 3.4.3
         version: 3.4.3(@oxc-project/types@0.154.0)(esbuild@0.27.7)(lightningcss@1.33.0)(rolldown@1.2.14)(vite@8.3.4(@types/node@24.19.2)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0))(vue@3.5.44(typescript@6.0.3))
@@ -1287,6 +1287,7 @@ packages:
 
   '@tiptap/y-tiptap@3.0.10':
     resolution: {integrity: sha512-vJtwYVoBBk+e8KyUVoH9WSsfUfKTXf1Uh+tk2UNTlD8wim9j7XVTuc7sakWUYuznB7DkXThT9w5uQTGH2SN0Kg==}
+    deprecated: Persistent position migrations can cause excessive collaborative document growth. Upgrade all collaborating clients to 3.1.0 or later.
     peerDependencies:
       prosemirror-model: ^1.7.1
       prosemirror-state: ^1.2.3
@@ -2977,8 +2978,8 @@ packages:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
 
-  joi@18.3.0:
-    resolution: {integrity: sha512-/RwAK4BAfzcdbdFg073tzq4/xhY6Q7lMd5AmjqTL6pu0QFJdEmtswgm8BvgwXvOKuPNYQ8XrdQrrW/gF65LiNw==}
+  joi@18.3.2:
+    resolution: {integrity: sha512-iUivApKYw5GpZmq2Sy6El99j7noo8QSUFZlyQtr3HCkosC/b5wKF6/Y3teiHIlaM8WI38sAT3P+51rB0lhAhJA==}
     engines: {node: '>= 20'}
 
   js-beautify@2.0.3:
@@ -5383,7 +5384,7 @@ snapshots:
       pkg-types: 2.3.3
       std-env: 4.3.0
 
-  '@nuxt/ui@4.12.0(e8144a7459f63cfe2191feefb387cde3)':
+  '@nuxt/ui@4.12.0(727e5027e9b8c1fdf555e942f58c9794)':
     dependencies:
       '@floating-ui/dom': 1.8.0
       '@iconify/vue': 5.0.3(vue@3.5.44(typescript@6.0.3))
@@ -5452,7 +5453,7 @@ snapshots:
       vaul-vue: 0.4.1(reka-ui@2.11.0(vue@3.5.44(typescript@6.0.3)))(vue@3.5.44(typescript@6.0.3))
       vue-component-type-helpers: 3.3.13
     optionalDependencies:
-      joi: 18.3.0
+      joi: 18.3.2
       valibot: 1.5.0(typescript@6.0.3)
       vue-router: 5.4.0(@vue/compiler-sfc@3.5.44)(esbuild@0.27.7)(pinia@4.1.0(@vue/devtools-api@8.2.1)(typescript@6.0.3)(vue@3.5.44(typescript@6.0.3)))(rolldown@1.2.14)(vite@8.3.4(@types/node@24.19.2)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0))(vue@3.5.44(typescript@6.0.3))
       zod: 4.6.7
@@ -7802,7 +7803,7 @@ snapshots:
 
   jiti@2.7.0: {}
 
-  joi@18.3.0:
+  joi@18.3.2:
     dependencies:
       '@hapi/address': 5.1.1
       '@hapi/formula': 3.0.2
@@ -9221,7 +9222,7 @@ snapshots:
   wait-on@9.5.1(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1):
     dependencies:
       axios: 1.20.0(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
-      joi: 18.3.0
+      joi: 18.3.2
       lodash: 4.18.1
       rxjs: 7.8.2
     transitivePeerDependencies:
