@@ -42,7 +42,7 @@ deprecated==3.0.0
     # via limits
 detect-installer==0.2.1
     # via fastapi-cloud-cli
-dnspython==2.9.0
+dnspython==2.9.2
     # via email-validator
 email-validator==2.3.0
     # via
