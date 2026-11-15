@@ -5,6 +5,8 @@ import vue from "@vitejs/plugin-vue";
 import vueDevTools from "vite-plugin-vue-devtools";
 import ui from "@nuxt/ui/vite";
 
+import { serveHeaders } from "./vite.serve-headers";
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -26,6 +28,7 @@ export default defineConfig({
         },
       },
     }),
+    serveHeaders(),
   ],
   resolve: {
     alias: {
