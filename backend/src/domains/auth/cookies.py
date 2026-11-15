@@ -24,3 +24,14 @@ def set_refresh_token_cookie(response: Response, raw_refresh_token: str) -> None
 
 def delete_refresh_token_cookie(response: Response) -> None:
     response.delete_cookie(key=REFRESH_TOKEN_COOKIE, path=REFRESH_TOKEN_COOKIE_PATH)
+
+
+def refresh_token_cookie_deletion_headers() -> dict[str, str]:
+    """
+    Headers that delete the refresh cookie, to pass to an HTTPException.
+    A cookie set or deleted on the Response injected in a route is lost when the route
+    raises: FastAPI builds a new response from the exception, with only its own headers.
+    """
+    response = Response()
+    delete_refresh_token_cookie(response)
+    return {"set-cookie": response.headers["set-cookie"]}
