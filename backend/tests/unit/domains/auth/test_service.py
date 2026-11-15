@@ -27,7 +27,8 @@ class TestAuthServiceRegisterUser:
         
         assert isinstance(email_job, dict)
         assert email_job["to_email"] == valid_user_data["email"]
-        assert email_job["to_name"] == valid_user_data["name"]
+        # Unverified address: the chosen name is never shown to the recipient
+        assert email_job["to_name"] is None
         assert "subject" in email_job
         assert "html" in email_job
         assert "verify" in email_job["html"].lower()

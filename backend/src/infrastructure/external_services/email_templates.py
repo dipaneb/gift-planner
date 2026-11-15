@@ -1,4 +1,5 @@
 """Email templates for different languages."""
+from html import escape
 
 EMAIL_TEMPLATES = {
     "en": {
@@ -480,5 +481,14 @@ def get_email_template(template_type: str, locale: str = "en"):
     if template_type not in EMAIL_TEMPLATES[locale]:
         # Fallback to English if template type not found
         locale = "en"
-    
-    return EMAIL_TEMPLATES[locale][template_type]
+
+    template = EMAIL_TEMPLATES[locale][template_type]
+
+    # Every value inserted in the HTML is escaped here, at the boundary, so that no template
+    # can forget it: a name like '<a href="https://evil.example">Claim your gift</a>' must
+    # show up as text, not as a working link in an email sent from our domain.
+    return {
+        "subject": template["subject"],
+        "html": lambda link, duration, name="": template["html"](escape(link), duration, escape(name)),
+        "text": template["text"],
+    }

@@ -55,6 +55,18 @@ class AuthService:
             remaining=remaining,
         )
 
+    @staticmethod
+    def _greeting_name_for(user: User) -> str:
+        """
+        Name to greet the user with in an email, or "" to greet without a name.
+
+        Anyone can register with someone else's address and pick any "name", for instance
+        "Your parcel is blocked, pay the fees at https://evil.example". Emails sent to an
+        address whose owner has not verified it therefore never include the name: we would
+        be delivering a stranger's text, from our own domain, to someone who never signed up.
+        """
+        return (user.name or "") if user.is_verified else ""
+
     def _generate_dummy_token_for_timing(self) -> None:
         """
         Generate and hash a dummy token to prevent timing attacks.
@@ -133,12 +145,13 @@ class AuthService:
                 template = get_email_template("register", email_locale)
                 
                 subject = template["subject"]
-                html = template["html"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS, existing.name or "")
-                text = template["text"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS, existing.name or "")
+                # No name: see _greeting_name_for().
+                html = template["html"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
+                text = template["text"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
                 
                 return {
                     "to_email": existing.email,
-                    "to_name": existing.name or "User",
+                    "to_name": None,  # shown in the "To:" header: same rule as the greeting
                     "subject": subject,
                     "html": html,
                     "text": text,
@@ -169,14 +182,15 @@ class AuthService:
         template = get_email_template("register", email_locale)
         
         subject = template["subject"]
-        html = template["html"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS, created_user.name or "")
-        text = template["text"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS, created_user.name or "")
+        # No name: see _greeting_name_for().
+        html = template["html"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
+        text = template["text"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
 
         logger.info("New user registered (unverified): %s", created_user.id)
         
         return {
             "to_email": created_user.email,
-            "to_name": created_user.name,
+            "to_name": None,  # shown in the "To:" header: same rule as the greeting
             "subject": subject,
             "html": html,
             "text": text,
@@ -374,12 +388,13 @@ class AuthService:
         template = get_email_template("reset_password", email_locale)
         
         subject = template["subject"]
-        html = template["html"](link, settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES, user.name or "")
-        text = template["text"](link, settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES, user.name or "")
+        greeting_name = self._greeting_name_for(user)
+        html = template["html"](link, settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES, greeting_name)
+        text = template["text"](link, settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES, greeting_name)
 
         return {
             "to_email": user.email,
-            "to_name": user.name,
+            "to_name": greeting_name or None,
             "subject": subject,
             "html": html,
             "text": text,
