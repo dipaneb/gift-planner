@@ -1,6 +1,11 @@
 """Email templates for different languages."""
 from html import escape
 
+from src.config.settings import get_settings
+
+# Address shown in the footer for users who need help. Read when a template is rendered.
+SUPPORT_EMAIL = escape(get_settings().SUPPORT_EMAIL)
+
 EMAIL_TEMPLATES = {
     "en": {
         "register": {
@@ -101,7 +106,7 @@ EMAIL_TEMPLATES = {
             <td align="center" style="padding: 24px 40px 32px 40px; font-family: Arial, Helvetica, sans-serif;">
               <p style="margin:0 0 8px 0; font-size:12px; line-height:18px; color:#9ca3af;">
                 Need help? Contact us at
-                <a href="mailto:support@giftplanner.com" style="color:#9ca3af; text-decoration:underline;">support@giftplanner.com</a>
+                <a href="mailto:{SUPPORT_EMAIL}" style="color:#9ca3af; text-decoration:underline;">{SUPPORT_EMAIL}</a>
               </p>
               <p style="margin:0; font-size:12px; line-height:18px; color:#9ca3af;">
                 © 2026 Gift Planner. All rights reserved.
@@ -215,7 +220,7 @@ EMAIL_TEMPLATES = {
             <td align="center" style="padding: 24px 40px 32px 40px; font-family: Arial, Helvetica, sans-serif;">
               <p style="margin:0 0 8px 0; font-size:12px; line-height:18px; color:#9ca3af;">
                 Need help? Contact us at
-                <a href="mailto:support@giftplanner.com" style="color:#9ca3af; text-decoration:underline;">support@giftplanner.com</a>
+                <a href="mailto:{SUPPORT_EMAIL}" style="color:#9ca3af; text-decoration:underline;">{SUPPORT_EMAIL}</a>
               </p>
               <p style="margin:0; font-size:12px; line-height:18px; color:#9ca3af;">
                 © 2026 Gift Planner. All rights reserved.
@@ -331,7 +336,7 @@ EMAIL_TEMPLATES = {
             <td align="center" style="padding: 24px 40px 32px 40px; font-family: Arial, Helvetica, sans-serif;">
               <p style="margin:0 0 8px 0; font-size:12px; line-height:18px; color:#9ca3af;">
                 Besoin d'aide ? Contactez-nous à
-                <a href="mailto:support@giftplanner.com" style="color:#9ca3af; text-decoration:underline;">support@giftplanner.com</a>
+                <a href="mailto:{SUPPORT_EMAIL}" style="color:#9ca3af; text-decoration:underline;">{SUPPORT_EMAIL}</a>
               </p>
               <p style="margin:0; font-size:12px; line-height:18px; color:#9ca3af;">
                 © 2026 Gift Planner. Tous droits réservés.
@@ -445,7 +450,7 @@ EMAIL_TEMPLATES = {
             <td align="center" style="padding: 24px 40px 32px 40px; font-family: Arial, Helvetica, sans-serif;">
               <p style="margin:0 0 8px 0; font-size:12px; line-height:18px; color:#9ca3af;">
                 Besoin d'aide ? Contactez-nous à
-                <a href="mailto:support@giftplanner.com" style="color:#9ca3af; text-decoration:underline;">support@giftplanner.com</a>
+                <a href="mailto:{SUPPORT_EMAIL}" style="color:#9ca3af; text-decoration:underline;">{SUPPORT_EMAIL}</a>
               </p>
               <p style="margin:0; font-size:12px; line-height:18px; color:#9ca3af;">
                 © 2026 Gift Planner. Tous droits réservés.

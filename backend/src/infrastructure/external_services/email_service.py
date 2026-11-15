@@ -19,7 +19,8 @@ class MailJetClient():
         to_name: str | None,
         subject: str,
         html: str,
-        text: str| None = None
+        text: str| None = None,
+        reply_to: str | None = None,
     ) -> None:
         payload = {
             "Messages": [
@@ -29,6 +30,8 @@ class MailJetClient():
                     "Subject": subject,
                     "HTMLPart": html,
                     **({"TextPart": text} if text else {}),
+                    # The sender is a no-reply address: answers go to support instead of nowhere.
+                    **({"ReplyTo": {"Email": reply_to}} if reply_to else {}),
                 }
             ]
         }

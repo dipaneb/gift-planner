@@ -38,6 +38,7 @@ def signup_user(
             subject=email_job["subject"],
             html=email_job["html"],
             text=email_job["text"],
+            reply_to=settings.SUPPORT_EMAIL,
         )
     
     # Always send the same response to avoid email enumeration.
@@ -151,6 +152,7 @@ def send_email_for_forgot_password(
             subject=email_job["subject"],
             html=email_job["html"],
             text=email_job["text"],
+            reply_to=settings.SUPPORT_EMAIL,
         )
 
     # Always send the same response to avoid email enumeration.
