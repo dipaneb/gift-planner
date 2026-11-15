@@ -55,6 +55,18 @@ class AuthService:
             remaining=remaining,
         )
 
+    @staticmethod
+    def _greeting_name_for(user: User) -> str:
+        """
+        Name to greet the user with in an email, or "" to greet without a name.
+
+        Anyone can register with someone else's address and pick any "name", for instance
+        "Your parcel is blocked, pay the fees at https://evil.example". Emails sent to an
+        address whose owner has not verified it therefore never include the name: we would
+        be delivering a stranger's text, from our own domain, to someone who never signed up.
+        """
+        return (user.name or "") if user.is_verified else ""
+
     def _generate_dummy_token_for_timing(self) -> None:
         """
         Generate and hash a dummy token to prevent timing attacks.
@@ -133,12 +145,13 @@ class AuthService:
                 template = get_email_template("register", email_locale)
                 
                 subject = template["subject"]
-                html = template["html"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS, existing.name or "")
-                text = template["text"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS, existing.name or "")
+                # No name: see _greeting_name_for().
+                html = template["html"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
+                text = template["text"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
                 
                 return {
                     "to_email": existing.email,
-                    "to_name": existing.name or "User",
+                    "to_name": None,  # shown in the "To:" header: same rule as the greeting
                     "subject": subject,
                     "html": html,
                     "text": text,
@@ -169,14 +182,15 @@ class AuthService:
         template = get_email_template("register", email_locale)
         
         subject = template["subject"]
-        html = template["html"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS, created_user.name or "")
-        text = template["text"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS, created_user.name or "")
+        # No name: see _greeting_name_for().
+        html = template["html"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
+        text = template["text"](verification_link, settings.ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS)
 
         logger.info("New user registered (unverified): %s", created_user.id)
         
         return {
             "to_email": created_user.email,
-            "to_name": created_user.name,
+            "to_name": None,  # shown in the "To:" header: same rule as the greeting
             "subject": subject,
             "html": html,
             "text": text,
@@ -258,15 +272,24 @@ class AuthService:
 
         if token is None:
             raise ValueError("invalid_refresh")
-        
-        # If refresh token already revoked => possible reuse => cyberattack or concurent refresh
-        if token.revoked_at is not None:
-            logger.warning("Refresh token reuse detected for user: %s — all tokens revoked", token.user_id)
-            self.refresh_token_repo.delete_all_tokens_for_user(token.user_id)
-            raise ValueError("refresh_reuse")
-        
-        # Expired
+
         now = datetime.now(timezone.utc)
+
+        # Token already rotated: either a legitimate race (two tabs refreshing together,
+        # a response lost on the network) or a stolen token being replayed.
+        # Shortly after the rotation it is almost always the former, so it is accepted once more.
+        # After the grace period, it is treated as theft and every session of the user is revoked.
+        reused_within_grace_period = False
+        if token.revoked_at is not None:
+            revoked_at_aware = token.revoked_at.replace(tzinfo=timezone.utc) if token.revoked_at.tzinfo is None else token.revoked_at
+            grace_period = timedelta(seconds=settings.REFRESH_TOKEN_REUSE_GRACE_SECONDS)
+            if now - revoked_at_aware > grace_period:
+                logger.warning("Refresh token reuse detected for user: %s — all tokens revoked", token.user_id)
+                self.refresh_token_repo.delete_all_tokens_for_user(token.user_id)
+                raise ValueError("refresh_reuse")
+            reused_within_grace_period = True
+
+        # Expired
         expires_at_aware = token.expires_at.replace(tzinfo=timezone.utc) if token.expires_at.tzinfo is None else token.expires_at
         if expires_at_aware <= now:
             raise ValueError("invalid_refresh")
@@ -278,6 +301,11 @@ class AuthService:
         
         # Rotation: create new token and invalidate former one
         new_raw_refresh_token = self.__create_refresh_token_for_user(token.user_id)
+
+        if reused_within_grace_period:
+            # Already revoked by the first rotation, which keeps its replaced_by_id link.
+            logger.info("Refresh token reused within the grace period for user: %s", token.user_id)
+            return token.user_id, new_raw_refresh_token
 
         # We want to store replaced_by_id, so the new id has to be known.
         # But since __create_refresh_token_for_user() doesn't return the object,
@@ -360,12 +388,13 @@ class AuthService:
         template = get_email_template("reset_password", email_locale)
         
         subject = template["subject"]
-        html = template["html"](link, settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES, user.name or "")
-        text = template["text"](link, settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES, user.name or "")
+        greeting_name = self._greeting_name_for(user)
+        html = template["html"](link, settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES, greeting_name)
+        text = template["text"](link, settings.PASSWORD_RESET_TOKEN_LIFESPAN_IN_MINUTES, greeting_name)
 
         return {
             "to_email": user.email,
-            "to_name": user.name,
+            "to_name": greeting_name or None,
             "subject": subject,
             "html": html,
             "text": text,

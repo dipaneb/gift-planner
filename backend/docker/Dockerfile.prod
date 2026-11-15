@@ -14,6 +14,13 @@ COPY . .
 # Expose port
 EXPOSE 8000
 
+# Traefik (Dokploy's reverse proxy) reaches the API from a private Docker network and puts
+# the visitor's IP in X-Forwarded-For. uvicorn only trusts that header from these addresses
+# (default: 127.0.0.1 only, so every request looked like it came from Traefik).
+# Private ranges only: a client calling the API directly from the internet is never trusted,
+# so it cannot spoof its IP to dodge the rate limits. Override at runtime if needed.
+ENV FORWARDED_ALLOW_IPS="10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+
 # Apply pending database migrations, then run the app.
 # If a migration fails, the app doesn't start instead of running on an outdated schema.
 # exec: fastapi replaces the shell, so it receives the stop signals directly.

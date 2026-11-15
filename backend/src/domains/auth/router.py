@@ -48,7 +48,8 @@ def signup_user(
 
 
 @router.post("/login", response_model=LoginData)
-@limiter.limit("5/minute")
+# Per IP: a whole family on the same home Wi-Fi shares one public IP.
+@limiter.limit("10/minute")
 def login(request: Request, response: Response, auth_service: Annotated[AuthService, Depends()], form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     email = form_data.username # clarification because OAuth2PasswordRequestForm requires 'username'
     password = form_data.password
@@ -71,7 +72,9 @@ def login(request: Request, response: Response, auth_service: Annotated[AuthServ
 
 
 @router.post("/refresh", response_model=LoginData)
-@limiter.limit("10/minute")
+# Called on every page load and every time the access token expires, so it must stay generous.
+# Refresh tokens are 128-bit random values: guessing one is not a realistic threat to rate limit.
+@limiter.limit("60/minute")
 def refresh(request: Request, response: Response, auth_service: Annotated[AuthService, Depends()]):
     old_raw_refresh_token = request.cookies.get("refresh_token")
     if not old_raw_refresh_token:

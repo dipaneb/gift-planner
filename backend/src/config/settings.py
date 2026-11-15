@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     # Security
     SECRET_KEY: str
     REFRESH_TOKEN_TTL_DAYS: int = 30
+    # A refresh token rotated less than this many seconds ago can still be used once more
+    # without being treated as stolen: two tabs refreshing at the same time, or a refresh
+    # response lost on a flaky mobile connection, would otherwise log the user out everywhere.
+    REFRESH_TOKEN_REUSE_GRACE_SECONDS: int = 60
     ACCESS_TOKEN_LIFESPAN_IN_MINUTES: int = 15
 
     # Used to send emails via Mailjet

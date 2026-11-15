@@ -222,18 +222,67 @@ class TestRefreshEndpoint:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert "Not authenticated" in response.json()["detail"]
     
-    def test_refresh_reuse_after_first_rotation(self, client, db_session, registered_user, logged_in_user_with_refresh_cookie):
+    def _backdate_revocation(self, db_session, raw_token, seconds_ago):
+        token = db_session.execute(
+            select(RefreshToken).where(RefreshToken.token_fingerprint == get_refresh_token_fingerprint(raw_token))
+        ).scalar_one()
+        token.revoked_at = datetime.now(timezone.utc) - timedelta(seconds=seconds_ago)
+        db_session.commit()
+
+    def test_refresh_reuse_after_grace_period_revokes_all_tokens(self, client, db_session, registered_user, logged_in_user_with_refresh_cookie):
         token1 = logged_in_user_with_refresh_cookie
-        
+
         response1 = client.post("/auth/refresh", cookies={"refresh_token": token1})
         assert response1.status_code == status.HTTP_200_OK
-        
+        self._backdate_revocation(db_session, token1, seconds_ago=61)
+
         response2 = client.post("/auth/refresh", cookies={"refresh_token": token1})
         assert response2.status_code == status.HTTP_401_UNAUTHORIZED
-        
+
         stmt = select(RefreshToken).where(RefreshToken.user_id == registered_user.id)
         remaining_tokens = db_session.execute(stmt).scalars().all()
         assert len(remaining_tokens) == 0
+
+    def test_refresh_reuse_within_grace_period_is_accepted(self, client, db_session, registered_user, logged_in_user_with_refresh_cookie):
+        """Two tabs refreshing with the same cookie: the second one must not log the user out everywhere."""
+        token1 = logged_in_user_with_refresh_cookie
+
+        response1 = client.post("/auth/refresh", cookies={"refresh_token": token1})
+        assert response1.status_code == status.HTTP_200_OK
+        token2 = response1.cookies.get("refresh_token")
+
+        response2 = client.post("/auth/refresh", cookies={"refresh_token": token1})
+        assert response2.status_code == status.HTTP_200_OK
+        token3 = response2.cookies.get("refresh_token")
+        assert token3 not in (token1, token2)
+
+        # Both successors stay usable, whichever cookie the browser ends up keeping.
+        assert client.post("/auth/refresh", cookies={"refresh_token": token2}).status_code == status.HTTP_200_OK
+        assert client.post("/auth/refresh", cookies={"refresh_token": token3}).status_code == status.HTTP_200_OK
+
+    def test_refresh_reuse_within_grace_period_keeps_first_rotation_link(self, client, db_session, registered_user, logged_in_user_with_refresh_cookie):
+        token1 = logged_in_user_with_refresh_cookie
+        token2 = client.post("/auth/refresh", cookies={"refresh_token": token1}).cookies.get("refresh_token")
+        client.post("/auth/refresh", cookies={"refresh_token": token1})
+
+        old = db_session.execute(
+            select(RefreshToken).where(RefreshToken.token_fingerprint == get_refresh_token_fingerprint(token1))
+        ).scalar_one()
+        first_successor = db_session.execute(
+            select(RefreshToken).where(RefreshToken.token_fingerprint == get_refresh_token_fingerprint(token2))
+        ).scalar_one()
+        assert old.replaced_by_id == first_successor.id
+
+    def test_refresh_reuse_within_grace_period_with_expired_token_returns_401(self, client, db_session, registered_user, logged_in_user_with_refresh_cookie):
+        token1 = logged_in_user_with_refresh_cookie
+        client.post("/auth/refresh", cookies={"refresh_token": token1})
+        token = db_session.execute(
+            select(RefreshToken).where(RefreshToken.token_fingerprint == get_refresh_token_fingerprint(token1))
+        ).scalar_one()
+        token.expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+        db_session.commit()
+
+        assert client.post("/auth/refresh", cookies={"refresh_token": token1}).status_code == status.HTTP_401_UNAUTHORIZED
     
     def test_refresh_different_users_get_different_tokens(self, client, db_session):
         user1 = User(email="user1@example.com", password_hash=get_password_hash("Pass1!"), name="User 1", is_verified=True)

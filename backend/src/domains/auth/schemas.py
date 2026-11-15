@@ -6,6 +6,14 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator, field_validator
 
 
+SUPPORTED_LOCALES = {"en", "fr"}
+
+
+def _supported_locale_or_none(value: str | None) -> str | None:
+    """The locale ends up in the links of our emails: only accept the ones we know."""
+    return value if value in SUPPORTED_LOCALES else None
+
+
 class UserCreate(BaseModel):
     """Model for user registration."""
     email: EmailStr
@@ -26,6 +34,11 @@ class UserCreate(BaseModel):
         treat the local part as case-insensitive which is also the approach taken on this project.
         """
         return value.lower()
+
+    @field_validator("locale", mode="before")
+    @classmethod
+    def normalize_locale(cls, value: str | None) -> str | None:
+        return _supported_locale_or_none(value)
 
     @field_validator("name", mode="before")
     @classmethod
@@ -65,6 +78,11 @@ class ForgotPasswordRequest(BaseModel):
     """Model for forgot password request."""
     email: EmailStr
     locale: str | None = Field(default=None, max_length=2, description="Preferred language locale (en or fr)")
+
+    @field_validator("locale", mode="before")
+    @classmethod
+    def normalize_locale(cls, value: str | None) -> str | None:
+        return _supported_locale_or_none(value)
 
 
 class UserUpdatePartial(BaseModel):
