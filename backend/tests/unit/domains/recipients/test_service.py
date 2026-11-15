@@ -1,6 +1,6 @@
 import pytest
 import uuid
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, patch
 from fastapi import HTTPException
 
 from src.domains.recipients.service import RecipientService

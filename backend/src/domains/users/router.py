@@ -2,12 +2,11 @@
 
 import uuid
 from typing import Annotated
-from fastapi import APIRouter, Depends, Response, status, HTTPException
+from fastapi import APIRouter, Depends, Response, status
 
 from src.domains.auth.cookies import set_refresh_token_cookie
-from src.domains.auth.dependencies import get_current_user, get_current_user_id
+from src.domains.auth.dependencies import get_current_user_id
 from src.domains.auth.service import AuthService
-from .models import User
 from .schemas import BudgetUpdate, UserRead, UserNameUpdate, UserPasswordUpdate
 from .service import UserService
 

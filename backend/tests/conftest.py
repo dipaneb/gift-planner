@@ -7,7 +7,7 @@ from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
 
 from src.infrastructure.database.base import Base
-import src.infrastructure.database.models
+import src.infrastructure.database.models  # noqa: F401  (side effect: registers every model)
 from src.infrastructure.database.session import get_db
 from src.core.rate_limit import limiter
 from src.main import app

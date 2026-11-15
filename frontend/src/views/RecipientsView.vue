@@ -39,7 +39,7 @@
         {{ t("recipients.noRecipientsFound") }}
       </div>
 
-      <Paginator :meta="store.paginationMeta" @page-change="handlePageChange" />
+      <ListPaginator :meta="store.paginationMeta" @page-change="handlePageChange" />
     </template>
   </div>
 </template>
@@ -53,7 +53,7 @@ import { useRecipientsStore } from "@/stores/recipients";
 import { useGifts } from "@/composables/useGifts";
 import type { RecipientCreate } from "@/api/recipients";
 import RecipientCard from "@/components/RecipientCard.vue";
-import Paginator from "@/components/Paginator.vue";
+import ListPaginator from "@/components/ListPaginator.vue";
 import AddRecipientModal from "@/components/AddRecipientModal.vue";
 
 const { t } = useI18n();

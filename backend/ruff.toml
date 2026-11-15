@@ -1,0 +1,18 @@
+# Rules chosen for the bugs they catch, not for style (black formats the code).
+# Run: ruff check src tests   (also run in CI)
+target-version = "py314"
+
+[lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes: unused imports/variables, undefined names
+    "B",    # bugbear: likely bugs (e.g. losing the cause of an exception)
+    "BLE",  # blind `except Exception`, which turns any bug into a silent fallback
+]
+ignore = [
+    "E501",  # line length: left to black
+]
+
+[lint.per-file-ignores]
+# FastAPI's Depends() in default arguments is the documented pattern
+"src/**/*.py" = ["B008"]

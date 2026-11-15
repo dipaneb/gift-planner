@@ -1,5 +1,4 @@
 import pytest
-from decimal import Decimal
 from fastapi import status
 
 from src.domains.users.models import User

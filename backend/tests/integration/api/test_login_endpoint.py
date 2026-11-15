@@ -3,7 +3,6 @@ from fastapi import status
 
 from src.domains.users.models import User
 from src.domains.auth.password_handler import get_password_hash
-from src.domains.users.repository import UserRepository
 
 
 class TestLoginEndpoint:

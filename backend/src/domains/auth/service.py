@@ -16,7 +16,7 @@ from .password_handler import get_password_hash, verify_password
 from .access_token_handler import create_access_token
 from .refresh_token_handler import hash_token, get_refresh_token_fingerprint, verify_refresh_token
 from .reset_password_token_handler import get_reset_password_token_fingerprint, hash_token as hash_reset_password_token, verify_reset_password_token
-from .verification_token_handler import get_verification_token_fingerprint, hash_verification_token, verify_verification_token
+from .verification_token_handler import get_verification_token_fingerprint, hash_verification_token
 from src.infrastructure.external_services.email_templates import get_email_template
 
 logger = logging.getLogger("api.auth")
