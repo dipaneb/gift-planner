@@ -1,4 +1,3 @@
-import pytest
 import hashlib
 
 from src.domains.auth.reset_password_token_handler import (

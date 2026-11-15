@@ -307,3 +307,16 @@ class TestRefreshEndpoint:
         new_access_token2 = response2_refresh.json()["access_token"]
         
         assert new_access_token1 != new_access_token2
+
+
+class TestRefreshCookieCleanup:
+    """A dead refresh cookie must be deleted from the browser, not resent forever."""
+
+    def test_invalid_refresh_token_deletes_the_cookie(self, client):
+        response = client.post("/auth/refresh", cookies={"refresh_token": "not-a-real-token"})
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        set_cookie = response.headers.get("set-cookie", "").lower()
+        assert "refresh_token=" in set_cookie
+        assert "max-age=0" in set_cookie
+        assert "path=/auth" in set_cookie

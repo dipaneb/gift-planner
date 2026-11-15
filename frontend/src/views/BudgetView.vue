@@ -19,7 +19,7 @@
               class="text-3xl font-decorative"
               :class="!authStore.user?.budget ? 'text-gray-400 italic' : 'text-gray-900'"
             >
-              {{ authStore.user?.budget ? `${authStore.user.budget} €` : t("common.notSet") }}
+              {{ authStore.user?.budget ? formatPrice(authStore.user.budget) : t("common.notSet") }}
             </div>
           </div>
 
@@ -30,7 +30,7 @@
               {{ t("budget.spent") }}
             </div>
             <div class="text-3xl text-orange-600 font-decorative">
-              {{ authStore.user?.spent || "0.00" }} €
+              {{ formatPrice(authStore.user?.spent) }}
             </div>
           </div>
 
@@ -51,14 +51,11 @@
         </div>
 
         <div v-if="authStore.user?.budget && showChart" class="flex justify-center py-4">
-          <DonutChart
-            :data="chartData"
-            :height="250"
-            :categories="categories"
-            :radius="10"
-            :arc-width="25"
-            :pad-angle="0.05"
-            :legend-position="LegendPosition.BottomCenter"
+          <BudgetDonut
+            :spent="parseFloat(authStore.user.spent || '0')"
+            :budget="parseFloat(authStore.user.budget)"
+            :spent-label="t('budget.chartSpent')"
+            :remaining-label="t('budget.chartRemaining')"
           />
         </div>
 
@@ -112,17 +109,23 @@ import { ref, computed, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 import { z } from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
-import { DonutChart, type BulletLegendItemInterface, LegendPosition } from "vue-chrts";
+import BudgetDonut from "@/components/BudgetDonut.vue";
+import { MAX_AMOUNT } from "@/limits";
 import { useAuthStore } from "@/stores/auth";
 import { useBudget } from "@/composables/useBudget";
+import { useFormatPrice } from "@/composables/useFormatPrice";
 
 const { t } = useI18n();
+const formatPrice = useFormatPrice();
 const authStore = useAuthStore();
 const { loading, error, updateBudget, deleteBudget } = useBudget();
 
 const budgetSchema = computed(() =>
   z.object({
-    budget: z.number().positive(t("validation.budgetPositive")),
+    budget: z
+      .number()
+      .positive(t("validation.budgetPositive"))
+      .max(MAX_AMOUNT, t("validation.amountMax")),
   }),
 );
 
@@ -137,7 +140,7 @@ const successMessage = ref<string | null>(null);
 const remainingDisplay = computed(() => {
   if (!authStore.user?.budget) return t("common.na");
   if (authStore.user.remaining === null) return t("common.na");
-  return `${authStore.user.remaining} €`;
+  return formatPrice(authStore.user.remaining);
 });
 
 const remainingColorClass = computed(() => {
@@ -170,37 +173,10 @@ const remainingValueClass = computed(() => {
   return "text-green-600";
 });
 
-// Chart data with edge case handling
-const chartData = computed(() => {
-  const spent = parseFloat(authStore.user?.spent || "0");
-  const budget = parseFloat(authStore.user?.budget || "0");
-
-  // If no budget set, return empty data
-  if (budget <= 0) return [0, 100];
-
-  // If spent exceeds budget, show 100% spent
-  if (spent >= budget) return [budget, 0];
-
-  // Normal case: show spent and remaining
-  const remaining = budget - spent;
-  return [spent, remaining > 0 ? remaining : 0];
-});
-
 const showChart = computed(() => {
   const budget = parseFloat(authStore.user?.budget || "0");
   return budget > 0;
 });
-
-type DonutCategories = Record<string, BulletLegendItemInterface>;
-
-const labels = computed(() => [
-  { name: t("budget.chartSpent"), color: "#f97316" },
-  { name: t("budget.chartRemaining"), color: "#22c55e" },
-]);
-
-const categories = computed<DonutCategories>(() =>
-  Object.fromEntries(labels.value.map((i) => [i.name, { name: i.name, color: i.color }])),
-);
 
 function clearMessages() {
   successMessage.value = null;

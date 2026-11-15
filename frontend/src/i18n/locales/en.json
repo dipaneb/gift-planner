@@ -210,10 +210,12 @@
   "validation": {
     "nameRequired": "Name is required",
     "nameTooLong": "Name is too long (max 255)",
-    "invalidUrl": "Please enter a valid URL",
+    "invalidUrl": "Please enter a valid URL, starting with https://",
     "pricePositive": "Price must be greater than 0",
     "quantityMin": "Quantity must be at least 1",
-    "budgetPositive": "Budget must be greater than 0."
+    "budgetPositive": "Budget must be greater than 0.",
+    "amountMax": "The amount cannot exceed €1,000,000",
+    "quantityMax": "Quantity cannot exceed 1000"
   },
   "errors": {
     "loginFailed": "Login failed",

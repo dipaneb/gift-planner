@@ -1,4 +1,3 @@
-import pytest
 import uuid
 from decimal import Decimal
 from sqlalchemy import select
@@ -7,7 +6,6 @@ from src.domains.gifts.repository import GiftRepository
 from src.domains.gifts.models import Gift
 from src.domains.gifts.enums import GiftStatusEnum
 from src.domains.users.models import User
-from src.domains.recipients.models import Recipient
 
 
 class TestGiftRepositoryCreate:

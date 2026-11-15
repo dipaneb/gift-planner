@@ -4,15 +4,16 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.domains.gifts.enums import GiftStatusEnum
+from src.core.limits import MAX_AMOUNT, MAX_QUANTITY, normalize_gift_url
 from src.core.pagination import PaginationMeta
 
 class GiftCreate(BaseModel):
     """Model for gift creation."""
     name: str = Field(max_length=255)
     url: str | None = Field(default=None, max_length=255, description="Optional URL to the gift")
-    price: Decimal | None = Field(default=None, gt=0, decimal_places=2, description="Price in euros (minimum 9)")
+    price: Decimal | None = Field(default=None, gt=0, le=MAX_AMOUNT, decimal_places=2, description="Price in euros")
     status: GiftStatusEnum = Field(default=GiftStatusEnum.idee, description="Gift status")
-    quantity: int = Field(default=1, ge=1, description="Quantity (minimum 1)")
+    quantity: int = Field(default=1, ge=1, le=MAX_QUANTITY, description="Quantity")
     recipient_ids: list[uuid.UUID] = Field(default_factory=list, description="List of recipient IDs to associate")
 
     @field_validator("name", mode="before")
@@ -26,19 +27,16 @@ class GiftCreate(BaseModel):
     @field_validator("url", mode="before")
     @classmethod
     def normalize_url(cls, value: str | None) -> str | None:
-        if value is None:
-            return None
-        value = value.strip()
-        return value if value else None
+        return normalize_gift_url(value)
 
 
 class GiftUpdate(BaseModel):
     """Model for gift update (PATCH - all fields optional)."""
     name: str | None = Field(default=None, max_length=255)
     url: str | None = Field(default=None, max_length=255)
-    price: Decimal | None = Field(default=None, gt=0, decimal_places=2)
+    price: Decimal | None = Field(default=None, gt=0, le=MAX_AMOUNT, decimal_places=2)
     status: GiftStatusEnum | None = Field(default=None)
-    quantity: int | None = Field(default=None, ge=1)
+    quantity: int | None = Field(default=None, ge=1, le=MAX_QUANTITY)
     recipient_ids: list[uuid.UUID] | None = Field(default=None, description="Replace associated recipients")
 
     @field_validator("name", mode="before")
@@ -54,10 +52,7 @@ class GiftUpdate(BaseModel):
     @field_validator("url", mode="before")
     @classmethod
     def normalize_url(cls, value: str | None) -> str | None:
-        if value is None:
-            return None
-        value = value.strip()
-        return value if value else None
+        return normalize_gift_url(value)
 
 
 class GiftResponse(BaseModel):

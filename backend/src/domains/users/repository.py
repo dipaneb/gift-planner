@@ -32,7 +32,7 @@ class UserRepository:
         fingerprint = get_verification_token_fingerprint(raw_token)
         stmt = select(User).where(
             User.verification_token_fingerprint == fingerprint,
-            User.is_verified == False
+            User.is_verified.is_(False)
         )
         user = self.db.execute(stmt).scalar_one_or_none()
         

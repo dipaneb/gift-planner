@@ -67,7 +67,7 @@
       />
     </ul>
 
-    <Paginator :meta="store.paginationMeta" @page-change="handlePageChange" />
+    <ListPaginator :meta="store.paginationMeta" @page-change="handlePageChange" />
   </div>
 </template>
 
@@ -81,7 +81,7 @@ import { type GiftCreate, type GiftStatus } from "@/api/gifts";
 import type { FetchParams } from "@/api";
 import GiftCard from "@/components/GiftCard.vue";
 import GiftStatusFilter from "@/components/GiftStatusFilter.vue";
-import Paginator from "@/components/Paginator.vue";
+import ListPaginator from "@/components/ListPaginator.vue";
 import AddGiftModal from "@/components/AddGiftModal.vue";
 
 const { t } = useI18n();

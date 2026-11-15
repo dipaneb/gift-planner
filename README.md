@@ -359,5 +359,6 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 ## 📖 Additional Documentation
 
 - **Backend Details**: See `backend/README.md`
+- **Backups**: how to check a backup and restore production, in `backend/docs/backup-restore.md`
 - **API Documentation**: http://localhost:8000/docs (when running)
 - **Database Management**: http://localhost:8080 (Adminer)

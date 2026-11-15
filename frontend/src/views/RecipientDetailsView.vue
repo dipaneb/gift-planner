@@ -16,16 +16,16 @@
     <UAlert v-else-if="error" :title="error" variant="subtle" color="error" />
 
     <template v-if="recipient">
-      <div class="flex items-start justify-between gap-4">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div class="flex-1">
-          <h1 class="text-3xl font-bold mb-2">{{ recipient.name }}</h1>
+          <h1 class="text-3xl font-bold mb-2 break-words">{{ recipient.name }}</h1>
           <p v-if="recipient.notes" class="text-gray-600 whitespace-pre-wrap">
             {{ recipient.notes }}
           </p>
           <p v-else class="text-gray-400 italic">{{ t("recipients.noNotesYet") }}</p>
         </div>
 
-        <div class="flex gap-2 shrink-0">
+        <div class="flex flex-wrap gap-2 sm:shrink-0">
           <EditRecipientModal
             v-model:open="isEditModalOpen"
             :recipient="recipient"

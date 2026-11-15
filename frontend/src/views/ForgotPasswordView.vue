@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen relative">
+  <div class="min-h-dvh relative flex flex-col">
     <AuroraBackground
       :color-stops="['#f4fff8', '#ccffe0', '#f4fff8']"
       :color-stops-dark="['#0a1f12', '#0d3d1f', '#0a1f12']"
@@ -9,12 +9,12 @@
       height="8rem"
       class="absolute top-0 left-0 right-0 -z-10"
     />
-    <div class="flex flex-col items-center justify-center gap-10 relative h-full">
+    <div class="flex flex-1 flex-col items-center justify-center gap-10 relative px-4 pt-20 pb-10">
       <div class="absolute top-4 right-4">
         <LanguageSelector />
       </div>
       <h1>{{ t("auth.forgotPasswordPage.title") }}</h1>
-      <UCard class="min-w-100">
+      <UCard class="w-full max-w-100">
         <UForm
           :schema="forgotPasswordSchema"
           :state="state"

@@ -170,7 +170,6 @@ class TestAuthServiceRegisterUser:
     
     def test_register_user_unverified_respects_cooldown(self, db_session):
         from datetime import datetime, timezone, timedelta
-        from src.domains.auth.service import VERIFICATION_EMAIL_COOLDOWN_SECONDS
         from src.config.settings import get_settings
         
         settings = get_settings()

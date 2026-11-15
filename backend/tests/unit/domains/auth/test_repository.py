@@ -1,4 +1,3 @@
-import pytest
 import uuid
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import select

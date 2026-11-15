@@ -88,7 +88,7 @@ class TestLogoutEndpoint:
         )
         token1 = login_response1.cookies.get("refresh_token")
         
-        login_response2 = client.post(
+        client.post(
             "/auth/login",
             data={
                 "username": "john@example.com",

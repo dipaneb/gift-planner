@@ -3,6 +3,7 @@ import uuid
 from decimal import Decimal
 
 from typing_extensions import Self
+from src.core.limits import MAX_AMOUNT
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 
@@ -18,7 +19,7 @@ class UserRead(BaseModel):
 
 
 class BudgetUpdate(BaseModel):
-    budget: Decimal = Field(gt=0, decimal_places=2, description="Budget in euros (must be positive)")
+    budget: Decimal = Field(gt=0, le=MAX_AMOUNT, decimal_places=2, description="Budget in euros (must be positive)")
 
 
 class UserNameUpdate(BaseModel):

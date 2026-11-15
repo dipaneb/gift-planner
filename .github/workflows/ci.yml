@@ -49,6 +49,10 @@ jobs:
       - name: Type check
         run: pnpm type-check
 
+      # Not `pnpm lint`: it runs with --fix, which would hide the problems in CI
+      - name: Lint
+        run: pnpm exec eslint .
+
   backend:
     name: Backend
     runs-on: ubuntu-latest
@@ -77,6 +81,9 @@ jobs:
         run: |
           pip install pip-audit
           pip-audit -r requirements-prod.txt --no-deps --disable-pip
+
+      - name: Lint
+        run: ruff check src tests
 
       - name: Tests
         run: pytest tests -q
