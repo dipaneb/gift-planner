@@ -258,15 +258,24 @@ class AuthService:
 
         if token is None:
             raise ValueError("invalid_refresh")
-        
-        # If refresh token already revoked => possible reuse => cyberattack or concurent refresh
-        if token.revoked_at is not None:
-            logger.warning("Refresh token reuse detected for user: %s — all tokens revoked", token.user_id)
-            self.refresh_token_repo.delete_all_tokens_for_user(token.user_id)
-            raise ValueError("refresh_reuse")
-        
-        # Expired
+
         now = datetime.now(timezone.utc)
+
+        # Token already rotated: either a legitimate race (two tabs refreshing together,
+        # a response lost on the network) or a stolen token being replayed.
+        # Shortly after the rotation it is almost always the former, so it is accepted once more.
+        # After the grace period, it is treated as theft and every session of the user is revoked.
+        reused_within_grace_period = False
+        if token.revoked_at is not None:
+            revoked_at_aware = token.revoked_at.replace(tzinfo=timezone.utc) if token.revoked_at.tzinfo is None else token.revoked_at
+            grace_period = timedelta(seconds=settings.REFRESH_TOKEN_REUSE_GRACE_SECONDS)
+            if now - revoked_at_aware > grace_period:
+                logger.warning("Refresh token reuse detected for user: %s — all tokens revoked", token.user_id)
+                self.refresh_token_repo.delete_all_tokens_for_user(token.user_id)
+                raise ValueError("refresh_reuse")
+            reused_within_grace_period = True
+
+        # Expired
         expires_at_aware = token.expires_at.replace(tzinfo=timezone.utc) if token.expires_at.tzinfo is None else token.expires_at
         if expires_at_aware <= now:
             raise ValueError("invalid_refresh")
@@ -278,6 +287,11 @@ class AuthService:
         
         # Rotation: create new token and invalidate former one
         new_raw_refresh_token = self.__create_refresh_token_for_user(token.user_id)
+
+        if reused_within_grace_period:
+            # Already revoked by the first rotation, which keeps its replaced_by_id link.
+            logger.info("Refresh token reused within the grace period for user: %s", token.user_id)
+            return token.user_id, new_raw_refresh_token
 
         # We want to store replaced_by_id, so the new id has to be known.
         # But since __create_refresh_token_for_user() doesn't return the object,
