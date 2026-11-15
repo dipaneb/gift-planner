@@ -11,13 +11,13 @@
     <UAlert v-else-if="error" :title="error" variant="subtle" color="error" />
 
     <template v-if="gift">
-      <div class="flex items-start justify-between gap-4">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-3 flex-wrap mb-2">
-            <h1>{{ gift.name }}</h1>
+            <h1 class="break-words">{{ gift.name }}</h1>
           </div>
 
-          <div class="flex items-center gap-4 mt-2">
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
             <span v-if="gift.price">
               {{ formattedPrice }}
             </span>
@@ -39,7 +39,7 @@
           </div>
         </div>
 
-        <div class="flex gap-2 shrink-0">
+        <div class="flex flex-wrap gap-2 sm:shrink-0">
           <EditGiftModal v-model:open="isEditModalOpen" :gift="gift" @submit="onUpdate" />
           <UButton icon="i-lucide-trash" color="error" @click="onDelete">
             {{ t("common.delete") }}
@@ -94,6 +94,7 @@ import { useGiftsStore } from "@/stores/gifts";
 import { useRecipients } from "@/composables/useRecipients";
 import { useRecipientsStore } from "@/stores/recipients";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
+import { useFormatPrice } from "@/composables/useFormatPrice";
 import { GIFT_STATUS_LABELS, type GiftStatus, type GiftUpdate } from "@/api/gifts";
 import EditGiftModal from "@/components/EditGiftModal.vue";
 
@@ -111,13 +112,8 @@ const gift = computed(() => store.paginatedGifts.find((g) => g.id === giftId.val
 
 const isEditModalOpen = ref(false);
 
-const formattedPrice = computed(() => {
-  if (!gift.value?.price) return null;
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-  }).format(Number(gift.value.price));
-});
+const formatPrice = useFormatPrice();
+const formattedPrice = computed(() => (gift.value?.price ? formatPrice(gift.value.price) : null));
 
 const resolvedRecipients = computed(() => {
   if (!gift.value) return [];

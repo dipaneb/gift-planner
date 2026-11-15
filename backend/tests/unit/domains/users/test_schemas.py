@@ -141,6 +141,10 @@ class TestBudgetUpdateSchema:
         assert any(e["loc"] == ("budget",) for e in errors)
 
     def test_budget_large_value(self):
-        data = {"budget": 99999999.99}
+        data = {"budget": 1000000}
         schema = BudgetUpdate(**data)
-        assert schema.budget == Decimal("99999999.99")
+        assert schema.budget == Decimal("1000000")
+
+    def test_budget_above_maximum_is_rejected(self):
+        with pytest.raises(ValidationError):
+            BudgetUpdate(budget=Decimal("1000000.01"))

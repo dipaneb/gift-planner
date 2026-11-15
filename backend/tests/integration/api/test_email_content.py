@@ -97,6 +97,16 @@ class TestResetPasswordEmail:
         assert "<b>" not in html
 
 
+class TestSupportAddress:
+    def test_answers_go_to_support_not_to_the_no_reply_sender(self, client, mock_mailjet):
+        _register(client, name="Marie")
+
+        email = _sent_email(mock_mailjet)
+        assert email["reply_to"] == "support@giftplanner.dipane.fr"
+        assert "mailto:support@giftplanner.dipane.fr" in email["html"]
+        assert "giftplanner.com" not in email["html"]
+
+
 class TestTemplatesEscaping:
     def test_every_html_template_escapes_the_name(self):
         for template_type in ("register", "reset_password"):

@@ -2,7 +2,7 @@ import pytest
 import uuid
 from pydantic import ValidationError
 
-from src.domains.auth.schemas import UserCreate, LoginData, UserUpdatePartial, UserResponse
+from src.domains.auth.schemas import UserCreate, LoginData, UserResponse
 
 
 class TestUserCreateSchema:

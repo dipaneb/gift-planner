@@ -36,8 +36,10 @@ def get_current_user_id(token: Annotated[str, Depends(oauth2_scheme)]) -> uuid.U
         if not sub:
             raise ValueError("Missing sub")
         return uuid.UUID(sub)
-    except Exception:
-        raise _unauthorized()
+    except (jwt.PyJWTError, ValueError, TypeError):
+        # Only token problems mean "not authenticated". Any other error is a bug or a
+        # misconfiguration and must surface as a 500, not hide behind a 401.
+        raise _unauthorized() from None
 
 
 def get_current_user(user_id: Annotated[uuid.UUID, Depends(get_current_user_id)], user_repo: Annotated[UserRepository, Depends()]) -> User:

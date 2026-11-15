@@ -1,4 +1,3 @@
-import pytest
 
 from src.domains.auth.refresh_token_handler import hash_token, verify_refresh_token, get_refresh_token_fingerprint
 

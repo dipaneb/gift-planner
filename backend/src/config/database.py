@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 
 from src.config.settings import get_settings
 # IMPORTANT: force ORM model registration
-import src.infrastructure.database.models  # noqa
+import src.infrastructure.database.models  # noqa: F401  (side effect: registers every model)
 
 settings = get_settings()
 

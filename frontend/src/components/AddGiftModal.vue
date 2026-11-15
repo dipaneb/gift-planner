@@ -37,7 +37,7 @@
         <div class="grid grid-cols-2 gap-4">
           <UFormField :label="t('gifts.priceWithCurrency')" name="price">
             <UInputNumber
-              :v-model="form.price"
+              v-model="form.price"
               :step="0.01"
               :min="0"
               placeholder="0.00"
@@ -82,6 +82,7 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_AMOUNT, MAX_QUANTITY, WEB_URL_PROTOCOL } from "@/limits";
 import { computed, onMounted, reactive, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { z } from "zod";
@@ -104,11 +105,22 @@ const giftSchema = computed(() =>
       .trim()
       .min(1, t("validation.nameRequired"))
       .max(255, t("validation.nameTooLong")),
-    url: z.url(t("validation.invalidUrl")).trim().optional().or(z.literal("")),
+    url: z
+      .url({ protocol: WEB_URL_PROTOCOL, error: t("validation.invalidUrl") })
+      .trim()
+      .optional()
+      .or(z.literal("")),
     price: z
-      .union([z.literal(""), z.coerce.number().positive(t("validation.pricePositive"))])
-      .optional(),
-    quantity: z.coerce.number().int().min(1, t("validation.quantityMin")),
+      .number()
+      .positive(t("validation.pricePositive"))
+      .max(MAX_AMOUNT, t("validation.amountMax"))
+      // A cleared number input gives null
+      .nullish(),
+    quantity: z.coerce
+      .number()
+      .int()
+      .min(1, t("validation.quantityMin"))
+      .max(MAX_QUANTITY, t("validation.quantityMax")),
     status: z.string() as z.ZodType<GiftStatus>,
     recipient_ids: z.array(z.string()).optional(),
   }),
@@ -149,7 +161,7 @@ watch(openModel, (isOpen) => {
   if (isOpen) {
     form.name = "";
     form.url = "";
-    form.price = "";
+    form.price = undefined;
     form.quantity = 1;
     form.status = "idee";
     form.recipient_ids = [];

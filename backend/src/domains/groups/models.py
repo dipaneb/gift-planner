@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 import uuid
 
 from sqlalchemy import (
@@ -10,6 +12,11 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.infrastructure.database.base import Base
+
+if TYPE_CHECKING:
+    # Only for type checkers: importing them at runtime would be circular.
+    from src.domains.recipients.models import Recipient
+    from src.domains.users.models import User
 
 
 class Group(Base):

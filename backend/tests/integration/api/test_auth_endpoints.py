@@ -1,5 +1,3 @@
-import pytest
-from fastapi.testclient import TestClient
 
 
 class TestRegisterEndpoint:
@@ -39,10 +37,7 @@ class TestRegisterEndpoint:
         assert "message" in data
     
     def test_register_duplicate_email_with_existing_user(self, client, sample_user, db_session):
-        from src.domains.users.repository import UserRepository
-        
         # Ensure sample_user is verified
-        user_repo = UserRepository(db_session)
         sample_user.is_verified = True
         db_session.commit()
         

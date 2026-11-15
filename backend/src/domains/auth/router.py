@@ -2,7 +2,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Body, Depends, Query, Request, status, Response, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import EmailStr
 
 from src.config.settings import get_settings
 from src.core.rate_limit import limiter
@@ -10,6 +9,12 @@ from .service import AuthService
 from .schemas import LoginData, UserCreate, UserUpdatePartial, ForgotPasswordRequest
 from .router_examples import REGISTER_EXAMPLES, RESET_PASSWORD_EXAMPLE
 from .access_token_handler import create_access_token
+from .cookies import (
+    REFRESH_TOKEN_COOKIE,
+    delete_refresh_token_cookie,
+    refresh_token_cookie_deletion_headers,
+    set_refresh_token_cookie,
+)
 from src.infrastructure.external_services.email_service import MailJetClient
 
 settings = get_settings()
@@ -38,6 +43,7 @@ def signup_user(
             subject=email_job["subject"],
             html=email_job["html"],
             text=email_job["text"],
+            reply_to=settings.SUPPORT_EMAIL,
         )
     
     # Always send the same response to avoid email enumeration.
@@ -57,15 +63,7 @@ def login(request: Request, response: Response, auth_service: Annotated[AuthServ
     access_token, refresh_token_raw, expires_in, user = auth_service.login(email, password)
 
     # Cookie refresh token (HttpOnly)
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token_raw,
-        httponly=True,
-        secure=(settings.ENV == "production"),
-        samesite="strict",
-        path="/auth",  # limits cookie sending to the refresh endpoint
-        max_age=settings.REFRESH_TOKEN_TTL_DAYS * 86400,
-    )
+    set_refresh_token_cookie(response, refresh_token_raw)
 
     user_response = auth_service._build_user_response(user.id)
     return LoginData(access_token=access_token, expires_in=expires_in, user=user_response)
@@ -76,36 +74,34 @@ def login(request: Request, response: Response, auth_service: Annotated[AuthServ
 # Refresh tokens are 128-bit random values: guessing one is not a realistic threat to rate limit.
 @limiter.limit("60/minute")
 def refresh(request: Request, response: Response, auth_service: Annotated[AuthService, Depends()]):
-    old_raw_refresh_token = request.cookies.get("refresh_token")
+    old_raw_refresh_token = request.cookies.get(REFRESH_TOKEN_COOKIE)
     if not old_raw_refresh_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
     try:
         user_id, new_refresh_raw = auth_service.rotate(old_raw_refresh_token)
     except ValueError as e:
-        # Deleting the cookie from client side eitherway.
-        response.delete_cookie(key="refresh_token", path="/auth")
         if str(e) in {"refresh_reuse", "invalid_refresh", "refresh_expired"}:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+            # The cookie is dead: tell the browser to drop it.
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not authenticated",
+                headers=refresh_token_cookie_deletion_headers(),
+            ) from None
         raise
 
     user = auth_service.user_repo.get_by_id(user_id)
     if not user:
-        response.delete_cookie(key="refresh_token", path="/auth")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers=refresh_token_cookie_deletion_headers(),
+        )
 
     access_token_lifespan_in_minutes = settings.ACCESS_TOKEN_LIFESPAN_IN_MINUTES
     new_access_token = create_access_token(subject=str(user_id), expires_minutes=access_token_lifespan_in_minutes)
 
-    response.set_cookie(
-        key="refresh_token",
-        value=new_refresh_raw,
-        httponly=True,
-        secure=(settings.ENV == "production"),
-        samesite="strict",
-        path="/auth",  # limits cookie sending to the refresh endpoint
-        max_age=settings.REFRESH_TOKEN_TTL_DAYS * 86400,
-    )
+    set_refresh_token_cookie(response, new_refresh_raw)
 
     user_response = auth_service._build_user_response(user_id)
     return LoginData(
@@ -118,10 +114,10 @@ def refresh(request: Request, response: Response, auth_service: Annotated[AuthSe
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit("10/minute")
 def logout(request: Request, response: Response, auth_service: Annotated[AuthService, Depends()]):
-    raw_refresh_token = request.cookies.get("refresh_token")
+    raw_refresh_token = request.cookies.get(REFRESH_TOKEN_COOKIE)
     
     # always delete the cookie on client side, even when absent/invalid.
-    response.delete_cookie(key="refresh_token", path="/auth")
+    delete_refresh_token_cookie(response)
 
     if not raw_refresh_token:
         return
@@ -151,6 +147,7 @@ def send_email_for_forgot_password(
             subject=email_job["subject"],
             html=email_job["html"],
             text=email_job["text"],
+            reply_to=settings.SUPPORT_EMAIL,
         )
 
     # Always send the same response to avoid email enumeration.
@@ -166,7 +163,7 @@ def reset_password(request: Request, reset_password_token: Annotated[str, Query(
     try:
         auth_service.reset_password(reset_password_token, body.password)
     except ValueError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token") from None
     
     return {"success": True, "message": "Password updated."}
 
@@ -179,10 +176,10 @@ def verify_email(request: Request, verification_token: Annotated[str, Query(alia
     except ValueError as e:
         error_msg = str(e)
         if error_msg == "already_verified":
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already verified")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already verified") from None
         elif error_msg == "expired_token":
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Verification link expired")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Verification link expired") from None
         else:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid verification token")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid verification token") from None
     
     return {"success": True, "message": "Email verified successfully. You can now log in."}

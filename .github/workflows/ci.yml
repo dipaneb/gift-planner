@@ -22,6 +22,8 @@ jobs:
     env:
       # E2E tests are not run in CI, no need to download the Cypress binary
       CYPRESS_INSTALL_BINARY: 0
+      # Required by the build (API origin allowed by the CSP in serve.json)
+      VITE_BACKEND_URL: https://api.example.com
     steps:
       - uses: actions/checkout@v7
 
@@ -48,6 +50,10 @@ jobs:
 
       - name: Type check
         run: pnpm type-check
+
+      # Not `pnpm lint`: it runs with --fix, which would hide the problems in CI
+      - name: Lint
+        run: pnpm exec eslint .
 
   backend:
     name: Backend
@@ -77,6 +83,9 @@ jobs:
         run: |
           pip install pip-audit
           pip-audit -r requirements-prod.txt --no-deps --disable-pip
+
+      - name: Lint
+        run: ruff check src tests
 
       - name: Tests
         run: pytest tests -q

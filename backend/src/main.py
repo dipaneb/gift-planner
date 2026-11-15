@@ -11,6 +11,7 @@ from src.config.settings import get_settings
 from src.config.logging import setup_logging
 from src.core.rate_limit import limiter
 from src.core.middlewares.request_logging import RequestLoggingMiddleware
+from src.core.middlewares.security_headers import SecurityHeadersMiddleware
 from src.core.middlewares.exception_handlers import unhandled_exception_handler
 from src.domains.auth.router import router as auth_router
 from src.domains.users.router import router as users_router
@@ -68,6 +69,9 @@ if allowed_hosts:
 
 # 3. Request logging + request ID generation
 app.add_middleware(RequestLoggingMiddleware)
+
+# 4. Security headers on every response
+app.add_middleware(SecurityHeadersMiddleware)
 
 # ── Exception Handlers ───────────────────────────────────
 app.add_exception_handler(Exception, unhandled_exception_handler)

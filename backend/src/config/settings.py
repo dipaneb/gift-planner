@@ -57,8 +57,10 @@ class Settings(BaseSettings):
     ACCOUNT_VERIFICATION_TOKEN_LIFESPAN_IN_HOURS: int = 1
     MAILJET_API_KEY: str
     MAILJET_API_SECRET_KEY: str
-    MAIL_FROM_EMAIL: EmailStr = "noreply@your-domain.com"
-    MAIL_FROM_NAME: str = "Your app name"
+    MAIL_FROM_EMAIL: EmailStr = "noreply@dipane.fr"
+    MAIL_FROM_NAME: str = "Gift Planner"
+    # Where users can write to (email footer, and Reply-To of every email sent from MAIL_FROM_EMAIL)
+    SUPPORT_EMAIL: EmailStr = "support@giftplanner.dipane.fr"
     FRONTEND_BASE_URL: str
 
     # Weekly visits report (Friday 20:00 Paris time). Empty = report disabled.
