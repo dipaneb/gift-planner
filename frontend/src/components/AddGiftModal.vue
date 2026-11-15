@@ -37,7 +37,7 @@
         <div class="grid grid-cols-2 gap-4">
           <UFormField :label="t('gifts.priceWithCurrency')" name="price">
             <UInputNumber
-              :v-model="form.price"
+              v-model="form.price"
               :step="0.01"
               :min="0"
               placeholder="0.00"
@@ -106,8 +106,10 @@ const giftSchema = computed(() =>
       .max(255, t("validation.nameTooLong")),
     url: z.url(t("validation.invalidUrl")).trim().optional().or(z.literal("")),
     price: z
-      .union([z.literal(""), z.coerce.number().positive(t("validation.pricePositive"))])
-      .optional(),
+      .number()
+      .positive(t("validation.pricePositive"))
+      // A cleared number input gives null
+      .nullish(),
     quantity: z.coerce.number().int().min(1, t("validation.quantityMin")),
     status: z.string() as z.ZodType<GiftStatus>,
     recipient_ids: z.array(z.string()).optional(),
@@ -149,7 +151,7 @@ watch(openModel, (isOpen) => {
   if (isOpen) {
     form.name = "";
     form.url = "";
-    form.price = "";
+    form.price = undefined;
     form.quantity = 1;
     form.status = "idee";
     form.recipient_ids = [];
