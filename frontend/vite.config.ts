@@ -11,6 +11,14 @@ export default defineConfig({
     vue(),
     vueDevTools(),
     ui({
+      // Bundle the icons the app uses (found by scanning the source) instead of fetching them
+      // at runtime from api.iconify.design: no third-party request, no blank icons if it is
+      // slow, down or blocked (ad blocker, strict network).
+      icon: {
+        clientBundle: {
+          scan: true,
+        },
+      },
       ui: {
         colors: {
           primary: "emerald",
