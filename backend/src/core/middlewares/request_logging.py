@@ -20,9 +20,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         request_id = uuid.uuid4().hex
         request.state.request_id = request_id
 
-        client_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or (
-            request.client.host if request.client else "unknown"
-        )
+        # Already resolved from X-Forwarded-For by uvicorn when the proxy is trusted.
+        # Reading the header directly would log whatever IP the client chose to send.
+        client_ip = request.client.host if request.client else "unknown"
 
         start = time.perf_counter()
         response = await call_next(request)
