@@ -6,6 +6,7 @@ from datetime import datetime, timezone, timedelta
 from fastapi import Depends, HTTPException, status
 
 from src.config.settings import get_settings
+from src.core.privacy import mask_email
 from src.domains.users.repository import UserRepository
 from src.domains.users.models import User
 from .repository import RefreshTokenRepository, ResetPasswordRepository
@@ -92,7 +93,7 @@ class AuthService:
                 # Email already exists and is verified - don't send email to prevent enumeration
                 # Generate dummy token hash to prevent timing attacks
                 self._generate_dummy_token_for_timing()
-                logger.warning("Registration attempt with existing verified email: %s", user_create.email)
+                logger.warning("Registration attempt with existing verified email: %s", mask_email(user_create.email))
                 return None
             else:
                 # Email exists but is not verified - check cooldown before resending
@@ -123,11 +124,11 @@ class AuthService:
                     # Generate dummy token hash to prevent timing attacks
                     self._generate_dummy_token_for_timing()
                     remaining_seconds = int((cooldown_ends_at - now).total_seconds())
-                    logger.info("Verification email cooldown for %s. %d seconds remaining.", user_create.email, remaining_seconds)
+                    logger.info("Verification email cooldown for %s. %d seconds remaining.", mask_email(user_create.email), remaining_seconds)
                     return None
                 
                 # Cooldown over - generate new verification token and invalidate old one
-                logger.info("Resending verification email for unverified account: %s", user_create.email)
+                logger.info("Resending verification email for unverified account: %s", mask_email(user_create.email))
                 
                 raw_token = uuid.uuid4().hex
                 token_fingerprint = get_verification_token_fingerprint(raw_token)
@@ -210,7 +211,7 @@ class AuthService:
             # Use a dummy hash to maintain constant timing
             dummy_hash = get_password_hash("dummy_password_for_timing_attack_prevention")
             verify_password(password, dummy_hash)
-            logger.warning("Failed login attempt for email: %s", normalized_email)
+            logger.warning("Failed login attempt for email: %s", mask_email(normalized_email))
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password",
@@ -218,7 +219,7 @@ class AuthService:
             )
 
         if not verify_password(password, user.password_hash):
-            logger.warning("Failed login attempt for email: %s", normalized_email)
+            logger.warning("Failed login attempt for email: %s", mask_email(normalized_email))
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password",
@@ -226,7 +227,7 @@ class AuthService:
             )
         
         if not user.is_verified:
-            logger.warning("Login attempt with unverified email: %s", normalized_email)
+            logger.warning("Login attempt with unverified email: %s", mask_email(normalized_email))
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Please verify your email address before logging in.",
@@ -451,7 +452,6 @@ class AuthService:
         Raises ValueError if token is invalid, expired, or already used.
         """
         
-        logger.debug("Attempting email verification with token: %s...", raw_token[:16])
         user = self.user_repo.get_by_verification_token(raw_token)
         
         # If user not found, token is invalid (already verified in repository to find user)
