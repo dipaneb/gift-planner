@@ -2,9 +2,11 @@
 
 import uuid
 from typing import Annotated
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, Response, status, HTTPException
 
+from src.domains.auth.cookies import set_refresh_token_cookie
 from src.domains.auth.dependencies import get_current_user, get_current_user_id
+from src.domains.auth.service import AuthService
 from .models import User
 from .schemas import BudgetUpdate, UserRead, UserNameUpdate, UserPasswordUpdate
 from .service import UserService
@@ -66,8 +68,12 @@ def delete_name(
 @router.patch("/me/password", status_code=status.HTTP_204_NO_CONTENT)
 def update_password(
     body: UserPasswordUpdate,
+    response: Response,
     user_service: Annotated[UserService, Depends()],
+    auth_service: Annotated[AuthService, Depends()],
     user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
 ):
-    """Update the user's password."""        
+    """Update the user's password, log out every other device, keep this one logged in."""
     user_service.update_password(user_id, body.current_password, body.new_password)
+    new_raw_refresh_token = auth_service.revoke_all_sessions_and_start_new_one(user_id)
+    set_refresh_token_cookie(response, new_raw_refresh_token)

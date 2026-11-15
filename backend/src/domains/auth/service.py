@@ -261,6 +261,17 @@ class AuthService:
         self.refresh_token_repo.delete_all_tokens_for_user(refresh_token.user_id)
 
 
+    def revoke_all_sessions_and_start_new_one(self, user_id: uuid.UUID) -> str:
+        """
+        Log the user out of every device, then return a new raw refresh token for the
+        current one. Used after a password change: whoever knew the old password and
+        opened a session with it must lose that session.
+        """
+        self.refresh_token_repo.delete_all_tokens_for_user(user_id)
+        logger.info("All sessions revoked for user: %s", user_id)
+        return self.__create_refresh_token_for_user(user_id)
+
+
     def rotate(self, old_raw_refresh_token: str) -> tuple[uuid.UUID, str]:
         """
         Returns (user_id, new_raw_refresh_token)

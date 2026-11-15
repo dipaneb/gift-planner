@@ -10,6 +10,7 @@ from .service import AuthService
 from .schemas import LoginData, UserCreate, UserUpdatePartial, ForgotPasswordRequest
 from .router_examples import REGISTER_EXAMPLES, RESET_PASSWORD_EXAMPLE
 from .access_token_handler import create_access_token
+from .cookies import REFRESH_TOKEN_COOKIE, delete_refresh_token_cookie, set_refresh_token_cookie
 from src.infrastructure.external_services.email_service import MailJetClient
 
 settings = get_settings()
@@ -58,15 +59,7 @@ def login(request: Request, response: Response, auth_service: Annotated[AuthServ
     access_token, refresh_token_raw, expires_in, user = auth_service.login(email, password)
 
     # Cookie refresh token (HttpOnly)
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token_raw,
-        httponly=True,
-        secure=(settings.ENV == "production"),
-        samesite="strict",
-        path="/auth",  # limits cookie sending to the refresh endpoint
-        max_age=settings.REFRESH_TOKEN_TTL_DAYS * 86400,
-    )
+    set_refresh_token_cookie(response, refresh_token_raw)
 
     user_response = auth_service._build_user_response(user.id)
     return LoginData(access_token=access_token, expires_in=expires_in, user=user_response)
@@ -77,7 +70,7 @@ def login(request: Request, response: Response, auth_service: Annotated[AuthServ
 # Refresh tokens are 128-bit random values: guessing one is not a realistic threat to rate limit.
 @limiter.limit("60/minute")
 def refresh(request: Request, response: Response, auth_service: Annotated[AuthService, Depends()]):
-    old_raw_refresh_token = request.cookies.get("refresh_token")
+    old_raw_refresh_token = request.cookies.get(REFRESH_TOKEN_COOKIE)
     if not old_raw_refresh_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
@@ -85,28 +78,20 @@ def refresh(request: Request, response: Response, auth_service: Annotated[AuthSe
         user_id, new_refresh_raw = auth_service.rotate(old_raw_refresh_token)
     except ValueError as e:
         # Deleting the cookie from client side eitherway.
-        response.delete_cookie(key="refresh_token", path="/auth")
+        delete_refresh_token_cookie(response)
         if str(e) in {"refresh_reuse", "invalid_refresh", "refresh_expired"}:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
         raise
 
     user = auth_service.user_repo.get_by_id(user_id)
     if not user:
-        response.delete_cookie(key="refresh_token", path="/auth")
+        delete_refresh_token_cookie(response)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
     access_token_lifespan_in_minutes = settings.ACCESS_TOKEN_LIFESPAN_IN_MINUTES
     new_access_token = create_access_token(subject=str(user_id), expires_minutes=access_token_lifespan_in_minutes)
 
-    response.set_cookie(
-        key="refresh_token",
-        value=new_refresh_raw,
-        httponly=True,
-        secure=(settings.ENV == "production"),
-        samesite="strict",
-        path="/auth",  # limits cookie sending to the refresh endpoint
-        max_age=settings.REFRESH_TOKEN_TTL_DAYS * 86400,
-    )
+    set_refresh_token_cookie(response, new_refresh_raw)
 
     user_response = auth_service._build_user_response(user_id)
     return LoginData(
@@ -119,10 +104,10 @@ def refresh(request: Request, response: Response, auth_service: Annotated[AuthSe
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit("10/minute")
 def logout(request: Request, response: Response, auth_service: Annotated[AuthService, Depends()]):
-    raw_refresh_token = request.cookies.get("refresh_token")
+    raw_refresh_token = request.cookies.get(REFRESH_TOKEN_COOKIE)
     
     # always delete the cookie on client side, even when absent/invalid.
-    response.delete_cookie(key="refresh_token", path="/auth")
+    delete_refresh_token_cookie(response)
 
     if not raw_refresh_token:
         return
