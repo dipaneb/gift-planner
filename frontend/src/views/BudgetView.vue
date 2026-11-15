@@ -110,6 +110,7 @@ import { useI18n } from "vue-i18n";
 import { z } from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 import BudgetDonut from "@/components/BudgetDonut.vue";
+import { MAX_AMOUNT } from "@/limits";
 import { useAuthStore } from "@/stores/auth";
 import { useBudget } from "@/composables/useBudget";
 import { useFormatPrice } from "@/composables/useFormatPrice";
@@ -121,7 +122,10 @@ const { loading, error, updateBudget, deleteBudget } = useBudget();
 
 const budgetSchema = computed(() =>
   z.object({
-    budget: z.number().positive(t("validation.budgetPositive")),
+    budget: z
+      .number()
+      .positive(t("validation.budgetPositive"))
+      .max(MAX_AMOUNT, t("validation.amountMax")),
   }),
 );
 
