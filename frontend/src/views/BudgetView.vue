@@ -19,7 +19,7 @@
               class="text-3xl font-decorative"
               :class="!authStore.user?.budget ? 'text-gray-400 italic' : 'text-gray-900'"
             >
-              {{ authStore.user?.budget ? `${authStore.user.budget} €` : t("common.notSet") }}
+              {{ authStore.user?.budget ? formatPrice(authStore.user.budget) : t("common.notSet") }}
             </div>
           </div>
 
@@ -30,7 +30,7 @@
               {{ t("budget.spent") }}
             </div>
             <div class="text-3xl text-orange-600 font-decorative">
-              {{ authStore.user?.spent || "0.00" }} €
+              {{ formatPrice(authStore.user?.spent) }}
             </div>
           </div>
 
@@ -115,8 +115,10 @@ import type { FormSubmitEvent } from "@nuxt/ui";
 import { DonutChart, type BulletLegendItemInterface, LegendPosition } from "vue-chrts";
 import { useAuthStore } from "@/stores/auth";
 import { useBudget } from "@/composables/useBudget";
+import { useFormatPrice } from "@/composables/useFormatPrice";
 
 const { t } = useI18n();
+const formatPrice = useFormatPrice();
 const authStore = useAuthStore();
 const { loading, error, updateBudget, deleteBudget } = useBudget();
 
@@ -137,7 +139,7 @@ const successMessage = ref<string | null>(null);
 const remainingDisplay = computed(() => {
   if (!authStore.user?.budget) return t("common.na");
   if (authStore.user.remaining === null) return t("common.na");
-  return `${authStore.user.remaining} €`;
+  return formatPrice(authStore.user.remaining);
 });
 
 const remainingColorClass = computed(() => {

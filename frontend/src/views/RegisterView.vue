@@ -1,14 +1,14 @@
 <template>
-  <div class="h-screen relative">
+  <div class="min-h-dvh relative flex flex-col">
     <AuroraBackground :color-stops="['#f4fff8', '#ccffe0', '#f4fff8']"
       :color-stops-dark="['#0a1f12', '#0d3d1f', '#0a1f12']" :blend="0.18" :amplitude="0.5" :speed="0.5" height="8rem"
       class="absolute top-0 left-0 right-0 -z-10" />
-    <div class="flex flex-col items-center justify-center gap-10 relative h-full">
+    <div class="flex flex-1 flex-col items-center justify-center gap-10 relative px-4 pt-20 pb-10">
       <div class="absolute top-4 right-4">
         <LanguageSelector />
       </div>
       <h1>{{ t("auth.registerPage.title") }}</h1>
-      <UCard class="min-w-100">
+      <UCard class="w-full max-w-100">
         <div v-if="successMessage" class="flex flex-col gap-4">
           <UAlert color="success" variant="subtle" icon="i-lucide-circle-check" :description="successMessage" />
         </div>
@@ -69,25 +69,25 @@
           </p>
         </template>
       </UCard>
-
-      <footer class="fixed bottom-0 left-0 w-full flex flex-col items-center justify-center gap-2 py-4 text-center">
-        <nav class="flex items-center gap-2">
-          <RouterLink to="/legal-notice">
-            {{ t("footer.legalNotice") }}
-          </RouterLink>
-
-          <span aria-hidden="true">•</span>
-
-          <RouterLink to="/privacy-policy">
-            {{ t("footer.privacyPolicy") }}
-          </RouterLink>
-        </nav>
-
-        <p>
-          © {{ new Date().getFullYear() }} Gift Planner
-        </p>
-      </footer>
     </div>
+
+    <footer class="w-full flex flex-col items-center justify-center gap-2 py-4 text-center">
+      <nav class="flex flex-wrap items-center justify-center gap-2 px-4">
+        <RouterLink to="/legal-notice">
+          {{ t("footer.legalNotice") }}
+        </RouterLink>
+
+        <span aria-hidden="true">•</span>
+
+        <RouterLink to="/privacy-policy">
+          {{ t("footer.privacyPolicy") }}
+        </RouterLink>
+      </nav>
+
+      <p>
+        © {{ new Date().getFullYear() }} Gift Planner
+      </p>
+    </footer>
   </div>
 </template>
 
