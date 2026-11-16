@@ -328,7 +328,7 @@ rignore==0.8.1
     # via
     #   -c requirements-prod.txt
     #   fastapi-cloud-cli
-ruff==0.17.4
+ruff==0.17.5
     # via -r requirements-dev.in
 sentry-sdk==2.72.0
     # via
