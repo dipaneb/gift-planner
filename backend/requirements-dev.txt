@@ -81,7 +81,7 @@ email-validator==2.3.0
     #   pydantic
 executing==2.3.0
     # via stack-data
-fastapi==0.162.5
+fastapi==0.165.0
     # via
     #   -c requirements-prod.txt
     #   -r requirements-prod.in
@@ -250,7 +250,7 @@ ptyprocess==0.7.0
     # via pexpect
 pure-eval==0.2.4
     # via stack-data
-pwdlib==0.3.1
+pwdlib==0.4.2
     # via
     #   -c requirements-prod.txt
     #   -r requirements-prod.in
@@ -328,7 +328,7 @@ rignore==0.8.1
     # via
     #   -c requirements-prod.txt
     #   fastapi-cloud-cli
-ruff==0.17.4
+ruff==0.17.6
     # via -r requirements-dev.in
 sentry-sdk==2.72.0
     # via
@@ -342,7 +342,7 @@ slowapi==0.1.10
     # via
     #   -c requirements-prod.txt
     #   -r requirements-prod.in
-sqlalchemy==2.1.8
+sqlalchemy==2.1.9
     # via
     #   -c requirements-prod.txt
     #   -r requirements-prod.in
